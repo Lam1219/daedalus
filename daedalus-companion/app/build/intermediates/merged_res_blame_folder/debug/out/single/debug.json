@@ -1,0 +1,22 @@
+[
+    {
+        "merged": "com.medicina.daedaluscompanion.app-merged_res-39:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "com.medicina.daedaluscompanion.app-main-41:/mipmap-anydpi-v26/ic_launcher.xml"
+    },
+    {
+        "merged": "com.medicina.daedaluscompanion.app-merged_res-39:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "com.medicina.daedaluscompanion.app-main-41:/drawable/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "/Users/lamiaaamzil/.gradle/daemon/8.5/com.medicina.daedaluscompanion.app-merged_res-39:/layout_item_protocol_block.xml.flat",
+        "source": "/Users/lamiaaamzil/.gradle/daemon/8.5/com.medicina.daedaluscompanion.app-main-41:/layout/item_protocol_block.xml"
+    },
+    {
+        "merged": "/Users/lamiaaamzil/.gradle/daemon/8.5/com.medicina.daedaluscompanion.app-merged_res-39:/layout_activity_session.xml.flat",
+        "source": "/Users/lamiaaamzil/.gradle/daemon/8.5/com.medicina.daedaluscompanion.app-main-41:/layout/activity_session.xml"
+    },
+    {
+        "merged": "/Users/lamiaaamzil/.gradle/daemon/8.5/com.medicina.daedaluscompanion.app-merged_res-39:/layout_activity_protocol_labeling.xml.flat",
+        "source": "/Users/lamiaaamzil/.gradle/daemon/8.5/com.medicina.daedaluscompanion.app-main-41:/layout/activity_protocol_labeling.xml"
+    }
+]

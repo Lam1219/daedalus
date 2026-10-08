@@ -1,0 +1,46 @@
+[
+    {
+        "merged": "/Users/lamiaaamzil/.gradle/daemon/8.5/com.medicina.daedaluscompanion.app-debug-60:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "/Users/lamiaaamzil/.gradle/daemon/8.5/com.medicina.daedaluscompanion.app-main-62:/mipmap-anydpi-v26/ic_launcher.xml"
+    },
+    {
+        "merged": "/Users/lamiaaamzil/.gradle/daemon/8.5/com.medicina.daedaluscompanion.app-debug-60:/font_manrope.xml.flat",
+        "source": "/Users/lamiaaamzil/.gradle/daemon/8.5/com.medicina.daedaluscompanion.app-main-62:/font/manrope.xml"
+    },
+    {
+        "merged": "com.medicina.daedaluscompanion.app-debug-60:/xml_file_paths.xml.flat",
+        "source": "com.medicina.daedaluscompanion.app-main-62:/xml/file_paths.xml"
+    },
+    {
+        "merged": "/Users/lamiaaamzil/.gradle/daemon/8.5/com.medicina.daedaluscompanion.app-debug-60:/font_manrope_regular.ttf.flat",
+        "source": "/Users/lamiaaamzil/.gradle/daemon/8.5/com.medicina.daedaluscompanion.app-main-62:/font/manrope_regular.ttf"
+    },
+    {
+        "merged": "/Users/lamiaaamzil/.gradle/daemon/8.5/com.medicina.daedaluscompanion.app-debug-60:/font_manrope_medium.ttf.flat",
+        "source": "/Users/lamiaaamzil/.gradle/daemon/8.5/com.medicina.daedaluscompanion.app-main-62:/font/manrope_medium.ttf"
+    },
+    {
+        "merged": "/Users/lamiaaamzil/.gradle/daemon/8.5/com.medicina.daedaluscompanion.app-debug-60:/font_manrope_semibold.ttf.flat",
+        "source": "/Users/lamiaaamzil/.gradle/daemon/8.5/com.medicina.daedaluscompanion.app-main-62:/font/manrope_semibold.ttf"
+    },
+    {
+        "merged": "/Users/lamiaaamzil/.gradle/daemon/8.5/com.medicina.daedaluscompanion.app-debug-60:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "/Users/lamiaaamzil/.gradle/daemon/8.5/com.medicina.daedaluscompanion.app-main-62:/drawable/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "/Users/lamiaaamzil/.gradle/daemon/8.5/com.medicina.daedaluscompanion.app-debug-60:/layout_item_protocol_block.xml.flat",
+        "source": "/Users/lamiaaamzil/.gradle/daemon/8.5/com.medicina.daedaluscompanion.app-main-62:/layout/item_protocol_block.xml"
+    },
+    {
+        "merged": "/Users/lamiaaamzil/.gradle/daemon/8.5/com.medicina.daedaluscompanion.app-debug-60:/layout_activity_protocol_labeling.xml.flat",
+        "source": "/Users/lamiaaamzil/.gradle/daemon/8.5/com.medicina.daedaluscompanion.app-main-62:/layout/activity_protocol_labeling.xml"
+    },
+    {
+        "merged": "/Users/lamiaaamzil/.gradle/daemon/8.5/com.medicina.daedaluscompanion.app-debug-60:/layout_activity_session.xml.flat",
+        "source": "/Users/lamiaaamzil/.gradle/daemon/8.5/com.medicina.daedaluscompanion.app-main-62:/layout/activity_session.xml"
+    },
+    {
+        "merged": "/Users/lamiaaamzil/.gradle/daemon/8.5/com.medicina.daedaluscompanion.app-debug-60:/font_manrope_bold.ttf.flat",
+        "source": "/Users/lamiaaamzil/.gradle/daemon/8.5/com.medicina.daedaluscompanion.app-main-62:/font/manrope_bold.ttf"
+    }
+]

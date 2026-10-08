@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>NSBluetoothAlwaysUsageDescription</key>
+    <string>Daedalus needs Bluetooth to connect to the Samsung Galaxy Watch5 Pro and the Cycplus H2 Heart Rate chest strap for sensor data collection.</string>
+    
+    <key>NSBluetoothPeripheralUsageDescription</key>
+    <string>Daedalus needs Bluetooth to communicate with the Samsung Galaxy Watch5 Pro and the Cycplus H2 Heart Rate chest strap.</string>
+    
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>en</string>
+        <string>fr</string>
+    </array>
+</dict>
+</plist>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Daedalus</string>
+    <string name="mode_rest">🧘 Rest\n70 BPM</string>
+    <string name="mode_walking">🚶 Walking\n80 BPM</string>
+    <string name="mode_writing">✍️ Writing\n90 BPM</string>
+    <string name="mode_stress">🧠 Stress\n60 BPM</string>
+    <string name="btn_start">▶ Start</string>
+    <string name="btn_stop">⏹ Stop</string>
+    <string name="status_select_mode">Select a mode</string>
+    <string name="status_running">%1$s running at %2$d BPM</string>
+    <string name="status_stopped">%1$s stopped</string>
+    <string name="toast_select_mode">Select a mode first</string>
+</resources>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Daedalus Companion</string>
+    <string name="btn_connect_ble">Connecter Ceinture (BLE)</string>
+    <string name="btn_export">📦 Exporter Session</string>
+    <string name="btn_rest">🧘 Repos</string>
+    <string name="btn_start">▶ Démarrer</string>
+    <string name="btn_stop">⏹ Arrêter</string>
+    <string name="btn_stress">🧠 Test de Stress</string>
+    <string name="btn_sync">👏 Sync (Applaudissements)</string>
+    <string name="hr_display">FC : --  RR : --</string>
+    <string name="hr_format">FC : %1$d bpm</string>
+    <string name="label_events">Marqueurs d\'événements</string>
+    <string name="rr_format"> RR : %1$.0f ms</string>
+    <string name="samples_format">(%1$d échantillons)</string>
+    <string name="session_active_format">Session : %1$s/%2$s\nÉtat : ACTIVE</string>
+    <string name="session_idle">Session : INACTIVE</string>
+    <string name="status_connected">Ceinture : CONNECTÉE</string>
+    <string name="status_connecting">Ceinture : CONNEXION…</string>
+    <string name="status_disconnected">Ceinture : DÉCONNECTÉE</string>
+    <string name="status_error">Ceinture : ERREUR</string>
+    <string name="status_scanning">Ceinture : RECHERCHE…</string>
+    <string name="toast_ble_permission">Permissions Bluetooth requises</string>
+    <string name="toast_exported">Exporté : %1$s</string>
+    <string name="toast_no_session">Pas de session active</string>
+    <string name="toast_session_started">Session démarrée</string>
+    <string name="toast_session_stopped">Session arrêtée</string>
+    <string name="toast_sync_event">Événement sync : Applaudissements</string>
+</resources>

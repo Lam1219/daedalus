@@ -1,0 +1,210 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.medicina.daedaluscompanion"
+4    android:versionCode="1"
+5    android:versionName="0.1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="26"
+9        android:targetSdkVersion="33" />
+10
+11    <!-- BLE permissions for Cycplus H2 chest strap -->
+12    <uses-permission
+12-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:5:5-68
+13        android:name="android.permission.BLUETOOTH"
+13-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:5:22-65
+14        android:maxSdkVersion="30" />
+14-->[no.nordicsemi.android:ble:2.7.1] /Users/lamiaaamzil/.gradle/caches/transforms-3/272954dd37a5ccddb647f0beaab8e688/transformed/ble-2.7.1/AndroidManifest.xml:9:9-35
+15    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+15-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:6:5-74
+15-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:6:22-71
+16    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+16-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:7:5-73
+16-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:7:22-70
+17    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+17-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:8:5-76
+17-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:8:22-73
+18    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+18-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:9:5-79
+18-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:9:22-76
+19
+20    <!-- Wear OS communication -->
+21    <uses-permission android:name="android.permission.WAKE_LOCK" />
+21-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:12:5-68
+21-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:12:22-65
+22
+23    <!-- Storage for file export -->
+24    <uses-permission
+24-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:15:5-16:38
+25        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+25-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:15:22-78
+26        android:maxSdkVersion="28" />
+26-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:16:9-35
+27
+28    <permission
+28-->[androidx.core:core:1.12.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/0d4ffc60e85a7c7f9fbeb27599893adc/transformed/core-1.12.0/AndroidManifest.xml:22:5-24:47
+29        android:name="com.medicina.daedaluscompanion.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+29-->[androidx.core:core:1.12.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/0d4ffc60e85a7c7f9fbeb27599893adc/transformed/core-1.12.0/AndroidManifest.xml:23:9-81
+30        android:protectionLevel="signature" />
+30-->[androidx.core:core:1.12.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/0d4ffc60e85a7c7f9fbeb27599893adc/transformed/core-1.12.0/AndroidManifest.xml:24:9-44
+31
+32    <uses-permission android:name="com.medicina.daedaluscompanion.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+32-->[androidx.core:core:1.12.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/0d4ffc60e85a7c7f9fbeb27599893adc/transformed/core-1.12.0/AndroidManifest.xml:26:5-97
+32-->[androidx.core:core:1.12.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/0d4ffc60e85a7c7f9fbeb27599893adc/transformed/core-1.12.0/AndroidManifest.xml:26:22-94
+33
+34    <application
+34-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:18:5-52:19
+35        android:allowBackup="true"
+35-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:19:9-35
+36        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+36-->[androidx.core:core:1.12.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/0d4ffc60e85a7c7f9fbeb27599893adc/transformed/core-1.12.0/AndroidManifest.xml:28:18-86
+37        android:debuggable="true"
+38        android:extractNativeLibs="false"
+39        android:icon="@mipmap/ic_launcher"
+39-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:20:9-43
+40        android:label="@string/app_name"
+40-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:21:9-41
+41        android:supportsRtl="true"
+41-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:22:9-35
+42        android:testOnly="true"
+43        android:theme="@style/Theme.DaedalusCompanion" >
+43-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:23:9-55
+44        <activity
+44-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:25:9-33:20
+45            android:name="com.medicina.daedaluscompanion.ui.SessionActivity"
+45-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:26:13-47
+46            android:exported="true"
+46-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:27:13-36
+47            android:theme="@style/Theme.DaedalusCompanion" >
+47-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:28:13-59
+48            <intent-filter>
+48-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:29:13-32:29
+49                <action android:name="android.intent.action.MAIN" />
+49-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:30:17-69
+49-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:30:25-66
+50
+51                <category android:name="android.intent.category.LAUNCHER" />
+51-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:31:17-77
+51-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:31:27-74
+52            </intent-filter>
+53        </activity>
+54        <activity
+54-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:35:9-39:64
+55            android:name="com.medicina.daedaluscompanion.ui.ProtocolLabelingActivity"
+55-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:36:13-56
+56            android:exported="false"
+56-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:37:13-37
+57            android:parentActivityName="com.medicina.daedaluscompanion.ui.SessionActivity"
+57-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:39:13-61
+58            android:theme="@style/Theme.DaedalusCompanion" />
+58-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:38:13-59
+59
+60        <!-- WearableListenerService for receiving data from the watch -->
+61        <service
+61-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:42:9-50:19
+62            android:name="com.medicina.daedaluscompanion.wear.WatchDataListener"
+62-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:43:13-51
+63            android:exported="true" >
+63-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:44:13-36
+64            <intent-filter>
+64-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:45:13-49:29
+65                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+65-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:46:17-87
+65-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:46:25-84
+66                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+66-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:47:17-91
+66-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:47:25-88
+67
+68                <data
+68-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:48:17-64
+69                    android:host="*"
+69-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:48:45-61
+70                    android:scheme="wear" />
+70-->/Users/lamiaaamzil/Development/PD-companion/daedalus-companion/app/src/main/AndroidManifest.xml:48:23-44
+71            </intent-filter>
+72        </service>
+73
+74        <activity
+74-->[com.google.android.gms:play-services-base:18.0.1] /Users/lamiaaamzil/.gradle/caches/transforms-3/c2694c45a8e4a470625c2ff5415b71be/transformed/play-services-base-18.0.1/AndroidManifest.xml:20:9-22:45
+75            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+75-->[com.google.android.gms:play-services-base:18.0.1] /Users/lamiaaamzil/.gradle/caches/transforms-3/c2694c45a8e4a470625c2ff5415b71be/transformed/play-services-base-18.0.1/AndroidManifest.xml:20:19-85
+76            android:exported="false"
+76-->[com.google.android.gms:play-services-base:18.0.1] /Users/lamiaaamzil/.gradle/caches/transforms-3/c2694c45a8e4a470625c2ff5415b71be/transformed/play-services-base-18.0.1/AndroidManifest.xml:22:19-43
+77            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+77-->[com.google.android.gms:play-services-base:18.0.1] /Users/lamiaaamzil/.gradle/caches/transforms-3/c2694c45a8e4a470625c2ff5415b71be/transformed/play-services-base-18.0.1/AndroidManifest.xml:21:19-78
+78
+79        <meta-data
+79-->[com.google.android.gms:play-services-basement:18.0.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/5716e773d79ce1297e2bce3123b2d604/transformed/play-services-basement-18.0.0/AndroidManifest.xml:21:9-23:69
+80            android:name="com.google.android.gms.version"
+80-->[com.google.android.gms:play-services-basement:18.0.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/5716e773d79ce1297e2bce3123b2d604/transformed/play-services-basement-18.0.0/AndroidManifest.xml:22:13-58
+81            android:value="@integer/google_play_services_version" />
+81-->[com.google.android.gms:play-services-basement:18.0.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/5716e773d79ce1297e2bce3123b2d604/transformed/play-services-basement-18.0.0/AndroidManifest.xml:23:13-66
+82
+83        <provider
+83-->[androidx.emoji2:emoji2:1.2.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/0ddb9c379c67fcbab722e7078f3a6911/transformed/emoji2-1.2.0/AndroidManifest.xml:24:9-32:20
+84            android:name="androidx.startup.InitializationProvider"
+84-->[androidx.emoji2:emoji2:1.2.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/0ddb9c379c67fcbab722e7078f3a6911/transformed/emoji2-1.2.0/AndroidManifest.xml:25:13-67
+85            android:authorities="com.medicina.daedaluscompanion.androidx-startup"
+85-->[androidx.emoji2:emoji2:1.2.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/0ddb9c379c67fcbab722e7078f3a6911/transformed/emoji2-1.2.0/AndroidManifest.xml:26:13-68
+86            android:exported="false" >
+86-->[androidx.emoji2:emoji2:1.2.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/0ddb9c379c67fcbab722e7078f3a6911/transformed/emoji2-1.2.0/AndroidManifest.xml:27:13-37
+87            <meta-data
+87-->[androidx.emoji2:emoji2:1.2.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/0ddb9c379c67fcbab722e7078f3a6911/transformed/emoji2-1.2.0/AndroidManifest.xml:29:13-31:52
+88                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+88-->[androidx.emoji2:emoji2:1.2.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/0ddb9c379c67fcbab722e7078f3a6911/transformed/emoji2-1.2.0/AndroidManifest.xml:30:17-75
+89                android:value="androidx.startup" />
+89-->[androidx.emoji2:emoji2:1.2.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/0ddb9c379c67fcbab722e7078f3a6911/transformed/emoji2-1.2.0/AndroidManifest.xml:31:17-49
+90            <meta-data
+90-->[androidx.lifecycle:lifecycle-process:2.7.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/f85ac06fc2d55a22491880112208a206/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:29:13-31:52
+91                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+91-->[androidx.lifecycle:lifecycle-process:2.7.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/f85ac06fc2d55a22491880112208a206/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:30:17-78
+92                android:value="androidx.startup" />
+92-->[androidx.lifecycle:lifecycle-process:2.7.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/f85ac06fc2d55a22491880112208a206/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:31:17-49
+93            <meta-data
+93-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/96880c6b062bc21963958e8d695bed5e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:29:13-31:52
+94                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+94-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/96880c6b062bc21963958e8d695bed5e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:30:17-85
+95                android:value="androidx.startup" />
+95-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/96880c6b062bc21963958e8d695bed5e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:31:17-49
+96        </provider>
+97
+98        <receiver
+98-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/96880c6b062bc21963958e8d695bed5e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:34:9-52:20
+99            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+99-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/96880c6b062bc21963958e8d695bed5e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:35:13-76
+100            android:directBootAware="false"
+100-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/96880c6b062bc21963958e8d695bed5e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:36:13-44
+101            android:enabled="true"
+101-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/96880c6b062bc21963958e8d695bed5e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:37:13-35
+102            android:exported="true"
+102-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/96880c6b062bc21963958e8d695bed5e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:38:13-36
+103            android:permission="android.permission.DUMP" >
+103-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/96880c6b062bc21963958e8d695bed5e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:39:13-57
+104            <intent-filter>
+104-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/96880c6b062bc21963958e8d695bed5e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:40:13-42:29
+105                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+105-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/96880c6b062bc21963958e8d695bed5e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:41:17-91
+105-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/96880c6b062bc21963958e8d695bed5e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:41:25-88
+106            </intent-filter>
+107            <intent-filter>
+107-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/96880c6b062bc21963958e8d695bed5e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:43:13-45:29
+108                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+108-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/96880c6b062bc21963958e8d695bed5e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:44:17-85
+108-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/96880c6b062bc21963958e8d695bed5e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:44:25-82
+109            </intent-filter>
+110            <intent-filter>
+110-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/96880c6b062bc21963958e8d695bed5e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:46:13-48:29
+111                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+111-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/96880c6b062bc21963958e8d695bed5e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:47:17-88
+111-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/96880c6b062bc21963958e8d695bed5e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:47:25-85
+112            </intent-filter>
+113            <intent-filter>
+113-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/96880c6b062bc21963958e8d695bed5e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:49:13-51:29
+114                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+114-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/96880c6b062bc21963958e8d695bed5e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:50:17-95
+114-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/lamiaaamzil/.gradle/caches/transforms-3/96880c6b062bc21963958e8d695bed5e/transformed/profileinstaller-1.3.0/AndroidManifest.xml:50:25-92
+115            </intent-filter>
+116        </receiver>
+117    </application>
+118
+119</manifest>

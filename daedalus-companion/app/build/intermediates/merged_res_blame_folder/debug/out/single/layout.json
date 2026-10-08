@@ -1,0 +1,14 @@
+[
+    {
+        "merged": "com.medicina.daedaluscompanion.app-mergeDebugResources-38:/layout/item_protocol_block.xml",
+        "source": "com.medicina.daedaluscompanion.app-main-41:/layout/item_protocol_block.xml"
+    },
+    {
+        "merged": "com.medicina.daedaluscompanion.app-mergeDebugResources-38:/layout/activity_session.xml",
+        "source": "com.medicina.daedaluscompanion.app-main-41:/layout/activity_session.xml"
+    },
+    {
+        "merged": "com.medicina.daedaluscompanion.app-mergeDebugResources-38:/layout/activity_protocol_labeling.xml",
+        "source": "com.medicina.daedaluscompanion.app-main-41:/layout/activity_protocol_labeling.xml"
+    }
+]

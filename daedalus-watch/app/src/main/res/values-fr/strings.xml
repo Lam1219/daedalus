@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Daedalus Watch</string>
+
+    <!-- Status -->
+    <string name="status_idle">Statut : INACTIF</string>
+    <string name="status_recording">Statut : ENREGISTREMENT</string>
+
+    <!-- Buttons -->
+    <string name="btn_iphone_connect">📱 Connecter iPhone</string>
+    <string name="btn_start">▶ Démarrer</string>
+    <string name="btn_stop">⏹ Arrêter</string>
+    <string name="btn_sync_taps">🔔 Sync Tapotements</string>
+    <string name="btn_sync_claps">👏 Sync Applaudissements</string>
+    <string name="btn_haptic_test">⚡ Test Haptique</string>
+
+    <!-- Labels -->
+    <string name="label_imu_available">IMU disponible</string>
+    <string name="label_collecting">Enregistrement</string>
+    <string name="label_vibrator">Vibreur</string>
+
+    <!-- Toast messages -->
+    <string name="toast_recording_started">Enregistrement démarré</string>
+    <string name="toast_recording_stopped">Enregistrement arrêté</string>
+    <string name="toast_sync_taps_logged">Sync tapotements enregistré</string>
+    <string name="toast_sync_claps_logged">Sync applaudissements enregistré</string>
+    <string name="toast_haptic_triggered">Impulsion haptique envoyée</string>
+
+    <!-- Debug -->
+    <string name="debug_haptic_message">Haptique déclenché à : %1$s\nVérifiez la vidéo pour l\'onset</string>
+</resources>

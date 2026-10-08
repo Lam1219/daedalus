@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="accent">#FF5722</color>
+    <color name="flo_background">#F8F9FE</color>
+    <color name="flo_border">#E6E6EE</color>
+    <color name="flo_bottom_nav">#FFFFFF</color>
+    <color name="flo_bottom_nav_selected">#6C5DD3</color>
+    <color name="flo_bottom_nav_unselected">#B2B2C5</color>
+    <color name="flo_card">#FFFFFF</color>
+    <color name="flo_divider">#F0F0F5</color>
+    <color name="flo_error">#FF3D71</color>
+    <color name="flo_primary">#6C5DD3</color>
+    <color name="flo_primary_dark">#5A4BC2</color>
+    <color name="flo_primary_light">#8B7FE8</color>
+    <color name="flo_secondary">#00C2FF</color>
+    <color name="flo_success">#00D68F</color>
+    <color name="flo_surface">#FFFFFF</color>
+    <color name="flo_text_primary">#1D1B2E</color>
+    <color name="flo_text_secondary">#808191</color>
+    <color name="flo_text_tertiary">#B2B2C5</color>
+    <color name="flo_warning">#FFAA00</color>
+    <color name="ic_launcher_background">#1976D2</color>
+    <color name="primary">#1976D2</color>
+    <color name="primary_dark">#1565C0</color>
+    <string name="app_name">Daedalus Companion</string>
+    <string name="btn_connect_ble">Connect Chest Strap (BLE)</string>
+    <string name="btn_export">📦 Export Session</string>
+    <string name="btn_rest">🧘 Rest</string>
+    <string name="btn_start">▶ Start</string>
+    <string name="btn_stop">⏹ Stop</string>
+    <string name="btn_stress">🧠 Stress Task</string>
+    <string name="btn_sync">👏 Sync (Claps)</string>
+    <string name="hr_display">HR: --  RR: --</string>
+    <string name="hr_format">HR: %1$d bpm</string>
+    <string name="label_events">Event Markers</string>
+    <string name="rr_format"> RR: %1$.0f ms</string>
+    <string name="samples_format">(%1$d samples)</string>
+    <string name="session_active_format">Session: %1$s/%2$s\nState: ACTIVE</string>
+    <string name="session_idle">Session: IDLE</string>
+    <string name="status_connected">Chest strap: CONNECTED</string>
+    <string name="status_connecting">Chest strap: CONNECTING…</string>
+    <string name="status_disconnected">Chest strap: DISCONNECTED</string>
+    <string name="status_error">Chest strap: ERROR</string>
+    <string name="status_scanning">Chest strap: SCANNING…</string>
+    <string name="toast_ble_permission">BLE permissions required</string>
+    <string name="toast_exported">Exported: %1$s</string>
+    <string name="toast_no_session">No active session</string>
+    <string name="toast_session_started">Session started</string>
+    <string name="toast_session_stopped">Session stopped</string>
+    <string name="toast_sync_event">Sync event: Claps</string>
+    <style name="FloText.Body1" parent="TextAppearance.AppCompat.Body1">
+        <item name="android:fontFamily">@font/manrope</item>
+    </style>
+    <style name="FloText.Body2" parent="TextAppearance.AppCompat.Body2">
+        <item name="android:fontFamily">@font/manrope</item>
+    </style>
+    <style name="FloText.Button" parent="TextAppearance.AppCompat.Button">
+        <item name="android:fontFamily">@font/manrope</item>
+    </style>
+    <style name="FloText.Caption" parent="TextAppearance.AppCompat.Caption">
+        <item name="android:fontFamily">@font/manrope</item>
+    </style>
+    <style name="FloText.Display" parent="TextAppearance.AppCompat.Display1">
+        <item name="android:fontFamily">@font/manrope</item>
+    </style>
+    <style name="FloText.H1" parent="TextAppearance.AppCompat.Headline">
+        <item name="android:fontFamily">@font/manrope</item>
+    </style>
+    <style name="FloText.H2" parent="TextAppearance.AppCompat.Title">
+        <item name="android:fontFamily">@font/manrope</item>
+    </style>
+    <style name="FloText.H3" parent="TextAppearance.AppCompat.Subhead">
+        <item name="android:fontFamily">@font/manrope</item>
+    </style>
+    <style name="Theme.DaedalusCompanion" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/flo_primary</item>
+        <item name="colorPrimaryDark">@color/flo_primary_dark</item>
+        <item name="colorAccent">@color/flo_secondary</item>
+        <item name="android:colorBackground">@color/flo_background</item>
+        <item name="colorSurface">@color/flo_surface</item>
+        <item name="android:fontFamily">@font/manrope</item>
+        <item name="fontFamily">@font/manrope</item>
+    </style>
+</resources>

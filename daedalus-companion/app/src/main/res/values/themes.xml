@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.DaedalusCompanion" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/flo_primary</item>
+        <item name="colorPrimaryDark">@color/flo_primary_dark</item>
+        <item name="colorAccent">@color/flo_secondary</item>
+        <item name="android:colorBackground">@color/flo_background</item>
+        <item name="colorSurface">@color/flo_surface</item>
+        <item name="android:fontFamily">@font/manrope</item>
+        <item name="fontFamily">@font/manrope</item>
+    </style>
+</resources>

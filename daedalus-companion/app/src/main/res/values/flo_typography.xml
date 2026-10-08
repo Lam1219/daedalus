@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Flo UI Kit Typography (Manrope font) -->
+
+    <style name="FloText.Display" parent="TextAppearance.AppCompat.Display1">
+        <item name="android:fontFamily">@font/manrope</item>
+    </style>
+
+    <style name="FloText.H1" parent="TextAppearance.AppCompat.Headline">
+        <item name="android:fontFamily">@font/manrope</item>
+    </style>
+
+    <style name="FloText.H2" parent="TextAppearance.AppCompat.Title">
+        <item name="android:fontFamily">@font/manrope</item>
+    </style>
+
+    <style name="FloText.H3" parent="TextAppearance.AppCompat.Subhead">
+        <item name="android:fontFamily">@font/manrope</item>
+    </style>
+
+    <style name="FloText.Body1" parent="TextAppearance.AppCompat.Body1">
+        <item name="android:fontFamily">@font/manrope</item>
+    </style>
+
+    <style name="FloText.Body2" parent="TextAppearance.AppCompat.Body2">
+        <item name="android:fontFamily">@font/manrope</item>
+    </style>
+
+    <style name="FloText.Caption" parent="TextAppearance.AppCompat.Caption">
+        <item name="android:fontFamily">@font/manrope</item>
+    </style>
+
+    <style name="FloText.Button" parent="TextAppearance.AppCompat.Button">
+        <item name="android:fontFamily">@font/manrope</item>
+    </style>
+</resources>

@@ -1,0 +1,103 @@
+# Daedalus Watch Kit
+
+Python processing library for the **Daedalus** smartwatch Parkinson's research POC
+by **Medicina**.
+
+Processes Samsung Galaxy Watch5 Pro sensor data (IMU, HR/HRV), synchronizes
+timestamps against the Cycplus H2 Heart Rate chest strap (RR intervals as
+ground-truth reference), computes signal quality scores, and detects stress,
+tremor, and gait patterns.
+
+## Quick Start
+
+```bash
+pip install -e .
+```
+
+```python
+from daedalus_watch_kit.ingestion import ingest_session
+from daedalus_watch_kit.sync import synchronize_session
+from daedalus_watch_kit.windowing import create_all_windows
+from daedalus_watch_kit.signal_quality import compute_imu_quality, compute_hr_quality_from_hr
+
+# Ingest a raw session
+data = ingest_session(Path("/data/raw/subject_001/session_001"))
+
+# Synchronize timestamps
+synced = synchronize_session(data["imu"], data["hr"], data["ecg"], sync_events)
+
+# Create analysis windows
+windows = create_all_windows(synced["imu"], subject_id="sub-001", session_id="sess-001")
+
+# Compute signal quality
+sqi = compute_imu_quality(imu_window_df)
+```
+
+## Package Structure
+
+```
+daedalus_watch_kit/
+├── __init__.py            # Package entry point
+├── schemas.py             # Data schema definitions (POC §9)
+├── event_labels.py        # Event label constants (POC §8)
+├── quality_rules.py       # Quality thresholds & rules (POC §3, §21)
+├── ingestion.py           # Stage 1: Data ingestion (POC §12)
+├── sync.py                # Stage 2: Time synchronization (POC §10)
+├── windowing.py           # Stage 3: Windowing (POC §12)
+├── signal_quality.py      # Stage 4: Signal quality scoring (POC §12)
+├── hrv.py                 # HRV processing (POC §13)
+├── stress.py              # Stress detection (POC §14)
+├── tremor.py              # Tremor detection (POC §15)
+├── gait.py                # Gait detection & cadence (POC §16)
+└── haptic.py              # Haptic engine analysis (POC §17)
+
+tests/
+├── test_filters.py        # Filter & preprocessing tests
+├── test_hrv.py            # HRV processing tests
+├── test_sync.py           # Time synchronization tests
+├── test_signal_quality.py # Signal quality scoring tests
+├── test_stress.py         # Stress detection tests
+├── test_tremor.py         # Tremor detection tests
+├── test_gait.py           # Gait detection tests
+├── test_haptic.py         # Haptic engine tests
+├── test_ingestion.py      # Data ingestion tests
+└── test_windowing.py      # Windowing tests
+```
+
+## Running Tests
+
+```bash
+pip install -e ".[dev]"
+pytest
+```
+
+## POC Coverage
+
+| Module | POC Section | Purpose |
+|--------|------------|---------|
+| `ingestion` | §9, §12 Stage 1 | Load raw sensor data, validate schemas, completeness |
+| `sync` | §10 | Clock offset, drift correction, cross-correlation (watch ↔ Cycplus H2) |
+| `windowing` | §12 Stage 3 | Fixed-length overlapping windows for all analyses |
+| `signal_quality` | §12 Stage 4 | HR_SQI, IMU_SQI, bad-segment detection |
+| `hrv` | §13 | IBI cleaning, time/frequency/nonlinear HRV features |
+| `stress` | §14 | Personalized baseline, stress score, classifier |
+| `tremor` | §15 | Tremor band features, rule-based & probabilistic classification |
+| `gait` | §16 | Gait detection, cadence estimation, instability proxy |
+| `haptic` | §17 | Pattern generation, latency/jitter analysis |
+
+## Success Criteria Targets
+
+All validation targets are defined in `quality_rules.py`:
+
+- **HR MAE vs Cycplus H2**: < 3 bpm (rest), < 6 bpm (movement)
+- **HRV RMSSD correlation vs Cycplus H2**: > 0.85
+- **Stress classifier F1**: > 0.70
+- **Tremor classification F1**: > 0.80
+- **Gait detection F1**: > 0.90
+- **Cadence MAE**: < 5 steps/min
+- **Haptic latency**: < 150 ms, jitter < 30 ms
+
+## Disclaimer
+
+This is a **research/wellness data collection and cueing prototype**. It is not
+a medical device and does not treat, diagnose, or prevent any condition.

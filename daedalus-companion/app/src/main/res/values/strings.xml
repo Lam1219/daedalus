@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Daedalus Companion</string>
+
+    <!-- Connection status -->
+    <string name="status_disconnected">Chest strap: DISCONNECTED</string>
+    <string name="status_scanning">Chest strap: SCANNING…</string>
+    <string name="status_connecting">Chest strap: CONNECTING…</string>
+    <string name="status_connected">Chest strap: CONNECTED</string>
+    <string name="status_error">Chest strap: ERROR</string>
+
+    <!-- HR display -->
+    <string name="hr_display">HR: --  RR: --</string>
+    <string name="hr_format">HR: %1$d bpm</string>
+    <string name="rr_format"> RR: %1$.0f ms</string>
+    <string name="samples_format">(%1$d samples)</string>
+
+    <!-- Session status -->
+    <string name="session_idle">Session: IDLE</string>
+    <string name="session_active_format">Session: %1$s/%2$s\nState: ACTIVE</string>
+
+    <!-- Buttons -->
+    <string name="btn_connect_ble">Connect Chest Strap (BLE)</string>
+    <string name="btn_start">▶ Start</string>
+    <string name="btn_stop">⏹ Stop</string>
+    <string name="btn_export">📦 Export Session</string>
+
+    <!-- Event markers -->
+    <string name="label_events">Event Markers</string>
+    <string name="btn_rest">🧘 Rest</string>
+    <string name="btn_stress">🧠 Stress Task</string>
+    <string name="btn_sync">👏 Sync (Claps)</string>
+
+    <!-- Toast messages -->
+    <string name="toast_ble_permission">BLE permissions required</string>
+    <string name="toast_session_started">Session started</string>
+    <string name="toast_session_stopped">Session stopped</string>
+    <string name="toast_exported">Exported: %1$s</string>
+    <string name="toast_no_session">No active session</string>
+    <string name="toast_sync_event">Sync event: Claps</string>
+</resources>
