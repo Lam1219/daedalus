@@ -8,7 +8,7 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.medicina.daedaluswatch"
+        applicationId = "com.medicina.daedaluscompanion"
         minSdk = 30  // Wear OS 3+ (Watch5 Pro runs Wear OS 3/4)
         targetSdk = 34
         versionCode = 1
@@ -44,6 +44,9 @@ dependencies {
     implementation("androidx.wear:wear:1.3.0")
     implementation("androidx.wear:wear-input:1.2.0-alpha02")
 
+    // Samsung Health Sensor SDK (SpO2, beat-to-beat intervals): drop the .aar into app/libs/
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.aar"))))
+
     // Health Services API (watch sensors: HR, HRV)
     implementation("androidx.health:health-services-client:1.0.0")
 
@@ -62,6 +65,9 @@ dependencies {
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+    // Unit tests (JVM)
+    testImplementation("junit:junit:4.13.2")
 
     // DataStore for preferences
     implementation("androidx.datastore:datastore-preferences:1.0.0")

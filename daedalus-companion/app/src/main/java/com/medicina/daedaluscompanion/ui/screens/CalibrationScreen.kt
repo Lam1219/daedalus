@@ -1,24 +1,33 @@
 package com.medicina.daedaluscompanion.ui.screens
 
-import androidx.compose.foundation.background
+import androidx.annotation.StringRes
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.Stop
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.medicina.daedaluscompanion.session.ProtocolBlocks
+import com.medicina.daedaluscompanion.R
 import com.medicina.daedaluscompanion.session.BlockCategory
-import com.medicina.daedaluscompanion.ui.screens.DesignTokens
+import com.medicina.daedaluscompanion.session.ProtocolBlock
+import com.medicina.daedaluscompanion.session.ProtocolBlocks
 
-// Categories with blocks, grouped logically (Miller's Law - 7±2)
 val calibrationCategories = listOf(
     BlockCategory.SYNC,
     BlockCategory.REST,
@@ -30,135 +39,78 @@ val calibrationCategories = listOf(
     BlockCategory.HAPTIC,
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
+@StringRes
+fun BlockCategory.labelRes(): Int = when (this) {
+    BlockCategory.SYNC -> R.string.cat_sync
+    BlockCategory.REST -> R.string.cat_rest
+    BlockCategory.BREATHING -> R.string.cat_breathing
+    BlockCategory.STRESS -> R.string.cat_stress
+    BlockCategory.MOVEMENT -> R.string.cat_movement
+    BlockCategory.TREMOR -> R.string.cat_tremor
+    BlockCategory.GAIT -> R.string.cat_gait
+    BlockCategory.HAPTIC -> R.string.cat_haptic
+    else -> R.string.cat_setup
+}
+
 @Composable
-fun CalibrationScreen() {
-    var selectedTabIndex by remember { mutableStateOf(0) }
+fun CalibrationScreen(onBack: () -> Unit) {
+    var selected by remember { mutableStateOf(calibrationCategories.first()) }
     var activeBlockId by remember { mutableStateOf<String?>(null) }
 
-    val selectedCategory = calibrationCategories[selectedTabIndex]
+    ScreenColumn(Modifier.verticalScroll(rememberScrollState())) {
+        BackHeader(stringResource(R.string.calib_title), onBack)
+        Text(stringResource(R.string.calib_lead), fontSize = 14.sp, color = DesignTokens.Muted)
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text("Calibration", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White)
-                        Text("Protocol Blocks", fontSize = 11.sp, color = Color.White.copy(alpha = 0.8f))
+        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            calibrationCategories.forEach { category ->
+                val on = category == selected
+                Surface(
+                    onClick = { selected = category },
+                    shape = RoundedCornerShape(20.dp),
+                    color = if (on) DesignTokens.SageDeep else DesignTokens.Surface,
+                    modifier = Modifier.height(40.dp).semantics { role = Role.Tab; this.selected = on },
+                ) {
+                    Box(Modifier.padding(horizontal = 16.dp), contentAlignment = Alignment.Center) {
+                        Text(stringResource(category.labelRes()), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = if (on) Color.White else DesignTokens.Ink)
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = DesignTokens.Primary)
-            )
+                }
+            }
         }
-    ) { padding ->
-        Column(modifier = Modifier.padding(padding).background(DesignTokens.Background)) {
-            // Category tabs (Hick's Law - clear labels, limited choices)
-            ScrollableTabRow(
-                selectedTabIndex = selectedTabIndex,
-                containerColor = DesignTokens.Background,
-                edgePadding = DesignTokens.Spacing16,
-                divider = {}
-            ) {
-                calibrationCategories.forEachIndexed { index, category ->
-                    Tab(
-                        selected = selectedTabIndex == index,
-                        onClick = { selectedTabIndex = index },
-                        text = { Text(category.label, fontSize = 12.sp, fontWeight = if (selectedTabIndex == index) FontWeight.SemiBold else FontWeight.Normal) }
-                    )
-                }
-            }
 
-            // Protocol blocks (Jakob's Law - familiar card pattern)
-            val blocks = ProtocolBlocks.getByCategory(selectedCategory)
-            Column(
-                modifier = Modifier
-                    .padding(DesignTokens.Spacing16)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing12)
-            ) {
-                blocks.forEach { block ->
-                    ProtocolBlockCard(
-                        block = block,
-                        isActive = activeBlockId == block.id,
-                        onStart = { activeBlockId = block.id },
-                        onStop = { activeBlockId = null }
-                    )
-                }
-            }
+        ProtocolBlocks.getByCategory(selected).forEach { block ->
+            ProtocolBlockCard(
+                block = block,
+                isActive = activeBlockId == block.id,
+                onStart = { activeBlockId = block.id },
+                onStop = { activeBlockId = null },
+            )
         }
     }
 }
 
 @Composable
-fun ProtocolBlockCard(
-    block: com.medicina.daedaluscompanion.session.ProtocolBlock,
-    isActive: Boolean,
-    onStart: () -> Unit,
-    onStop: () -> Unit
-) {
-    Card(
-        shape = RoundedCornerShape(DesignTokens.RadiusMedium),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isActive) DesignTokens.Success.copy(alpha = 0.08f) else DesignTokens.Surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (isActive) 4.dp else 1.dp)
-    ) {
-        Column(modifier = Modifier.padding(DesignTokens.Spacing16)) {
-            // Block name + duration
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(block.displayName, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, modifier = Modifier.weight(1f))
-                Text(
-                    block.targetDurationText,
-                    color = DesignTokens.Primary,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-
-            // Description
-            Text(block.description, color = DesignTokens.TextSecondary, fontSize = 13.sp, modifier = Modifier.padding(top = DesignTokens.Spacing4))
-
-            // Action buttons (Fitts's Law - large touch targets)
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = DesignTokens.Spacing16),
-                horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing8)
+fun ProtocolBlockCard(block: ProtocolBlock, isActive: Boolean, onStart: () -> Unit, onStop: () -> Unit) {
+    SageCard(color = if (isActive) DesignTokens.SageTint else DesignTokens.Surface) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(block.displayName, style = RowTitleStyle, modifier = Modifier.weight(1f))
+            Text(block.targetDurationText, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = DesignTokens.Sage)
+        }
+        Text(block.description, style = CaptionStyle.copy(fontSize = 13.sp), modifier = Modifier.padding(top = 4.dp))
+        Spacer(Modifier.height(14.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            PillButton(stringResource(R.string.start), onClick = onStart, enabled = !isActive, icon = Icons.Outlined.PlayArrow, height = 44.dp, modifier = Modifier.weight(1f))
+            OutlinedButton(
+                onClick = onStop,
+                enabled = isActive,
+                modifier = Modifier.weight(1f).height(44.dp),
+                shape = RoundedCornerShape(22.dp),
+                border = BorderStroke(1.dp, DesignTokens.SageLine),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = DesignTokens.SageDeep),
             ) {
-                Button(
-                    onClick = onStart,
-                    enabled = !isActive,
-                    modifier = Modifier.weight(1f).height(44.dp),
-                    shape = RoundedCornerShape(DesignTokens.RadiusSmall),
-                    colors = ButtonDefaults.buttonColors(containerColor = DesignTokens.Primary.copy(alpha = if (isActive) 0.3f else 1f))
-                ) {
-                    Icon(Icons.Default.PlayArrow, null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(DesignTokens.Spacing4))
-                    Text("Start", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                }
-                Button(
-                    onClick = onStop,
-                    enabled = isActive,
-                    modifier = Modifier.weight(1f).height(44.dp),
-                    shape = RoundedCornerShape(DesignTokens.RadiusSmall),
-                    colors = ButtonDefaults.buttonColors(containerColor = DesignTokens.Error)
-                ) {
-                    Icon(Icons.Default.Stop, null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(DesignTokens.Spacing4))
-                    Text("Stop", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                }
+                Icon(Icons.Outlined.Stop, null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(stringResource(R.string.stop), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
             }
         }
     }
 }
-
-val BlockCategory.label: String
-    get() = when (this) {
-        BlockCategory.SYNC -> "Sync"
-        BlockCategory.REST -> "Rest"
-        BlockCategory.BREATHING -> "Breath"
-        BlockCategory.STRESS -> "Stress"
-        BlockCategory.MOVEMENT -> "Motion"
-        BlockCategory.TREMOR -> "Tremor"
-        BlockCategory.GAIT -> "Gait"
-        BlockCategory.HAPTIC -> "Haptic"
-        else -> name
-    }

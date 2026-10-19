@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.DaedalusCompanion" parent="Theme.Material3.Light.NoActionBar">
-        <item name="colorPrimary">@color/flo_primary</item>
-        <item name="colorPrimaryDark">@color/flo_primary_dark</item>
-        <item name="colorAccent">@color/flo_secondary</item>
-        <item name="android:colorBackground">@color/flo_background</item>
-        <item name="colorSurface">@color/flo_surface</item>
+        <item name="colorPrimary">@color/sage_deep</item>
+        <item name="colorPrimaryDark">@color/sage_deep</item>
+        <item name="colorAccent">@color/sage</item>
+        <item name="android:colorBackground">@color/sage_ground</item>
+        <item name="colorSurface">@color/sage_surface</item>
+        <item name="android:statusBarColor">@color/sage_ground</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">@color/sage_surface</item>
         <item name="android:fontFamily">@font/manrope</item>
         <item name="fontFamily">@font/manrope</item>
     </style>

@@ -7,6 +7,11 @@
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!-- Dose reminders -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <!-- Wear OS communication -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -21,6 +26,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
+        android:localeConfig="@xml/locales_config"
         android:theme="@style/Theme.DaedalusCompanion">
 
         <activity
@@ -43,25 +49,37 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <!-- Watch data listener -->
+        <!-- Persists the in-app language choice on Android 12 and below -->
+        <service
+            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false">
+            <meta-data
+                android:name="autoStoreLocales"
+                android:value="true" />
+        </service>
+
+        <!-- Dose reminders: alarm + "Mark taken" action, and re-arming after reboot -->
+        <receiver
+            android:name=".data.MedReminderReceiver"
+            android:exported="false" />
+        <receiver
+            android:name=".data.MedReminderBootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Watch data listener (handles DataLayer, Messages, and Channels) -->
         <service
             android:name=".wear.WatchDataListener"
             android:exported="true">
             <intent-filter>
                 <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
                 <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
-                <data android:scheme="wear" android:host="*" />
-            </intent-filter>
-        </service>
-
-        <!-- Session channel listener (receives files from watch) -->
-        <service
-            android:name=".wear.SessionChannelListener"
-            android:exported="true">
-            <intent-filter>
                 <action android:name="com.google.android.gms.wearable.CHANNEL_OPENED" />
-                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
-                <data android:scheme="wear" android:host="*" android:pathPrefix="/session" />
+                <data android:scheme="wear" android:host="*" android:pathPrefix="/" />
             </intent-filter>
         </service>
 

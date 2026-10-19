@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primary">#1976D2</color>
-    <color name="primary_dark">#1565C0</color>
+    <!-- Sage palette for the dark round watch face -->
+    <color name="watch_ground">#121612</color>
+    <color name="watch_surface">#252D25</color>
+    <color name="watch_surface_raised">#2A332A</color>
+    <color name="watch_sage">#A8C49E</color>
+    <color name="watch_ink">#F1F4EF</color>
+    <color name="watch_muted">#A3AFA3</color>
+    <color name="watch_soft">#C8D3C5</color>
 </resources>

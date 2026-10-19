@@ -1,7 +1,7 @@
 package com.medicina.daedaluswatch.sync
 
 import android.content.Context
-import android.net.Uri
+import com.medicina.daedaluswatch.haptics.HapticService
 import android.util.Log
 import com.google.android.gms.wearable.*
 import kotlinx.coroutines.*
@@ -18,6 +18,11 @@ class SessionSyncManager(private val context: Context) {
     private val channelClient = Wearable.getChannelClient(context)
     private val nodeClient = Wearable.getNodeClient(context)
     private val messageClient = Wearable.getMessageClient(context)
+    private val dataClient = Wearable.getDataClient(context)
+
+    init {
+        syncAllPendingFiles()
+    }
 
     companion object {
         const val CHANNEL_PATH = "/session/file"
@@ -29,9 +34,10 @@ class SessionSyncManager(private val context: Context) {
         scope.launch {
             try {
                 val nodes = nodeClient.connectedNodes.await()
+                Log.i("SessionSync", "Found ${nodes.size} connected phone node(s) for start notification")
                 for (node in nodes) {
-                    val message = "start|$mode".toByteArray()
-                    messageClient.sendMessage(node.id, CONTROL_PATH, message)
+                    val message = "start|$mode".toByteArray(Charsets.UTF_8)
+                    messageClient.sendMessage(node.id, CONTROL_PATH, message).await()
                 }
                 Log.i("SessionSync", "Session start notification sent: mode=$mode")
             } catch (e: Exception) {
@@ -40,49 +46,117 @@ class SessionSyncManager(private val context: Context) {
         }
     }
 
-    /** Transfer session file to phone and delete local copy on success */
-    fun transferAndPurgeFile(csvFile: File, mode: String) {
+    /** Sync all pending session files in local sessions directory to phone */
+    fun syncAllPendingFiles() {
         scope.launch {
-            if (!csvFile.exists()) {
-                Log.e("SessionSync", "File does not exist: ${csvFile.name}")
-                return@launch
+            val sessionsDir = File(context.filesDir, "sessions")
+            if (!sessionsDir.exists()) return@launch
+
+            // Never send the file a running cue is still writing: sending purges it from the watch,
+            // and everything recorded after that would be lost.
+            val recording = HapticService.recordingFileName
+            val files = sessionsDir.listFiles()?.filter { it.isFile && it.extension == "csv" && it.name != recording } ?: return@launch
+            if (files.isEmpty()) return@launch
+            
+            Log.i("SessionSync", "Found ${files.size} pending session file(s) to transfer")
+
+            for (file in files) {
+                val mode = file.name.substringAfter("session_").substringBefore("_")
+                transferAndPurgeFileInternal(file, mode)
+            }
+        }
+    }
+
+    /** Transfer session file to phone and delete local copy on success */
+    fun transferAndPurgeFile(csvFile: File, mode: String, onComplete: () -> Unit = {}) {
+        scope.launch {
+            try {
+                transferAndPurgeFileInternal(csvFile, mode)
+            } finally {
+                onComplete()
+            }
+        }
+    }
+
+    private suspend fun transferAndPurgeFileInternal(csvFile: File, mode: String) {
+        if (!csvFile.exists()) {
+            Log.e("SessionSync", "File does not exist: ${csvFile.name}")
+            return
+        }
+
+        try {
+            val fileBytes = csvFile.readBytes()
+            var transferSuccess = false
+
+            // 1. Primary: DataClient PutDataMapRequest (synchronizes via Wear OS DataLayer)
+            try {
+                val putDataMapReq = PutDataMapRequest.create("/session/${csvFile.name}").apply {
+                    dataMap.putString("mode", mode)
+                    dataMap.putString("fileName", csvFile.name)
+                    dataMap.putByteArray("fileData", fileBytes)
+                    dataMap.putLong("timestamp", System.currentTimeMillis())
+                }
+                val putDataReq = putDataMapReq.asPutDataRequest().setUrgent()
+                dataClient.putDataItem(putDataReq).await()
+                Log.i("SessionSync", "DataClient transfer succeeded for ${csvFile.name}")
+                transferSuccess = true
+            } catch (e: Exception) {
+                Log.w("SessionSync", "DataClient transfer failed for ${csvFile.name}: ${e.message}")
             }
 
+            // 2. MessageClient API (Direct payload message)
             try {
-                // Find connected phone node
                 val nodes = nodeClient.connectedNodes.await()
-                Log.i("SessionSync", "Found ${nodes.size} connected node(s)")
-
-                if (nodes.isEmpty()) {
-                    Log.w("SessionSync", "No connected phone nodes — keeping file locally")
-                    return@launch
+                if (nodes.isNotEmpty()) {
+                    val phoneNode = nodes.first()
+                    val header = "$mode|${csvFile.name}|${fileBytes.size}|".toByteArray(Charsets.UTF_8)
+                    val payload = header + fileBytes
+                    messageClient.sendMessage(phoneNode.id, "/session/file", payload).await()
+                    Log.i("SessionSync", "MessageClient transfer succeeded for ${csvFile.name}")
+                    transferSuccess = true
                 }
+            } catch (e: Exception) {
+                Log.w("SessionSync", "MessageClient transfer failed for ${csvFile.name}: ${e.message}")
+            }
 
-                val phoneNode = nodes.first()
-                Log.i("SessionSync", "Sending to node: ${phoneNode.id}, file: ${csvFile.name} (${csvFile.length()} bytes)")
+            // 3. ChannelClient API Stream Fallback
+            if (!transferSuccess) {
+                try {
+                    val nodes = nodeClient.connectedNodes.await()
+                    if (nodes.isNotEmpty()) {
+                        val phoneNode = nodes.first()
+                        val channelPath = "$CHANNEL_PATH/${csvFile.name}"
+                        val channel = channelClient.openChannel(phoneNode.id, channelPath).await()
+                        val outputStream = channelClient.getOutputStream(channel).await()
+                        outputStream.write(fileBytes)
+                        outputStream.flush()
+                        outputStream.close()
+                        channelClient.close(channel).await()
+                        Log.i("SessionSync", "ChannelClient transfer succeeded for ${csvFile.name}")
+                        transferSuccess = true
+                    }
+                } catch (e: Exception) {
+                    Log.w("SessionSync", "ChannelClient transfer failed for ${csvFile.name}: ${e.message}")
+                }
+            }
 
-                // Open channel and send file
-                val channelPath = "$CHANNEL_PATH/${csvFile.name}"
-                val channel = channelClient.openChannel(phoneNode.id, channelPath).await()
-
-                val fileUri = Uri.fromFile(csvFile)
-                channelClient.sendFile(channel, fileUri, 0, csvFile.length()).await()
-
-                // Close channel
-                channelClient.close(channel).await()
-
-                // SUCCESS — delete local file
+            if (transferSuccess) {
+                // SUCCESS — delete local file from watch
                 val deleted = csvFile.delete()
-                Log.i("SessionSync", "File transferred successfully: ${csvFile.name}, deleted=$deleted")
+                Log.i("SessionSync", "File transferred successfully and purged: ${csvFile.name}, deleted=$deleted")
 
                 // Notify phone that transfer is complete
-                val message = "complete|$mode|${csvFile.name}|${csvFile.length()}".toByteArray()
-                messageClient.sendMessage(phoneNode.id, CONTROL_PATH, message)
-
-            } catch (e: Exception) {
-                Log.e("SessionSync", "File transfer failed: ${e.message}")
-                // File is NOT deleted — can retry later
+                val nodes = nodeClient.connectedNodes.await()
+                for (node in nodes) {
+                    val message = "complete|$mode|${csvFile.name}|${fileBytes.size}".toByteArray()
+                    messageClient.sendMessage(node.id, CONTROL_PATH, message)
+                }
+            } else {
+                Log.e("SessionSync", "All transfer methods failed for ${csvFile.name} — keeping file for retry")
             }
+
+        } catch (e: Exception) {
+            Log.e("SessionSync", "File transfer error for ${csvFile.name}: ${e.message}", e)
         }
     }
 }

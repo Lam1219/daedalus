@@ -23,10 +23,7 @@ private const val TAG = "ChestStrapBLEManager"
  * The Cycplus H2 exposes the standard Bluetooth Heart Rate Service (UUID: 0x180D)
  * with the Heart Rate Measurement characteristic (UUID: 0x2A37).
  *
- * Parses the BLE Heart Rate Measurement format per Bluetooth SIG spec:
- * - Byte 0: Flags (bit 0 = RR interval present)
- * - Byte 1-2: Heart Rate (UINT8 or UINT16)
- * - Byte 3+: RR Interval (UINT16, in 1/1024 second units)
+ * Notifications are decoded by [HeartRateMeasurementParser].
  */
 class ChestStrapBLEManager(private val context: Context) {
 
@@ -172,51 +169,16 @@ class ChestStrapBLEManager(private val context: Context) {
     }
 
     /**
-     * Parse BLE Heart Rate Measurement characteristic value.
-     * Format per Bluetooth SIG Heart Rate Profile:
-     * - Flags (1 byte): bit 0 = RR interval present, bit 1 = sensor contact, etc.
-     * - Heart Rate Value (1 or 2 bytes): UINT8 if bit 0 of flags = 0, UINT16 if bit 0 = 1
-     * - RR Interval (2 bytes each): present if bit 0 of flags = 1, units = 1/1024 seconds
+     * Parse a Heart Rate Measurement notification and record it as [EcgSample]s.
+     * See [HeartRateMeasurementParser] for the wire format.
      */
     private fun parseHeartRateMeasurement(value: ByteArray) {
-        if (value.isEmpty()) return
-
-        val flags = value[0].toInt()
-        val rrPresent = (flags and 0x01) == 1
-        val hrFormatUint16 = (flags and 0x02) == 1
-
-        var offset = 1
-
-        // Parse heart rate
-        val hrBpm = if (hrFormatUint16) {
-            if (offset + 1 >= value.size) return
-            val hr = (value[offset].toInt() and 0xFF) or ((value[offset + 1].toInt() and 0xFF) shl 8)
-            offset += 2
-            hr.toFloat()
-        } else {
-            if (offset >= value.size) return
-            val hr = value[offset].toInt() and 0xFF
-            offset += 1
-            hr.toFloat()
-        }
-
-        // Skip energy expended if present (bit 3)
-        if ((flags and 0x08) != 0) {
-            offset += 2
-        }
-
-        // Skip sensor contact if present (bit 4)
-        if ((flags and 0x10) != 0) {
-            offset += 1
-        }
+        val measurement = HeartRateMeasurementParser.parse(value) ?: return
+        val hrBpm = measurement.hrBpm.toFloat()
 
         // Parse RR intervals
-        if (rrPresent) {
-            while (offset + 1 < value.size) {
-                val rrRaw = (value[offset].toInt() and 0xFF) or ((value[offset + 1].toInt() and 0xFF) shl 8)
-                offset += 2
-                val rrMs = rrRaw / 1024f  // Convert from 1/1024s to ms
-
+        if (measurement.rrIntervalsMs.isNotEmpty()) {
+            for (rrMs in measurement.rrIntervalsMs) {
                 if (rrMs > 0) {
                     val sample = EcgSample(
                         epochMs = System.currentTimeMillis(),
@@ -245,6 +207,76 @@ class ChestStrapBLEManager(private val context: Context) {
         private val HEART_RATE_SERVICE_UUID = java.util.UUID.fromString("0000180D-0000-1000-8000-00805f9b34fb")
         private val HEART_RATE_MEASUREMENT_UUID = java.util.UUID.fromString("00002A37-0000-1000-8000-00805f9b34fb")
     }
+}
+
+/** One decoded Heart Rate Measurement (0x2A37) notification. */
+data class HeartRateMeasurement(
+    val hrBpm: Int,
+    /** Sensor contact status (flags bits 1-2): null if the feature is not supported. */
+    val sensorContact: Boolean?,
+    /** Cumulative energy expended in kJ, or null if not present. */
+    val energyExpendedKj: Int?,
+    /** RR intervals converted from 1/1024 s to milliseconds, oldest first. */
+    val rrIntervalsMs: List<Float>,
+)
+
+/**
+ * Parser for the Bluetooth SIG Heart Rate Measurement characteristic (0x2A37).
+ *
+ * Flags byte:
+ * - bit 0: HR value format (0 = UINT8, 1 = UINT16)
+ * - bits 1-2: sensor contact status (bit 2 = supported, bit 1 = detected)
+ * - bit 3: energy expended present (UINT16, kJ)
+ * - bit 4: RR intervals present (UINT16 each, 1/1024 s)
+ *
+ * Fields follow the flags in order: HR value, energy expended, RR intervals. All little-endian.
+ */
+object HeartRateMeasurementParser {
+    private const val FLAG_HR_UINT16 = 0x01
+    private const val FLAG_CONTACT_DETECTED = 0x02
+    private const val FLAG_CONTACT_SUPPORTED = 0x04
+    private const val FLAG_ENERGY_EXPENDED = 0x08
+    private const val FLAG_RR_INTERVALS = 0x10
+
+    /** Returns null if [value] is too short to hold the flags and HR value. */
+    fun parse(value: ByteArray): HeartRateMeasurement? {
+        if (value.isEmpty()) return null
+        val flags = value[0].toInt() and 0xFF
+        var offset = 1
+
+        val hrBpm = if ((flags and FLAG_HR_UINT16) != 0) {
+            if (offset + 2 > value.size) return null
+            uint16(value, offset).also { offset += 2 }
+        } else {
+            if (offset + 1 > value.size) return null
+            (value[offset].toInt() and 0xFF).also { offset += 1 }
+        }
+
+        val sensorContact = if ((flags and FLAG_CONTACT_SUPPORTED) != 0) {
+            (flags and FLAG_CONTACT_DETECTED) != 0
+        } else {
+            null
+        }
+
+        var energyExpendedKj: Int? = null
+        if ((flags and FLAG_ENERGY_EXPENDED) != 0 && offset + 2 <= value.size) {
+            energyExpendedKj = uint16(value, offset)
+            offset += 2
+        }
+
+        val rrIntervalsMs = mutableListOf<Float>()
+        if ((flags and FLAG_RR_INTERVALS) != 0) {
+            while (offset + 2 <= value.size) {
+                rrIntervalsMs.add(uint16(value, offset) * 1000f / 1024f)
+                offset += 2
+            }
+        }
+
+        return HeartRateMeasurement(hrBpm, sensorContact, energyExpendedKj, rrIntervalsMs)
+    }
+
+    private fun uint16(value: ByteArray, offset: Int): Int =
+        (value[offset].toInt() and 0xFF) or ((value[offset + 1].toInt() and 0xFF) shl 8)
 }
 
 enum class ConnectionState {

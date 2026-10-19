@@ -1,31 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Daedalus Watch</string>
+    <string name="app_name">Daedalus</string>
 
-    <!-- Status -->
-    <string name="status_idle">Statut : INACTIF</string>
-    <string name="status_recording">Statut : ENREGISTREMENT</string>
+    <!-- Home -->
+    <string name="status_cues_on">Repères activés</string>
+    <string name="im_stuck">Je suis bloqué·e</string>
+    <string name="unit_bpm">bpm</string>
+    <string name="unit_per_min">/min</string>
+    <string name="value_none">—</string>
+    <string name="cd_heart_rate">Fréquence cardiaque</string>
+    <string name="cd_breathing">Fréquence respiratoire</string>
 
-    <!-- Buttons -->
-    <string name="btn_iphone_connect">📱 Connecter iPhone</string>
-    <string name="btn_start">▶ Démarrer</string>
-    <string name="btn_stop">⏹ Arrêter</string>
-    <string name="btn_sync_taps">🔔 Sync Tapotements</string>
-    <string name="btn_sync_claps">👏 Sync Applaudissements</string>
-    <string name="btn_haptic_test">⚡ Test Haptique</string>
+    <!-- Cue modes -->
+    <string name="mode_walk">Marche</string>
+    <string name="mode_rest">Respiration</string>
+    <string name="mode_fine">Motricité fine</string>
+    <string name="mode_calm">Calme</string>
 
-    <!-- Labels -->
-    <string name="label_imu_available">IMU disponible</string>
-    <string name="label_collecting">Enregistrement</string>
-    <string name="label_vibrator">Vibreur</string>
+    <!-- Walking cue -->
+    <string name="walk_label">Repère de marche</string>
+    <string name="unit_steps_min">pas par minute</string>
+    <string name="hint_step">Un pas à chaque vibration</string>
+    <string name="stop">Arrêter</string>
 
-    <!-- Toast messages -->
-    <string name="toast_recording_started">Enregistrement démarré</string>
-    <string name="toast_recording_stopped">Enregistrement arrêté</string>
-    <string name="toast_sync_taps_logged">Sync tapotements enregistré</string>
-    <string name="toast_sync_claps_logged">Sync applaudissements enregistré</string>
-    <string name="toast_haptic_triggered">Impulsion haptique envoyée</string>
+    <!-- Breathing cue -->
+    <string name="breathe_label">Repère respiratoire</string>
+    <string name="breathe_in">Inspirez</string>
+    <string name="breathe_out">Expirez</string>
+    <string name="breathe_rhythm">Inspirez %1$d s · Expirez %2$d s</string>
+    <string name="breathe_hr">Cœur à %1$d bpm</string>
+    <string name="breathe_spo2">Mesure de l’oxygène sanguin. Restez immobile.</string>
+    <string name="done">Terminé</string>
 
-    <!-- Debug -->
-    <string name="debug_haptic_message">Haptique déclenché à : %1$s\nVérifiez la vidéo pour l\'onset</string>
+    <!-- Fine motor / calm cue -->
+    <string name="cue_fine_sub">Pulsations régulières</string>
+    <string name="cue_calm_sub">Pulsations d’ancrage</string>
+    <string name="unit_pulses_min">%1$d pulsations par minute</string>
+    <string name="paused">En pause</string>
+    <string name="cd_pause">Mettre en pause</string>
+    <string name="cd_resume">Reprendre</string>
+    <string name="cd_stop">Arrêter le repère</string>
+
+    <!-- Stand-up prompt -->
+    <string name="stand_title">Une pause avant de marcher</string>
+    <string name="stand_sub">Vous venez de vous lever. Respirez un instant.</string>
+    <string name="stand_ready">Je suis prêt·e</string>
+    <string name="stand_channel">Rappels au lever</string>
+    <string name="stand_watching_channel">Détection du lever</string>
+    <string name="stand_watching">Détection du lever activée</string>
+
+    <string name="toast_already_stopped">Aucun repère en cours</string>
+
+    <string name="notif_channel">Repères Daedalus</string>
+    <string name="notif_title">Daedalus · %1$s</string>
+    <string name="notif_text">Repère à %1$d par minute · enregistrement des capteurs</string>
 </resources>

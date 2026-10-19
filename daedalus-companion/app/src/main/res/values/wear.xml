@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Declares this app as a Wear OS Data Layer endpoint. Without this, Play Services'
+         WearableService fails to resolve this app as a message target on some GMS versions
+         (observed as "Didn't find package" / "Failed to deliver message to AppKey" even though
+         the app is correctly installed with a registered WearableListenerService). -->
+    <string-array name="android_wear_capabilities">
+        <item>daedalus_phone</item>
+    </string-array>
+</resources>

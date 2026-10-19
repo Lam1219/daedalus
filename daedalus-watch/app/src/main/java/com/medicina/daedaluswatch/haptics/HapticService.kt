@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
@@ -19,6 +20,7 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
 import com.medicina.daedaluswatch.R
+import com.medicina.daedaluswatch.sensor.VitalsTracker
 import com.medicina.daedaluswatch.sync.SessionSyncManager
 import java.io.BufferedWriter
 import java.io.File
@@ -39,11 +41,20 @@ class HapticService : Service() {
     private var hapticThread: Thread? = null
     private var currentBpm: Int = 0
     private var currentMode: String = ""
+    @Volatile private var intervalMs: Long = 750L
+
+    /** Latest vitals for the session CSV; null = no valid reading yet (written as a blank cell). */
+    @Volatile private var latestBreathingRate: Float? = null
+    @Volatile private var latestSpo2: Int? = null
+    private var vitalsTracker: VitalsTracker? = null
+    /** True while an SpO2 reading runs: pulses are skipped so vibration doesn't corrupt the signal. */
+    @Volatile private var pulsesPaused = false
 
     // Sensor recording
     private var sensorManager: SensorManager? = null
     private var accelerometer: Sensor? = null
     private var gyroscope: Sensor? = null
+    private var heartRateSensor: Sensor? = null
     private var csvWriter: BufferedWriter? = null
     private var sessionFile: File? = null
     private var sensorListener: SensorEventListener? = null
@@ -54,8 +65,52 @@ class HapticService : Service() {
         const val EXTRA_MODE = "extra_mode"
         const val ACTION_START = "action_start"
         const val ACTION_STOP = "action_stop"
+        /** Change the pulse rate of a running cue (rate set on the phone). */
+        const val ACTION_SET_BPM = "action_set_bpm"
+        /** Pause / resume the pulses of a running cue from the watch screen (recording continues). */
+        const val ACTION_PAUSE = "action_pause"
+        const val ACTION_RESUME = "action_resume"
+
+        /** Breathing pacer: inhale share of each breath (In 4 s · Out 6 s at 6 breaths/min). */
+        const val INHALE_SHARE = 0.4f
         private const val NOTIFICATION_ID = 1
         private const val CHANNEL_ID = "daedalus_haptic_channel"
+
+        @Volatile
+        var isServiceRunning = false
+            private set
+
+        /** Mode and rate of the running cue, for the watch screen. */
+        @Volatile
+        var runningMode: String? = null
+            private set
+        @Volatile
+        var runningBpm: Int = 0
+            private set
+
+        /** Name of the session CSV being written right now (null when no cue runs). */
+        @Volatile
+        var recordingFileName: String? = null
+            private set
+
+        /** Live state for the watch screens. */
+        @Volatile var startedAtMs: Long = 0L
+            private set
+        @Volatile var isUserPaused: Boolean = false
+            private set
+        @Volatile var isMeasuringSpo2: Boolean = false
+            private set
+        @Volatile var latestHeartRate: Int = 0
+            private set
+        @Volatile var latestBreathing: Float? = null
+            private set
+        /** Breathing pacer phase (Breathe mode): inhale or exhale, when it began and how long it lasts. */
+        @Volatile var breathInhale: Boolean = true
+            private set
+        @Volatile var breathPhaseStartMs: Long = 0L
+            private set
+        @Volatile var breathPhaseMs: Long = 4000L
+            private set
     }
 
     override fun onCreate() {
@@ -64,6 +119,7 @@ class HapticService : Service() {
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         accelerometer = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         gyroscope = sensorManager?.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
+        heartRateSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_HEART_RATE)
         sessionSyncManager = SessionSyncManager(this)
         createNotificationChannel()
     }
@@ -71,12 +127,21 @@ class HapticService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_START -> {
-                val bpm = intent.getIntExtra(EXTRA_BPM, 80)
                 val mode = intent.getStringExtra(EXTRA_MODE) ?: "unknown"
+                var bpm = intent.getIntExtra(EXTRA_BPM, 80)
+                // Breathe mode is breaths per minute; an old pulse rate (e.g. 70) falls back to 6.
+                if (mode == "rest" && bpm !in 3..15) bpm = 6
                 startForegroundService(bpm, mode)
             }
             ACTION_STOP -> {
                 stopService()
+            }
+            ACTION_PAUSE -> if (isRunning) isUserPaused = true
+            ACTION_RESUME -> isUserPaused = false
+            ACTION_SET_BPM -> {
+                val bpm = intent.getIntExtra(EXTRA_BPM, currentBpm)
+                val mode = intent.getStringExtra(EXTRA_MODE)
+                if (isRunning && bpm > 0 && (mode == null || mode == currentMode)) updateBpm(bpm)
             }
         }
         return START_STICKY
@@ -87,6 +152,11 @@ class HapticService : Service() {
         currentBpm = bpm
         currentMode = mode
         isRunning = true
+        isServiceRunning = true
+        runningMode = mode
+        runningBpm = bpm
+        startedAtMs = System.currentTimeMillis()
+        isUserPaused = false
 
         // Request battery optimization exemption
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -110,13 +180,38 @@ class HapticService : Service() {
         Log.i("HapticService", "Wake lock acquired (1 hour)")
 
         // Start foreground notification
-        startForeground(NOTIFICATION_ID, buildNotification(bpm, mode))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(
+                NOTIFICATION_ID,
+                buildNotification(bpm, mode),
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH
+            )
+        } else {
+            startForeground(NOTIFICATION_ID, buildNotification(bpm, mode))
+        }
 
         // Create session CSV file
         createSessionFile(mode)
 
         // Start sensor recording
         startSensorRecording()
+
+        // Breathing rate and SpO2 (Samsung Health Sensor SDK)
+        latestBreathingRate = null
+        latestBreathing = null
+        latestSpo2 = null
+        vitalsTracker = VitalsTracker(
+            this,
+            onBreathingRate = { latestBreathingRate = it; latestBreathing = it },
+            onSpo2 = { latestSpo2 = it },
+            // The walking cue is the freeze aid: never silence it for a reading.
+            canMeasureSpo2 = { currentMode != "walking" },
+            onSpo2Measuring = { measuring ->
+                pulsesPaused = measuring
+                isMeasuringSpo2 = measuring
+                Log.i("HapticService", if (measuring) "Pulses paused for SpO2 reading" else "Pulses resumed")
+            },
+        ).also { it.start() }
 
         // Start haptic thread
         startHapticThread(bpm)
@@ -134,11 +229,13 @@ class HapticService : Service() {
             Log.i("HapticService", "Created sessions dir: $created at ${sessionsDir.absolutePath}")
         }
         sessionFile = File(sessionsDir, fileName)
+        recordingFileName = fileName
 
         Log.i("HapticService", "Creating session file: ${sessionFile?.absolutePath}")
 
         csvWriter = BufferedWriter(FileWriter(sessionFile))
-        csvWriter?.write("timestamp_ms,heart_rate_bpm,ax,ay,az,gx,gy,gz\n")
+        // breathing_rate_brpm and spo2_percent are blank until a reading is available.
+        csvWriter?.write("timestamp_ms,heart_rate_bpm,ax,ay,az,gx,gy,gz,breathing_rate_brpm,spo2_percent\n")
         csvWriter?.flush()
     }
 
@@ -146,6 +243,7 @@ class HapticService : Service() {
         sensorListener = object : SensorEventListener {
             private var lastAccel = floatArrayOf(0f, 0f, 0f)
             private var lastGyro = floatArrayOf(0f, 0f, 0f)
+            private var lastHr = 0f
             private var lastWriteTime = 0L
 
             override fun onSensorChanged(event: SensorEvent) {
@@ -160,15 +258,23 @@ class HapticService : Service() {
                         lastGyro[1] = event.values[1]
                         lastGyro[2] = event.values[2]
                     }
+                    Sensor.TYPE_HEART_RATE -> {
+                        if (event.values[0] > 0) {
+                            lastHr = event.values[0]
+                            latestHeartRate = lastHr.toInt()
+                        }
+                    }
                 }
 
                 // Write to CSV at ~10Hz (every 100ms) to avoid excessive I/O
                 val now = System.currentTimeMillis()
                 if (now - lastWriteTime >= 100) {
                     lastWriteTime = now
-                    // Heart rate is collected separately via Health Services
-                    val hr = 0 // Will be updated when we integrate HeartRateService
-                    val line = "$now,$hr,${lastAccel[0]},${lastAccel[1]},${lastAccel[2]},${lastGyro[0]},${lastGyro[1]},${lastGyro[2]}\n"
+                    val breathing = latestBreathingRate?.let { String.format(Locale.US, "%.1f", it) } ?: ""
+                    // A SpO2 reading is a single measurement: write it on one row, then clear it.
+                    val spo2 = latestSpo2?.toString() ?: ""
+                    latestSpo2 = null
+                    val line = "$now,$lastHr,${lastAccel[0]},${lastAccel[1]},${lastAccel[2]},${lastGyro[0]},${lastGyro[1]},${lastGyro[2]},$breathing,$spo2\n"
                     csvWriter?.write(line)
                 }
             }
@@ -176,18 +282,37 @@ class HapticService : Service() {
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
 
-        // Only register IMU sensors (no heart rate permission needed)
         accelerometer?.let { sensorManager?.registerListener(sensorListener, it, 20000) } // 50Hz
         gyroscope?.let { sensorManager?.registerListener(sensorListener, it, 20000) }
 
-        Log.i("HapticService", "Sensor recording started: accel=${accelerometer != null}, gyro=${gyroscope != null}")
+        if (heartRateSensor != null) {
+            val granted = checkSelfPermission("android.permission.health.READ_HEART_RATE") ==
+                android.content.pm.PackageManager.PERMISSION_GRANTED
+            if (granted) {
+                sensorManager?.registerListener(sensorListener, heartRateSensor, SensorManager.SENSOR_DELAY_NORMAL)
+            } else {
+                Log.w("HapticService", "Heart rate sensor present but READ_HEART_RATE not granted — recording 0 BPM. Open the watch app once to grant permissions.")
+            }
+        }
+
+        Log.i("HapticService", "Sensor recording started: accel=${accelerometer != null}, gyro=${gyroscope != null}, heartRate=${heartRateSensor != null}")
+    }
+
+    /** Applies a new rate to the running cue without restarting the session recording. */
+    private fun updateBpm(bpm: Int) {
+        currentBpm = bpm
+        runningBpm = bpm
+        intervalMs = (60000f / bpm).toLong()
+        (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
+            .notify(NOTIFICATION_ID, buildNotification(bpm, currentMode))
+        Log.i("HapticService", "Pulse rate changed to $bpm bpm (interval=${intervalMs}ms)")
     }
 
     private fun startHapticThread(bpm: Int) {
-        val intervalMs = (60000f / bpm).toLong()
+        intervalMs = (60000f / bpm).toLong()
         val vib = vibrator ?: return
 
-        Log.i("HapticService", "Starting haptic thread: bpm=$bpm, interval=${intervalMs}ms")
+        Log.i("HapticService", "Starting haptic thread: mode=$currentMode, rate=$bpm, interval=${intervalMs}ms")
 
         hapticThread = Thread {
             var consecutiveErrors = 0
@@ -195,31 +320,28 @@ class HapticService : Service() {
             try {
                 while (isRunning && consecutiveErrors < 10) {
                     try {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            vib.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE))
+                        if (currentMode == "rest") {
+                            // Breathing pacer: one pulse = breathe in, two pulses = breathe out.
+                            val breathMs = intervalMs
+                            val inhaleMs = (breathMs * INHALE_SHARE).toLong()
+                            setBreathPhase(inhale = true, phaseMs = inhaleMs)
+                            if (!silenced()) vibrateOnce(vib, 120)
+                            sleepWhileRunning(inhaleMs)
+                            if (!isRunning) break
+                            setBreathPhase(inhale = false, phaseMs = breathMs - inhaleMs)
+                            if (!silenced()) vibrateTwice(vib)
+                            sleepWhileRunning(breathMs - inhaleMs)
+                            pulseCount++
                         } else {
-                            @Suppress("DEPRECATION")
-                            vib.vibrate(50)
+                            if (!silenced()) {
+                                vibrateOnce(vib, 50)
+                                pulseCount++
+                            }
+                            sleepWhileRunning(intervalMs)
                         }
                         consecutiveErrors = 0
-                        pulseCount++
-
-                        if (pulseCount % 10 == 0) {
+                        if (pulseCount > 0 && pulseCount % 10 == 0) {
                             Log.i("HapticService", "Pulse #$pulseCount, interval=$intervalMs, isRunning=$isRunning")
-                        }
-
-                        var remaining = intervalMs
-                        while (remaining > 0 && isRunning) {
-                            try {
-                                val sleepTime = minOf(remaining, 100L)
-                                Thread.sleep(sleepTime)
-                                remaining -= sleepTime
-                            } catch (e: InterruptedException) {
-                                Thread.currentThread().interrupt()
-                                Log.w("HapticService", "Sleep interrupted, isRunning=$isRunning")
-                                if (!isRunning) break
-                                // Don't exit on interrupt — keep vibrating
-                            }
                         }
                     } catch (e: Exception) {
                         consecutiveErrors++
@@ -231,17 +353,73 @@ class HapticService : Service() {
             } catch (e: Exception) {
                 Log.e("HapticService", "Haptic thread fatal error: ${e.message}", e)
             }
-        }.also { 
+        }.also {
             it.name = "HapticThread"
             it.isDaemon = false
-            it.start() 
+            it.start()
             Log.i("HapticService", "Haptic thread started")
         }
     }
 
+    /** Pulses are skipped during an SpO2 reading or while the person paused the cue. */
+    private fun silenced() = pulsesPaused || isUserPaused
+
+    private fun setBreathPhase(inhale: Boolean, phaseMs: Long) {
+        breathInhale = inhale
+        breathPhaseMs = phaseMs
+        breathPhaseStartMs = System.currentTimeMillis()
+    }
+
+    private fun vibrateOnce(vib: Vibrator, ms: Long) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vib.vibrate(VibrationEffect.createOneShot(ms, VibrationEffect.DEFAULT_AMPLITUDE))
+        } else {
+            @Suppress("DEPRECATION")
+            vib.vibrate(ms)
+        }
+    }
+
+    private fun vibrateTwice(vib: Vibrator) {
+        val pattern = longArrayOf(0, 60, 120, 60)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vib.vibrate(VibrationEffect.createWaveform(pattern, -1))
+        } else {
+            @Suppress("DEPRECATION")
+            vib.vibrate(pattern, -1)
+        }
+    }
+
+    /** Sleeps in short steps so a stop or a rate change takes effect quickly. */
+    private fun sleepWhileRunning(ms: Long) {
+        var remaining = ms
+        while (remaining > 0 && isRunning) {
+            try {
+                val step = minOf(remaining, 100L)
+                Thread.sleep(step)
+                remaining -= step
+            } catch (e: InterruptedException) {
+                Thread.currentThread().interrupt()
+                if (!isRunning) return
+            }
+        }
+    }
+
+    private val stopFinalized = java.util.concurrent.atomic.AtomicBoolean(false)
+
     private fun stopService() {
         Log.i("HapticService", "Stopping service. isRunning=$isRunning, sessionFile=${sessionFile?.name}")
+        if (!isRunning && !isServiceRunning) return
         isRunning = false
+        isServiceRunning = false
+        runningMode = null
+        runningBpm = 0
+        recordingFileName = null
+        isUserPaused = false
+        isMeasuringSpo2 = false
+        latestBreathing = null
+        vitalsTracker?.stop()
+        vitalsTracker = null
+        pulsesPaused = false
         hapticThread?.interrupt()
         hapticThread = null
         vibrator?.cancel()
@@ -251,22 +429,27 @@ class HapticService : Service() {
         csvWriter?.flush()
         csvWriter?.close()
 
+        // Send file to phone. The wake lock and foreground status are kept alive
+        // until the transfer finishes (or times out) — releasing them immediately
+        // let Wear OS suspend/kill the process mid-transfer, so the session data
+        // never reached the phone.
+        val file = sessionFile
+        if (file != null && file.exists()) {
+            val fileSize = file.length()
+            Log.i("HapticService", "Session file exists: ${file.name}, size: $fileSize bytes")
+            Log.i("HapticService", "Sending file to phone: ${file.name}")
+            sessionSyncManager?.transferAndPurgeFile(file, currentMode) { finishStopping() }
+            Log.i("HapticService", "File transfer initiated")
+            // Safety net in case the transfer hangs and never calls back.
+            android.os.Handler(mainLooper).postDelayed({ finishStopping() }, 15_000L)
+        } else {
+            Log.e("HapticService", "sessionFile is null or does not exist: ${file?.absolutePath}")
+            finishStopping()
+        }
+    }
 
-        // Send file to phone (synchronously to ensure it completes before service stops)
-        sessionFile?.let { file ->
-            if (file.exists()) {
-                val fileSize = file.length()
-                Log.i("HapticService", "Session file exists: ${file.name}, size: $fileSize bytes")
-                Log.i("HapticService", "Sending file to phone: ${file.name}")
-                kotlinx.coroutines.runBlocking {
-                    sessionSyncManager?.transferAndPurgeFile(file, currentMode)
-                }
-                Log.i("HapticService", "File transfer initiated")
-            } else {
-                Log.e("HapticService", "Session file does NOT exist: ${file.absolutePath}")
-            }
-        } ?: Log.e("HapticService", "sessionFile is null")
-
+    private fun finishStopping() {
+        if (!stopFinalized.compareAndSet(false, true)) return
         wakeLock?.release()
         wakeLock = null
         stopForeground(STOP_FOREGROUND_REMOVE)
@@ -283,8 +466,8 @@ class HapticService : Service() {
         }
 
         return builder
-            .setContentTitle("Daedalus — $mode")
-            .setContentText("Cueing at $bpm BPM | Recording sensors")
+            .setContentTitle(getString(R.string.notif_title, modeLabel(mode)))
+            .setContentText(getString(R.string.notif_text, bpm))
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setOngoing(true)
             .build()
@@ -294,12 +477,20 @@ class HapticService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Daedalus Haptic Cueing",
+                getString(R.string.notif_channel),
                 NotificationManager.IMPORTANCE_LOW
             )
             val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             manager.createNotificationChannel(channel)
         }
+    }
+
+    private fun modeLabel(mode: String): String = when (mode) {
+        "walking" -> getString(R.string.mode_walk)
+        "rest" -> getString(R.string.mode_rest)
+        "writing" -> getString(R.string.mode_fine)
+        "stress" -> getString(R.string.mode_calm)
+        else -> mode
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
