@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
@@ -159,7 +160,15 @@ class SensorCollectionService : Service() {
         }
 
         isCollecting = true
-        startForeground(NOTIFICATION_ID, buildNotification("Recording sensors..."))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(
+                NOTIFICATION_ID,
+                buildNotification("Recording sensors..."),
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH
+            )
+        } else {
+            startForeground(NOTIFICATION_ID, buildNotification("Recording sensors..."))
+        }
         Log.i(TAG, "Sensor collection started: $subjectId/$sessionId")
     }
 

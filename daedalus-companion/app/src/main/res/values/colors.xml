@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primary">#1976D2</color>
-    <color name="primary_dark">#1565C0</color>
-    <color name="accent">#FF5722</color>
+    <!-- Sage palette (see ui/screens/DesignTokens.kt) -->
+    <color name="sage_ground">#F5F6F1</color>
+    <color name="sage_surface">#FFFFFF</color>
+    <color name="sage_tint">#E4EBDF</color>
+    <color name="sage">#4E6447</color>
+    <color name="sage_deep">#34452F</color>
+    <color name="ink">#1E2620</color>
 </resources>

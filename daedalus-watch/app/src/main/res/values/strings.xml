@@ -1,14 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Daedalus</string>
-    <string name="mode_rest">🧘 Rest\n70 BPM</string>
-    <string name="mode_walking">🚶 Walking\n80 BPM</string>
-    <string name="mode_writing">✍️ Writing\n90 BPM</string>
-    <string name="mode_stress">🧠 Stress\n60 BPM</string>
-    <string name="btn_start">▶ Start</string>
-    <string name="btn_stop">⏹ Stop</string>
-    <string name="status_select_mode">Select a mode</string>
-    <string name="status_running">%1$s running at %2$d BPM</string>
-    <string name="status_stopped">%1$s stopped</string>
-    <string name="toast_select_mode">Select a mode first</string>
+
+    <!-- Home -->
+    <string name="status_cues_on">Cues on</string>
+    <string name="im_stuck">I’m stuck</string>
+    <string name="unit_bpm">bpm</string>
+    <string name="unit_per_min">/min</string>
+    <string name="value_none">—</string>
+    <string name="cd_heart_rate">Heart rate</string>
+    <string name="cd_breathing">Breathing rate</string>
+
+    <!-- Cue modes -->
+    <string name="mode_walk">Walking</string>
+    <string name="mode_rest">Breathing</string>
+    <string name="mode_fine">Fine motor</string>
+    <string name="mode_calm">Calm</string>
+
+    <!-- Walking cue -->
+    <string name="walk_label">Walking cue</string>
+    <string name="unit_steps_min">steps per minute</string>
+    <string name="hint_step">Step with each pulse</string>
+    <string name="stop">Stop</string>
+
+    <!-- Breathing cue -->
+    <string name="breathe_label">Breathing cue</string>
+    <string name="breathe_in">Breathe in</string>
+    <string name="breathe_out">Breathe out</string>
+    <string name="breathe_rhythm">In %1$d s · Out %2$d s</string>
+    <string name="breathe_hr">Heart rate %1$d bpm</string>
+    <string name="breathe_spo2">Measuring blood oxygen. Keep still.</string>
+    <string name="done">Done</string>
+
+    <!-- Fine motor / calm cue -->
+    <string name="cue_fine_sub">Steady pulses on</string>
+    <string name="cue_calm_sub">Grounding pulses on</string>
+    <string name="unit_pulses_min">%1$d pulses per minute</string>
+    <string name="paused">Paused</string>
+    <string name="cd_pause">Pause cue</string>
+    <string name="cd_resume">Resume cue</string>
+    <string name="cd_stop">Stop cue</string>
+
+    <!-- Stand-up prompt -->
+    <string name="stand_title">Pause before walking</string>
+    <string name="stand_sub">You just stood up. Take a few breaths first.</string>
+    <string name="stand_ready">I’m ready</string>
+    <string name="stand_channel">Stand-up prompts</string>
+    <string name="stand_watching_channel">Stand-up detection</string>
+    <string name="stand_watching">Watching for stand-ups</string>
+
+    <string name="toast_already_stopped">No cue is running</string>
+
+    <string name="notif_channel">Daedalus cues</string>
+    <string name="notif_title">Daedalus · %1$s</string>
+    <string name="notif_text">Cueing at %1$d per minute · recording sensors</string>
 </resources>

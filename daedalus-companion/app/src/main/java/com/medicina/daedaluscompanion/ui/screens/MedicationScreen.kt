@@ -1,170 +1,336 @@
 package com.medicina.daedaluscompanion.ui.screens
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.NotificationsNone
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import java.text.SimpleDateFormat
-import java.util.*
+import com.medicina.daedaluscompanion.R
+import com.medicina.daedaluscompanion.data.Feeling
+import com.medicina.daedaluscompanion.data.FeelingCheckIn
+import com.medicina.daedaluscompanion.data.LocalStore
+import com.medicina.daedaluscompanion.data.MedReminders
+import com.medicina.daedaluscompanion.data.MedicationLog
+import com.medicina.daedaluscompanion.data.ScheduledDose
+import java.text.DateFormat
+import java.util.Calendar
+import java.util.Date
 
-data class MedicationLog(
-    val name: String,
-    val dosage: String,
-    val timestamp: Long,
-)
-
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Meds tab. Without a schedule (Profile → Medication schedule) it is a simple dose log.
+ * With a schedule it shows the designed view: today's dose checklist, reminders and
+ * this week's adherence.
+ */
 @Composable
 fun MedicationScreen() {
-    var medications by remember { mutableStateOf(listOf<MedicationLog>()) }
+    val context = LocalContext.current
+    val store = remember { LocalStore(context) }
+    var medications by remember { mutableStateOf(store.medications()) }
+    val schedule = remember { store.schedule() }
+    var lastCheckIn by remember { mutableStateOf(store.checkIns().firstOrNull()?.takeIf { isToday(it.timestamp) }) }
     var showAddDialog by remember { mutableStateOf(false) }
+    val timeFormat = remember { DateFormat.getTimeInstance(DateFormat.SHORT) }
 
-    val timeFormat = SimpleDateFormat("h:mm a", Locale.US)
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text("Medication", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White)
-                        Text("Track doses", fontSize = 11.sp, color = Color.White.copy(alpha = 0.8f))
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = DesignTokens.Primary),
-                actions = {
-                    // Fitts's Law - large, accessible FAB-style button
-                    IconButton(onClick = { showAddDialog = true }) {
-                        Surface(modifier = Modifier.size(36.dp).clip(CircleShape), color = Color.White.copy(alpha = 0.2f)) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(Icons.Default.Add, null, tint = Color.White, modifier = Modifier.size(22.dp))
-                            }
-                        }
-                    }
-                }
-            )
+    ScreenColumn(Modifier.verticalScroll(rememberScrollState())) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.meds_title), style = TitleStyle)
+            FilledIconButton(
+                onClick = { showAddDialog = true },
+                modifier = Modifier.size(44.dp),
+                colors = IconButtonDefaults.filledIconButtonColors(containerColor = DesignTokens.SageDeep, contentColor = Color.White),
+            ) { Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.meds_add_cd)) }
         }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .background(DesignTokens.Background)
-                .padding(DesignTokens.Spacing16)
-                .verticalScroll(rememberScrollState())
-        ) {
-            if (medications.isEmpty()) {
-                // Empty state (clear, actionable)
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 64.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Surface(modifier = Modifier.size(64.dp).clip(CircleShape), color = DesignTokens.Primary.copy(alpha = 0.1f)) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(Icons.Default.Medication, null, tint = DesignTokens.Primary, modifier = Modifier.size(32.dp))
-                        }
-                    }
-                    Spacer(Modifier.height(DesignTokens.Spacing16))
-                    Text("No medications logged", fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = DesignTokens.TextPrimary)
-                    Text("Tap + to log a dose", color = DesignTokens.TextSecondary, fontSize = 13.sp)
-                }
-            } else {
-                // Grouped by day (Miller's Law)
-                Text("Today", fontWeight = FontWeight.SemiBold, fontSize = 16.sp, modifier = Modifier.padding(bottom = DesignTokens.Spacing12))
-                medications.forEach { med ->
-                    MedicationLogItem(med, timeFormat)
-                    Spacer(Modifier.height(DesignTokens.Spacing8))
-                }
+
+        FeelingCard(lastCheckIn, timeFormat) { feeling ->
+            val c = FeelingCheckIn(feeling, System.currentTimeMillis())
+            store.addCheckIn(c)
+            lastCheckIn = c
+        }
+
+        if (schedule.isEmpty()) {
+            LoggedDoses(medications, timeFormat, onAdd = { showAddDialog = true })
+        } else {
+            ScheduledDoses(schedule, medications, timeFormat) { dose ->
+                MedReminders.markTaken(context, dose)
+                medications = store.medications()
             }
+            RemindersCard(store)
+            WeekCard(schedule, medications)
         }
     }
 
-    // Add Medication Dialog
     if (showAddDialog) {
-        var medName by remember { mutableStateOf("") }
-        var medDosage by remember { mutableStateOf("") }
-
-        AlertDialog(
-            onDismissRequest = { showAddDialog = false },
-            title = { Text("Log Medication", fontWeight = FontWeight.SemiBold) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing16)) {
-                    OutlinedTextField(
-                        value = medName,
-                        onValueChange = { medName = it },
-                        label = { Text("Medication name") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    OutlinedTextField(
-                        value = medDosage,
-                        onValueChange = { medDosage = it },
-                        label = { Text("Dosage (e.g., 100mg)") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
+        AddDoseDialog(
+            initialName = medications.firstOrNull()?.name ?: schedule.firstOrNull()?.name ?: "",
+            initialDosage = medications.firstOrNull()?.dosage ?: schedule.firstOrNull()?.dosage ?: "",
+            onDismiss = { showAddDialog = false },
+            onSave = { name, dosage ->
+                store.addMedication(MedicationLog(name, dosage, System.currentTimeMillis()))
+                medications = store.medications()
+                showAddDialog = false
             },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        if (medName.isNotBlank()) {
-                            medications = medications + MedicationLog(medName, medDosage, System.currentTimeMillis())
-                            showAddDialog = false
-                        }
-                    },
-                    enabled = medName.isNotBlank(),
-                    shape = RoundedCornerShape(DesignTokens.RadiusSmall)
-                ) { Text("Save Dose", fontWeight = FontWeight.SemiBold) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showAddDialog = false }) { Text("Cancel", color = DesignTokens.TextSecondary) }
-            },
-            shape = RoundedCornerShape(DesignTokens.RadiusLarge)
         )
     }
 }
 
 @Composable
-fun MedicationLogItem(med: MedicationLog, timeFormat: SimpleDateFormat) {
-    Surface(
-        shape = RoundedCornerShape(DesignTokens.RadiusMedium),
-        color = DesignTokens.Surface,
-        tonalElevation = 1.dp
-    ) {
-        Row(
-            modifier = Modifier.padding(DesignTokens.Spacing16),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+private fun FeelingCard(lastCheckIn: FeelingCheckIn?, timeFormat: DateFormat, onPick: (Feeling) -> Unit) {
+    SageCard(color = DesignTokens.SageTint, padding = PaddingValues(horizontal = 20.dp, vertical = 18.dp)) {
+        Text(stringResource(R.string.feel_title), style = RowTitleStyle)
+        Spacer(Modifier.height(12.dp))
+        FlowRowCompat {
+            listOf(Feeling.GOOD to R.string.feel_good, Feeling.WEARING_OFF to R.string.feel_wearing, Feeling.UNSURE to R.string.feel_unsure).forEach { (feeling, label) ->
+                val on = lastCheckIn?.feeling == feeling
                 Surface(
-                    modifier = Modifier.size(40.dp).clip(RoundedCornerShape(DesignTokens.RadiusSmall)),
-                    color = DesignTokens.Primary.copy(alpha = 0.1f)
+                    onClick = { onPick(feeling) },
+                    shape = RoundedCornerShape(20.dp),
+                    color = if (on) DesignTokens.SageDeep else DesignTokens.Surface,
+                    modifier = Modifier.height(40.dp).semantics { selected = on },
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.Medication, null, tint = DesignTokens.Primary, modifier = Modifier.size(20.dp))
+                    Box(Modifier.padding(horizontal = 14.dp), contentAlignment = Alignment.Center) {
+                        Text(stringResource(label), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = if (on) Color.White else DesignTokens.Ink)
                     }
                 }
-                Spacer(Modifier.width(DesignTokens.Spacing12))
-                Column {
-                    Text(med.name, fontWeight = FontWeight.Medium, fontSize = 15.sp)
-                    Text(med.dosage, color = DesignTokens.Primary, fontSize = 13.sp, fontWeight = FontWeight.Medium)
-                }
             }
-            Text(timeFormat.format(Date(med.timestamp)), color = DesignTokens.TextSecondary, fontSize = 13.sp)
+        }
+        lastCheckIn?.let {
+            Spacer(Modifier.height(10.dp))
+            Text(stringResource(R.string.feel_saved, timeFormat.format(Date(it.timestamp))), fontSize = 12.sp, color = DesignTokens.Sage)
+        }
+    }
+}
+
+/** No schedule: today's logged doses, newest first (the original Meds screen). */
+@Composable
+private fun LoggedDoses(medications: List<MedicationLog>, timeFormat: DateFormat, onAdd: () -> Unit) {
+    val today = medications.filter { isToday(it.timestamp) }
+    SageCard(padding = PaddingValues(horizontal = 20.dp, vertical = 6.dp)) {
+        Text(stringResource(R.string.meds_today), style = RowTitleStyle, modifier = Modifier.padding(top = 12.dp, bottom = 4.dp))
+        if (today.isEmpty()) {
+            Text(stringResource(R.string.meds_none), style = CaptionStyle, modifier = Modifier.padding(vertical = 12.dp))
+        }
+        today.forEachIndexed { i, med ->
+            DoseRow(
+                title = listOf(med.name, med.dosage).filter { it.isNotBlank() }.joinToString(" · "),
+                status = stringResource(R.string.meds_taken_at, timeFormat.format(Date(med.timestamp))),
+                state = DoseState.TAKEN,
+                divider = i < today.lastIndex,
+            )
+        }
+        Spacer(Modifier.height(6.dp))
+    }
+    PillButton(stringResource(R.string.meds_add_cd), onClick = onAdd, icon = Icons.Outlined.Add, modifier = Modifier.fillMaxWidth())
+
+    val weekStart = remember { startOfDay(System.currentTimeMillis()) - 6 * DAY_MS }
+    val weekCount = medications.count { it.timestamp >= weekStart }
+    SageCard(radius = DesignTokens.RadiusLarge, padding = PaddingValues(horizontal = 20.dp, vertical = 16.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(stringResource(R.string.meds_week), style = RowTitleStyle)
+            Text(pluralStringResource(R.plurals.meds_week_count, weekCount, weekCount), fontSize = 13.sp, color = DesignTokens.Muted)
+        }
+    }
+}
+
+private enum class DoseState { TAKEN, DUE, UPCOMING }
+
+/** With a schedule: each dose time today as taken / due now (with Take) / upcoming, plus extra doses. */
+@Composable
+private fun ScheduledDoses(
+    schedule: List<ScheduledDose>,
+    medications: List<MedicationLog>,
+    timeFormat: DateFormat,
+    onTake: (ScheduledDose) -> Unit,
+) {
+    val now = System.currentTimeMillis()
+    val todayLogs = medications.filter { isToday(it.timestamp) }
+    val extras = todayLogs.filter { it.slotId == null || schedule.none { d -> d.id == it.slotId } }
+    SageCard(padding = PaddingValues(horizontal = 20.dp, vertical = 6.dp)) {
+        Text(stringResource(R.string.meds_today), style = RowTitleStyle, modifier = Modifier.padding(top = 12.dp, bottom = 4.dp))
+        schedule.forEachIndexed { i, dose ->
+            val taken = todayLogs.firstOrNull { it.slotId == dose.id }
+            val at = dose.timeOn(now)
+            val state = when {
+                taken != null -> DoseState.TAKEN
+                now >= at - DUE_EARLY_MS -> DoseState.DUE
+                else -> DoseState.UPCOMING
+            }
+            DoseRow(
+                title = listOf(doseTime(dose), dose.name, dose.dosage).filter { it.isNotBlank() }.joinToString(" · "),
+                status = when (state) {
+                    DoseState.TAKEN -> stringResource(R.string.meds_taken_at, timeFormat.format(Date(taken!!.timestamp)))
+                    DoseState.DUE -> stringResource(R.string.meds_due_now)
+                    DoseState.UPCOMING -> stringResource(R.string.meds_upcoming)
+                },
+                state = state,
+                divider = i < schedule.lastIndex || extras.isNotEmpty(),
+                onTake = { onTake(dose) },
+            )
+        }
+        extras.forEachIndexed { i, med ->
+            DoseRow(
+                title = listOf(med.name, med.dosage).filter { it.isNotBlank() }.joinToString(" · "),
+                status = stringResource(R.string.meds_extra_at, timeFormat.format(Date(med.timestamp))),
+                state = DoseState.TAKEN,
+                divider = i < extras.lastIndex,
+            )
+        }
+        Spacer(Modifier.height(6.dp))
+    }
+}
+
+@Composable
+private fun DoseRow(title: String, status: String, state: DoseState, divider: Boolean, onTake: () -> Unit = {}) {
+    Column {
+        Row(Modifier.padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            when (state) {
+                DoseState.TAKEN -> Box(Modifier.size(32.dp).clip(CircleShape).background(DesignTokens.Sage), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Outlined.Check, null, tint = Color.White, modifier = Modifier.size(16.dp))
+                }
+                DoseState.DUE -> Box(Modifier.size(32.dp).border(2.dp, DesignTokens.Sage, CircleShape))
+                DoseState.UPCOMING -> Box(Modifier.size(32.dp).border(2.dp, DesignTokens.SwitchOff, CircleShape))
+            }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                Text(title, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = DesignTokens.Ink)
+                Text(
+                    status,
+                    fontSize = 12.sp,
+                    fontWeight = if (state == DoseState.DUE) FontWeight.SemiBold else FontWeight.Normal,
+                    color = if (state == DoseState.DUE) DesignTokens.Sage else DesignTokens.Muted,
+                )
+            }
+            if (state == DoseState.DUE) {
+                PillButton(stringResource(R.string.meds_take), onClick = onTake, height = 40.dp)
+            }
+        }
+        if (divider) HorizontalDivider(color = DesignTokens.Divider)
+    }
+}
+
+@Composable
+private fun RemindersCard(store: LocalStore) {
+    val context = LocalContext.current
+    var on by remember { mutableStateOf(store.getBoolean(LocalStore.MED_REMINDERS, true)) }
+    val notifPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+    SageCard(radius = DesignTokens.RadiusLarge, padding = PaddingValues(horizontal = 20.dp, vertical = 2.dp)) {
+        ListRow(
+            title = stringResource(R.string.meds_reminders),
+            subtitle = stringResource(R.string.meds_reminders_sub),
+            icon = Icons.Outlined.NotificationsNone,
+            trailing = {
+                SageSwitch(on, { value ->
+                    on = value
+                    store.setBoolean(LocalStore.MED_REMINDERS, value)
+                    MedReminders.reschedule(context)
+                    if (value && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        notifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    }
+                })
+            },
+        )
+    }
+}
+
+/** Scheduled doses taken over the last 7 days, out of those due so far (counted from when each was added). */
+@Composable
+private fun WeekCard(schedule: List<ScheduledDose>, medications: List<MedicationLog>) {
+    val now = System.currentTimeMillis()
+    var due = 0
+    var taken = 0
+    for (back in 0..6) {
+        val day = now - back * DAY_MS
+        schedule.forEach { dose ->
+            val at = dose.timeOn(day)
+            val wasTaken = medications.any { it.slotId == dose.id && LocalStore.sameDay(it.timestamp, day) }
+            if ((at <= now && at >= dose.createdAt) || wasTaken) {
+                due++
+                if (wasTaken) taken++
+            }
+        }
+    }
+    SageCard(radius = DesignTokens.RadiusLarge, padding = PaddingValues(horizontal = 20.dp, vertical = 16.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(stringResource(R.string.meds_week), style = RowTitleStyle)
+            Text(stringResource(R.string.meds_week_of, taken, due), fontSize = 13.sp, color = DesignTokens.Muted)
+        }
+        Spacer(Modifier.height(10.dp))
+        Box(Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)).background(DesignTokens.SageTrack)) {
+            val share = if (due == 0) 0f else taken.toFloat() / due
+            Box(Modifier.fillMaxWidth(share).height(8.dp).clip(RoundedCornerShape(4.dp)).background(DesignTokens.Sage))
+        }
+    }
+}
+
+@Composable
+private fun AddDoseDialog(initialName: String, initialDosage: String, onDismiss: () -> Unit, onSave: (String, String) -> Unit) {
+    var medName by remember { mutableStateOf(initialName) }
+    var medDosage by remember { mutableStateOf(initialDosage) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = DesignTokens.Surface,
+        shape = RoundedCornerShape(DesignTokens.RadiusXLarge),
+        title = { Text(stringResource(R.string.meds_add_cd), style = SectionStyle) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedTextField(medName, { medName = it }, label = { Text(stringResource(R.string.meds_name)) }, singleLine = true, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp))
+                OutlinedTextField(medDosage, { medDosage = it }, label = { Text(stringResource(R.string.meds_dosage)) }, singleLine = true, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp))
+            }
+        },
+        confirmButton = {
+            PillButton(stringResource(R.string.meds_save), enabled = medName.isNotBlank(), height = 44.dp, onClick = { onSave(medName.trim(), medDosage.trim()) })
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel), color = DesignTokens.Muted) }
+        },
+    )
+}
+
+private const val DAY_MS = 24 * 60 * 60 * 1000L
+/** A dose shows "Due now" (with Take) from 30 minutes before its time. */
+private const val DUE_EARLY_MS = 30 * 60 * 1000L
+
+private fun startOfDay(t: Long): Long = Calendar.getInstance().apply {
+    timeInMillis = t; set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+}.timeInMillis
+
+/** Wrapping row without the experimental FlowRow API. */
+@Composable
+private fun FlowRowCompat(content: @Composable () -> Unit) {
+    androidx.compose.ui.layout.Layout(content = content) { measurables, constraints ->
+        val gap = 8.dp.roundToPx()
+        val placeables = measurables.map { it.measure(constraints.copy(minWidth = 0)) }
+        var x = 0; var y = 0; var rowH = 0
+        val positions = placeables.map { p ->
+            if (x > 0 && x + p.width > constraints.maxWidth) { x = 0; y += rowH + gap; rowH = 0 }
+            val pos = x to y
+            x += p.width + gap; rowH = maxOf(rowH, p.height)
+            pos
+        }
+        layout(constraints.maxWidth, y + rowH) {
+            placeables.forEachIndexed { i, p -> p.place(positions[i].first, positions[i].second) }
         }
     }
 }

@@ -1,67 +1,108 @@
 package com.medicina.daedaluscompanion.ui
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
+import androidx.annotation.StringRes
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.sp
+import com.medicina.daedaluscompanion.R
+import com.medicina.daedaluscompanion.data.MedReminders
 import com.medicina.daedaluscompanion.ui.screens.*
 
-class MainActivity : ComponentActivity() {
+/** AppCompatActivity so the in-app language switch (AppCompatDelegate) works below Android 13. */
+class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Keep dose reminder alarms in step with the schedule.
+        MedReminders.reschedule(this)
+        val openMeds = intent?.getStringExtra(MedReminders.EXTRA_OPEN_TAB) == "meds"
         setContent {
-            DaedalusApp()
+            DaedalusTheme { DaedalusApp(startOnMeds = openMeds) }
         }
     }
 }
 
+private enum class Tab(@StringRes val label: Int, val icon: ImageVector) {
+    TODAY(R.string.nav_today, Icons.Outlined.Home),
+    CUES(R.string.nav_cues, Icons.Outlined.GraphicEq),
+    JOURNAL(R.string.nav_journal, Icons.Outlined.CalendarMonth),
+    MEDS(R.string.nav_meds, Icons.Outlined.Medication),
+    PROFILE(R.string.nav_profile, Icons.Outlined.Person),
+}
+
+private enum class SubScreen { NONE, CALIBRATION, SESSIONS, SCHEDULE }
+
 @Composable
-fun DaedalusApp() {
-    var selectedTab by remember { mutableStateOf(0) }
+fun DaedalusApp(startOnMeds: Boolean = false) {
+    var tab by rememberSaveable { mutableStateOf(if (startOnMeds) Tab.MEDS else Tab.TODAY) }
+    var sub by rememberSaveable { mutableStateOf(SubScreen.NONE) }
+
+    BackHandler(enabled = sub != SubScreen.NONE) { sub = SubScreen.NONE }
 
     Scaffold(
+        containerColor = DesignTokens.Ground,
         bottomBar = {
-            NavigationBar {
-                NavigationBarItem(
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
-                    icon = { Icon(Icons.Default.Home, "Home") },
-                    label = { Text("Home") }
-                )
-                NavigationBarItem(
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
-                    icon = { Icon(Icons.Default.Science, "Calibration") },
-                    label = { Text("Calibration") }
-                )
-                NavigationBarItem(
-                    selected = selectedTab == 2,
-                    onClick = { selectedTab = 2 },
-                    icon = { Icon(Icons.Default.Medication, "Medication") },
-                    label = { Text("Medication") }
-                )
-                NavigationBarItem(
-                    selected = selectedTab == 3,
-                    onClick = { selectedTab = 3 },
-                    icon = { Icon(Icons.Default.Settings, "Settings") },
-                    label = { Text("Settings") }
-                )
+            NavigationBar(containerColor = DesignTokens.Surface, tonalElevation = androidx.compose.ui.unit.Dp(0f)) {
+                Tab.entries.forEach { t ->
+                    NavigationBarItem(
+                        selected = tab == t,
+                        onClick = { tab = t; sub = SubScreen.NONE },
+                        icon = { Icon(t.icon, contentDescription = null) },
+                        label = {
+                            Text(
+                                stringResource(t.label),
+                                fontSize = 11.sp,
+                                fontWeight = if (tab == t) FontWeight.Bold else FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = DesignTokens.SageDeep,
+                            selectedTextColor = DesignTokens.SageDeep,
+                            indicatorColor = DesignTokens.SageTint,
+                            unselectedIconColor = DesignTokens.NavInactive,
+                            unselectedTextColor = DesignTokens.NavInactive,
+                        ),
+                    )
+                }
             }
-        }
+        },
     ) { padding ->
-        Box(modifier = Modifier.padding(padding)) {
-            when (selectedTab) {
-                0 -> HomeScreen()
-                1 -> CalibrationScreen()
-                2 -> MedicationScreen()
-                3 -> SettingsScreen()
+        Box(Modifier.padding(padding)) {
+            when {
+                sub == SubScreen.CALIBRATION -> CalibrationScreen(onBack = { sub = SubScreen.NONE })
+                sub == SubScreen.SESSIONS -> SessionsScreen(onBack = { sub = SubScreen.NONE })
+                sub == SubScreen.SCHEDULE -> MedScheduleScreen(onBack = { sub = SubScreen.NONE })
+                else -> when (tab) {
+                    Tab.TODAY -> HomeScreen(
+                        onOpenCues = { tab = Tab.CUES },
+                        onOpenMeds = { tab = Tab.MEDS },
+                        onOpenProfile = { tab = Tab.PROFILE },
+                    )
+                    Tab.CUES -> CuesScreen()
+                    Tab.JOURNAL -> JournalScreen()
+                    Tab.MEDS -> MedicationScreen()
+                    Tab.PROFILE -> ProfileScreen(
+                        onOpenCalibration = { sub = SubScreen.CALIBRATION },
+                        onOpenSessions = { sub = SubScreen.SESSIONS },
+                        onOpenSchedule = { sub = SubScreen.SCHEDULE },
+                    )
+                }
             }
         }
     }

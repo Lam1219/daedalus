@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Design "Watch · Stand-up prompt". -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/watch_ground"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:background="@drawable/bg_circle_surface">
+
+        <ImageView
+            android:layout_width="17dp"
+            android:layout_height="17dp"
+            android:layout_gravity="center"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_stand"
+            android:tint="@color/watch_sage" />
+    </FrameLayout>
+
+    <TextView
+        style="@style/WatchText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="7dp"
+        android:gravity="center"
+        android:letterSpacing="-0.02"
+        android:maxWidth="150dp"
+        android:text="@string/stand_title"
+        android:textFontWeight="600"
+        android:textSize="14sp" />
+
+    <TextView
+        style="@style/WatchText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="7dp"
+        android:gravity="center"
+        android:maxWidth="140dp"
+        android:text="@string/stand_sub"
+        android:textColor="@color/watch_muted"
+        android:textSize="7.5sp" />
+
+    <LinearLayout
+        android:id="@+id/btn_stand_ready"
+        android:layout_width="wrap_content"
+        android:layout_height="28dp"
+        android:layout_marginTop="11dp"
+        android:background="@drawable/bg_pill_sage"
+        android:clickable="true"
+        android:contentDescription="@string/stand_ready"
+        android:focusable="true"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:gravity="center"
+        android:minWidth="90dp"
+        android:orientation="horizontal"
+        android:paddingHorizontal="14dp">
+
+        <ImageView
+            android:layout_width="9dp"
+            android:layout_height="9dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_check"
+            android:tint="@color/watch_ground" />
+
+        <TextView
+            style="@style/WatchText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:importantForAccessibility="no"
+            android:text="@string/stand_ready"
+            android:textColor="@color/watch_ground"
+            android:textFontWeight="700"
+            android:textSize="8.5sp" />
+    </LinearLayout>
+</LinearLayout>

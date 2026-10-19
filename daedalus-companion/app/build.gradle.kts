@@ -13,6 +13,8 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "0.1.0"
+        // Ship only the languages the app is translated into.
+        resourceConfigurations += listOf("en", "fr")
     }
 
     buildTypes {
@@ -56,6 +58,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.6")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
 
+    // AppCompat: per-app language switching (AppCompatDelegate.setApplicationLocales)
+    implementation("androidx.appcompat:appcompat:1.7.0")
+
     // Material (for themes)
     implementation("com.google.android.material:material:1.12.0")
 
@@ -67,4 +72,7 @@ dependencies {
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+
+    // JVM unit tests
+    testImplementation("junit:junit:4.13.2")
 }

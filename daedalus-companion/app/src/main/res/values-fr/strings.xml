@@ -1,41 +1,200 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Daedalus Companion</string>
+    <string name="app_name">Daedalus</string>
 
-    <!-- Connection status -->
-    <string name="status_disconnected">Ceinture : DÉCONNECTÉE</string>
-    <string name="status_scanning">Ceinture : RECHERCHE…</string>
-    <string name="status_connecting">Ceinture : CONNEXION…</string>
-    <string name="status_connected">Ceinture : CONNECTÉE</string>
-    <string name="status_error">Ceinture : ERREUR</string>
+    <!-- Navigation -->
+    <string name="nav_today">Aujourd’hui</string>
+    <string name="nav_cues">Repères</string>
+    <string name="nav_journal">Journal</string>
+    <string name="nav_meds">Médicaments</string>
+    <string name="nav_profile">Profil</string>
+    <string name="back">Retour</string>
 
-    <!-- HR display -->
-    <string name="hr_display">FC : --  RR : --</string>
-    <string name="hr_format">FC : %1$d bpm</string>
-    <string name="rr_format"> RR : %1$.0f ms</string>
-    <string name="samples_format">(%1$d échantillons)</string>
+    <!-- Today -->
+    <string name="greeting_morning">Bonjour</string>
+    <string name="greeting_afternoon">Bon après-midi</string>
+    <string name="greeting_evening">Bonsoir</string>
+    <string name="watch_checking">Recherche de votre montre…</string>
+    <string name="watch_connected">Montre connectée</string>
+    <string name="watch_not_connected">Montre non connectée</string>
+    <string name="watch_sub_ready">Prête à donner des repères</string>
+    <string name="watch_sub_cue_on">Repère « %1$s » activé</string>
+    <string name="watch_sub_pair">Jumelez-la dans l’application Wear OS</string>
+    <string name="today_title">Aujourd’hui</string>
+    <string name="today_doses">Doses notées</string>
+    <string name="today_sessions">Séances de repères</string>
+    <string name="today_checkins">Bilans</string>
+    <string name="last_dose">Dernière dose</string>
+    <string name="last_dose_none">Aucune dose notée aujourd’hui</string>
+    <string name="log_dose">Noter une dose</string>
+    <string name="vitals_title">Signes vitaux</string>
+    <string name="vitals_hr">Fréquence cardiaque</string>
+    <string name="vitals_breathing">Respiration</string>
+    <string name="vitals_spo2">Oxygène sanguin</string>
+    <string name="vitals_bp">Tension artérielle</string>
+    <string name="vitals_hint">D’après vos dernières séances sur la montre ; la fréquence cardiaque est en direct quand la ceinture thoracique est connectée. La tension artérielle arrive bientôt.</string>
+    <string name="vitals_live">En direct</string>
+    <string name="vitals_at_today">à %1$s</string>
+    <string name="vitals_at_day">%1$s, %2$s</string>
+    <string name="value_none">—</string>
+    <string name="unit_bpm">bpm</string>
+    <string name="unit_per_min">/min</string>
+    <string name="unit_percent" formatted="false">%</string>
+    <string name="unit_mmhg">mmHg</string>
 
-    <!-- Session status -->
-    <string name="session_idle">Session : INACTIVE</string>
-    <string name="session_active_format">Session : %1$s/%2$s\nÉtat : ACTIVE</string>
+    <!-- Cue modes -->
+    <string name="mode_walk">Marche</string>
+    <string name="mode_rest">Respirer</string>
+    <string name="mode_fine">Motricité fine</string>
+    <string name="mode_calm">Calme</string>
+    <string name="mode_other">Autre</string>
+    <string name="mode_walk_desc">Rythme de marche</string>
+    <string name="mode_rest_desc">Rythme de respiration calme</string>
+    <string name="mode_fine_desc">Pulsations régulières pour écrire et les tâches</string>
+    <string name="mode_calm_desc">Pulsations lentes d’ancrage</string>
 
-    <!-- Buttons -->
-    <string name="btn_connect_ble">Connecter Ceinture (BLE)</string>
-    <string name="btn_start">▶ Démarrer</string>
-    <string name="btn_stop">⏹ Arrêter</string>
-    <string name="btn_export">📦 Exporter Session</string>
+    <!-- Cues -->
+    <string name="cues_title">Repères</string>
+    <string name="cues_lead">Des vibrations sur votre montre, adaptées à vous.</string>
+    <string name="unit_steps_min">pas par minute</string>
+    <string name="unit_breaths_min">respirations par minute</string>
+    <string name="unit_pulses_min">pulsations par minute</string>
+    <string name="cue_start">Démarrer sur la montre</string>
+    <string name="cue_stop">Arrêter le repère</string>
+    <string name="cue_running">En cours sur votre montre</string>
+    <string name="cue_watch_missing">Montre non connectée. Jumelez-la dans l’application Wear OS.</string>
+    <string name="cue_rate">Rythme des pulsations</string>
+    <string name="cue_rate_sub">%1$s · se règle par %2$d par minute</string>
+    <string name="cue_rate_down">Ralentir de %1$d</string>
+    <string name="cue_rate_up">Accélérer de %1$d</string>
+    <string name="cue_slower">%1$d · plus lent</string>
+    <string name="cue_faster">plus rapide · %1$d</string>
+    <string name="cue_auto_title">Repères automatiques</string>
+    <string name="cue_auto_note">Vos choix sont enregistrés et seront utilisés quand la détection sur la montre sera activée.</string>
+    <string name="cue_walking">Repère de marche</string>
+    <string name="cue_walking_sub">Lors d’un blocage détecté ou si vous touchez « Je suis bloqué·e »</string>
+    <string name="cue_tremor">Ancrage du tremblement</string>
+    <string name="cue_tremor_sub">Pendant un tremblement détecté</string>
+    <string name="cue_breathing">Repère respiratoire</string>
+    <string name="cue_breathing_sub">Quand le cœur et la respiration s’accélèrent au repos</string>
+    <string name="cue_stand">Rappel au lever</string>
+    <string name="cue_stand_sub">Une pause avant de marcher après vous être levé·e</string>
 
-    <!-- Event markers -->
-    <string name="label_events">Marqueurs d\'événements</string>
-    <string name="btn_rest">🧘 Repos</string>
-    <string name="btn_stress">🧠 Test de Stress</string>
-    <string name="btn_sync">👏 Sync (Applaudissements)</string>
+    <!-- Journal -->
+    <string name="journal_title">Journal</string>
+    <string name="journal_empty">Rien de noté ce jour-là.</string>
+    <string name="journal_dose">Dose prise</string>
+    <string name="journal_session">Séance « %1$s »</string>
+    <string name="journal_checkin">Bilan</string>
+    <string name="journal_hr_title">Fréquence cardiaque</string>
+    <string name="journal_hr_range">%1$d–%2$d bpm</string>
+    <string name="journal_hr_loading">Chargement…</string>
+    <string name="journal_hr_empty">Aucune donnée cardiaque ce jour-là. Elles proviennent des séances de repères sur la montre.</string>
+    <string name="journal_hr_dose">Dose</string>
+    <string name="journal_hr_chart_cd">Fréquence cardiaque de %1$s à %2$s, entre %3$d et %4$d battements par minute</string>
+    <string name="journal_share">Partager avec mon équipe soignante</string>
+    <string name="journal_share_subject">Journal Daedalus · %1$s</string>
+    <string name="journal_share_chooser">Partager le journal</string>
 
-    <!-- Toast messages -->
-    <string name="toast_ble_permission">Permissions Bluetooth requises</string>
-    <string name="toast_session_started">Session démarrée</string>
-    <string name="toast_session_stopped">Session arrêtée</string>
-    <string name="toast_exported">Exporté : %1$s</string>
-    <string name="toast_no_session">Pas de session active</string>
-    <string name="toast_sync_event">Événement sync : Applaudissements</string>
+    <!-- Medication -->
+    <string name="meds_title">Médicaments</string>
+    <string name="meds_add_cd">Noter une dose</string>
+    <string name="feel_title">Comment vous sentez-vous ?</string>
+    <string name="feel_good">Je me sens bien</string>
+    <string name="feel_wearing">L’effet diminue</string>
+    <string name="feel_unsure">Je ne sais pas</string>
+    <string name="feel_saved">Enregistré à %1$s</string>
+    <string name="meds_today">Aujourd’hui</string>
+    <string name="meds_none">Aucune dose notée aujourd’hui.</string>
+    <string name="meds_taken_at">Prise à %1$s</string>
+    <string name="meds_week">Cette semaine</string>
+    <plurals name="meds_week_count">
+        <item quantity="one">%d dose notée</item>
+        <item quantity="many">%d doses notées</item>
+        <item quantity="other">%d doses notées</item>
+    </plurals>
+    <string name="meds_due_now">À prendre</string>
+    <string name="meds_upcoming">À venir</string>
+    <string name="meds_take">Prendre</string>
+    <string name="meds_extra_at">Dose supplémentaire à %1$s</string>
+    <string name="meds_reminders">Rappels de dose</string>
+    <string name="meds_reminders_sub">Sur votre montre et votre téléphone</string>
+    <string name="meds_week_of">%1$d doses sur %2$d</string>
+
+    <!-- Medication schedule (Profile) -->
+    <string name="schedule_title">Horaire des médicaments</string>
+    <string name="schedule_lead">Indiquez l’heure, le nom et le dosage de chaque dose quotidienne. L’onglet Médicaments affichera alors une liste et enverra des rappels.</string>
+    <string name="schedule_empty">Aucune heure de dose pour l’instant.</string>
+    <string name="schedule_add">Ajouter une heure de dose</string>
+    <string name="schedule_delete_cd">Retirer %1$s</string>
+    <string name="schedule_not_set">Non défini</string>
+    <plurals name="schedule_count">
+        <item quantity="one">%d dose par jour</item>
+        <item quantity="many">%d doses par jour</item>
+        <item quantity="other">%d doses par jour</item>
+    </plurals>
+
+    <!-- Dose reminder notification -->
+    <string name="reminder_channel">Rappels de dose</string>
+    <string name="reminder_title">C’est l’heure de votre dose</string>
+    <string name="reminder_taken">Marquer prise</string>
+    <string name="meds_name">Nom du médicament</string>
+    <string name="meds_dosage">Dosage (p. ex. 100 mg)</string>
+    <string name="meds_save">Enregistrer</string>
+    <string name="cancel">Annuler</string>
+
+    <!-- Profile -->
+    <string name="profile_title">Profil</string>
+    <string name="language">Langue</string>
+    <string name="devices">Appareils</string>
+    <string name="device_watch">Galaxy Watch5 Pro</string>
+    <string name="device_strap">Ceinture thoracique (recherche)</string>
+    <string name="device_connected">Connecté</string>
+    <string name="device_tap_connect">Touchez pour connecter</string>
+    <string name="strap_grant">Autoriser l’accès Bluetooth</string>
+    <string name="strap_scanning">Recherche…</string>
+    <string name="strap_connecting">Connexion…</string>
+    <string name="strap_error">Erreur. Touchez pour réessayer.</string>
+    <string name="profile_calibration">Étalonnage</string>
+    <string name="profile_calibration_sub">Protocole de recherche guidé</string>
+    <string name="profile_sessions">Séances enregistrées</string>
+    <plurals name="profile_sessions_count">
+        <item quantity="one">%d fichier</item>
+        <item quantity="many">%d fichiers</item>
+        <item quantity="other">%d fichiers</item>
+    </plurals>
+    <string name="profile_privacy">Confidentialité</string>
+    <string name="profile_privacy_sub">Vos données restent sur votre téléphone</string>
+    <string name="disclaimer">Un compagnon de bien-être, pas un dispositif médical.</string>
+    <string name="version">Version %1$s</string>
+
+    <!-- Sessions -->
+    <string name="sessions_in_progress">Séance en cours</string>
+    <string name="sessions_in_progress_sub">Les téléchargements reprennent à la fin</string>
+    <string name="sessions_empty">Aucune séance pour l’instant</string>
+    <string name="sessions_delete_all_cd">Supprimer toutes les séances</string>
+    <string name="sessions_delete_title">Supprimer toutes les séances ?</string>
+    <plurals name="sessions_delete_body">
+        <item quantity="one">%d fichier de séance sera supprimé définitivement. Cette action est irréversible.</item>
+        <item quantity="many">%d fichiers de séance seront supprimés définitivement. Cette action est irréversible.</item>
+        <item quantity="other">%d fichiers de séance seront supprimés définitivement. Cette action est irréversible.</item>
+    </plurals>
+    <string name="sessions_download_cd">Télécharger la séance</string>
+    <string name="sessions_download_chooser">Télécharger la séance</string>
+    <string name="delete">Supprimer</string>
+
+    <!-- Calibration -->
+    <string name="calib_title">Étalonnage</string>
+    <string name="calib_lead">Blocs du protocole de recherche. Démarrez un bloc, suivez les étapes, puis arrêtez.</string>
+    <string name="start">Démarrer</string>
+    <string name="stop">Arrêter</string>
+    <string name="cat_setup">Préparation</string>
+    <string name="cat_sync">Synchro</string>
+    <string name="cat_rest">Repos</string>
+    <string name="cat_breathing">Respiration</string>
+    <string name="cat_stress">Stress</string>
+    <string name="cat_movement">Mouvement</string>
+    <string name="cat_tremor">Tremblement</string>
+    <string name="cat_gait">Marche</string>
+    <string name="cat_haptic">Haptique</string>
 </resources>

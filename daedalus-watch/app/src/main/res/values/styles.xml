@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.DaedalusWatch" parent="@android:style/Theme.DeviceDefault">
+        <item name="android:windowBackground">@color/watch_ground</item>
+        <item name="android:colorAccent">@color/watch_sage</item>
+        <item name="android:fontFamily">@font/manrope</item>
+    </style>
+
+    <!-- Base text for the watch screens (Manrope, light ink on the dark face). -->
+    <style name="WatchText">
+        <item name="android:fontFamily">@font/manrope</item>
+        <item name="android:textColor">@color/watch_ink</item>
+    </style>
+
+    <!-- Stand-up prompt: shows over the lock screen / ambient watch face. -->
+    <style name="Theme.DaedalusWatch.Prompt" parent="Theme.DaedalusWatch">
+        <item name="android:windowShowWallpaper">false</item>
+    </style>
+</resources>

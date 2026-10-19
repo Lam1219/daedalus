@@ -7,11 +7,20 @@
     <!-- Body sensors (accelerometer, gyroscope, heart rate) -->
     <uses-permission android:name="android.permission.BODY_SENSORS" />
     <uses-permission android:name="android.permission.BODY_SENSORS_BACKGROUND" />
+    <!-- This Samsung watch's heart rate sensors are gated by this permission specifically,
+         not BODY_SENSORS — confirmed via `dumpsys sensorservice` showing
+         perm: android.permission.health.READ_HEART_RATE on its HR sensor entries. -->
+    <uses-permission android:name="android.permission.health.READ_HEART_RATE" />
 
     <!-- Foreground service -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
+    <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Stand-up prompt opens over the watch face -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
     <!-- BLE for iPhone communication -->
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
@@ -32,12 +41,12 @@
 
         <meta-data
             android:name="com.google.android.wearable.standalone"
-            android:value="false" />
+            android:value="true" />
 
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"
-            android:theme="@android:style/Theme.DeviceDefault">
+            android:theme="@style/Theme.DaedalusWatch">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -45,11 +54,40 @@
         </activity>
 
 
-        <!-- Haptic service -->
+        <activity
+            android:name=".ui.StandPromptActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTop"
+            android:showWhenLocked="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.DaedalusWatch.Prompt"
+            android:turnScreenOn="true" />
+
+        <!-- Services -->
+        <service
+            android:name=".sensor.StandWatchService"
+            android:foregroundServiceType="health"
+            android:exported="false" />
+
         <service
             android:name=".haptics.HapticService"
-            android:foregroundServiceType="shortService"
+            android:foregroundServiceType="health"
             android:exported="false" />
+
+        <service
+            android:name=".sensor.SensorCollectionService"
+            android:foregroundServiceType="health"
+            android:exported="false" />
+
+        <service
+            android:name=".sync.WatchMessageListener"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <data android:scheme="wear" android:host="*" android:pathPrefix="/" />
+            </intent-filter>
+        </service>
 
 
     </application>

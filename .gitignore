@@ -1,0 +1,6 @@
+# macOS
+.DS_Store
+
+# Samsung Health Sensor SDK: licensed for development use, not redistributed here.
+# Download it from developer.samsung.com (see daedalus-watch/app/libs/README.md).
+daedalus-watch/app/libs/*.aar
