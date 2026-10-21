@@ -33,6 +33,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.medicina.daedaluscompanion.R
+import com.medicina.daedaluscompanion.auth.AuthState
 import com.medicina.daedaluscompanion.ble.ConnectionState
 import com.medicina.daedaluscompanion.utils.DaedalusApplication
 import com.medicina.daedaluscompanion.wear.SessionState
@@ -40,7 +41,7 @@ import kotlinx.coroutines.launch
 import java.util.Locale
 
 @Composable
-fun ProfileScreen(onOpenCalibration: () -> Unit, onOpenSessions: () -> Unit, onOpenSchedule: () -> Unit) {
+fun ProfileScreen(onOpenCalibration: () -> Unit, onOpenSessions: () -> Unit, onOpenSchedule: () -> Unit, onOpenData: () -> Unit) {
     val context = LocalContext.current
     val app = (context as? Activity)?.application as? DaedalusApplication ?: return
     val scope = rememberCoroutineScope()
@@ -74,6 +75,68 @@ fun ProfileScreen(onOpenCalibration: () -> Unit, onOpenSessions: () -> Unit, onO
 
     ScreenColumn(Modifier.verticalScroll(rememberScrollState())) {
         Text(stringResource(R.string.profile_title), style = TitleStyle)
+
+        // Account
+        val authState by app.auth.state.collectAsStateWithLifecycle()
+        SageCard(padding = PaddingValues(horizontal = 20.dp, vertical = 4.dp)) {
+            val signedIn = authState as? AuthState.SignedIn
+            ListRow(
+                title = signedIn?.email ?: stringResource(if (signedIn != null) R.string.account_signed_in else R.string.account_guest),
+                subtitle = when {
+                    signedIn == null -> stringResource(R.string.account_guest_sub)
+                    else -> stringResource(R.string.account_via_email)
+                },
+                icon = Icons.Outlined.AccountCircle,
+                trailing = {
+                    TextButton(onClick = { scope.launch { app.auth.signOut() } }) {
+                        Text(
+                            stringResource(if (signedIn != null) R.string.account_sign_out else R.string.account_sign_in),
+                            color = DesignTokens.SageDeep, fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                },
+            )
+        }
+
+        // Privacy: research opt-out (signed-in accounts only; guest data never leaves the phone)
+        if (authState is AuthState.SignedIn) {
+            // null while loading or when the choice couldn't be read (offline)
+            var allowResearch by remember { mutableStateOf<Boolean?>(null) }
+            var saveFailed by remember { mutableStateOf(false) }
+            LaunchedEffect(authState) { allowResearch = app.auth.analysisOptOut()?.not() }
+            SageCard(padding = PaddingValues(horizontal = 20.dp, vertical = 4.dp)) {
+                ListRow(
+                    title = stringResource(R.string.data_research_title),
+                    subtitle = stringResource(
+                        when {
+                            saveFailed -> R.string.data_research_failed
+                            allowResearch == null -> R.string.data_research_unavailable
+                            else -> R.string.data_research_profile_sub
+                        },
+                    ),
+                    icon = Icons.Outlined.Science,
+                    showDivider = true,
+                    trailing = {
+                        SageSwitch(
+                            checked = allowResearch == true,
+                            enabled = allowResearch != null,
+                            onCheckedChange = { allow ->
+                                val before = allowResearch
+                                allowResearch = allow; saveFailed = false
+                                scope.launch {
+                                    if (!app.auth.setAnalysisOptOut(!allow)) { allowResearch = before; saveFailed = true }
+                                }
+                            },
+                        )
+                    },
+                )
+                Text(
+                    stringResource(R.string.data_promise_short),
+                    style = CaptionStyle,
+                    modifier = Modifier.padding(start = 40.dp, top = 8.dp, bottom = 14.dp),
+                )
+            }
+        }
 
         // Language
         SageCard(padding = PaddingValues(horizontal = 20.dp, vertical = 18.dp)) {
@@ -153,7 +216,7 @@ fun ProfileScreen(onOpenCalibration: () -> Unit, onOpenSessions: () -> Unit, onO
             )
             ListRow(stringResource(R.string.profile_calibration), stringResource(R.string.profile_calibration_sub), Icons.Outlined.Tune, showDivider = true, onClick = onOpenCalibration)
             ListRow(stringResource(R.string.profile_sessions), pluralStringResource(R.plurals.profile_sessions_count, sessionCount, sessionCount), Icons.Outlined.FolderOpen, showDivider = true, onClick = onOpenSessions)
-            ListRow(stringResource(R.string.profile_privacy), stringResource(R.string.profile_privacy_sub), Icons.Outlined.Shield)
+            ListRow(stringResource(R.string.data_title), stringResource(R.string.data_row_sub), Icons.Outlined.Shield, onClick = onOpenData)
         }
 
         Text(

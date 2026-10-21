@@ -1,29 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Daedalus icon: a tulip (the Parkinson's symbol) held by a supporting hand. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Simple watch/heart icon -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M54,30
-            C54,30 48,22 40,22
-            C32,22 26,28 26,36
-            C26,48 54,62 54,62
-            C54,62 82,48 82,36
-            C82,28 76,22 68,22
-            C60,22 54,30 54,30Z" />
-    <!-- Watch band -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M46,66 L46,80 C46,82 48,84 50,84 L58,84 C60,84 62,82 62,80 L62,66 L46,66Z" />
-    <!-- Watch face circle -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M54,52
-            C48,52 44,56 44,62
-            C44,68 48,72 54,72
-            C60,72 64,68 64,62
-            C64,56 60,52 54,52Z" />
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:translateY="-2.5"
+        android:scaleX="1.0"
+        android:scaleY="1.0">
+        <!-- Supporting hand -->
+        <path
+            android:pathData="M32.5,54 A22,22 0 1,0 75.5,54"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="5"
+            android:strokeLineCap="round" />
+        <!-- Stem -->
+        <path
+            android:pathData="M54,52 L54,72.5"
+            android:strokeColor="#A9BBA3"
+            android:strokeWidth="3.2"
+            android:strokeLineCap="round" />
+        <!-- Leaf -->
+        <path
+            android:fillColor="#A9BBA3"
+            android:pathData="M54,69 C47,68 42.5,63 42,57 C48,57.5 53,61.5 54,67 Z" />
+        <!-- Tulip -->
+        <path
+            android:fillColor="#D7E2D1"
+            android:pathData="M44,35.5 Q44.5,34 46,35 L49.5,38.5 Q51.5,33.5 53.2,31.6 Q54,30.8 54.8,31.6 Q56.5,33.5 58.5,38.5 L62,35 Q63.5,34 64,35.5 L64,43 C64,49 59.5,53 54,53 C48.5,53 44,49 44,43 Z" />
+    </group>
 </vector>

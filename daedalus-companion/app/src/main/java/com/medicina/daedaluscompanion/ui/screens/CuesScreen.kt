@@ -212,7 +212,7 @@ private data class RateRange(val min: Int, val max: Int, val step: Int)
 
 /** Breathe is a breathing pacer (breaths per minute); the other modes are pulses per minute. */
 private fun rateRange(mode: HapticMode) =
-    if (mode.id == "rest") RateRange(4, 10, 1) else RateRange(40, 140, 10)
+    if (mode.id == "rest") RateRange(6, 20, 1) else RateRange(40, 140, 10)
 
 @Composable
 private fun RateStepButton(icon: androidx.compose.ui.graphics.vector.ImageVector, description: String, enabled: Boolean, onClick: () -> Unit) {

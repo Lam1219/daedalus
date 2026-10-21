@@ -4,3 +4,9 @@
 # Samsung Health Sensor SDK: licensed for development use, not redistributed here.
 # Download it from developer.samsung.com (see daedalus-watch/app/libs/README.md).
 daedalus-watch/app/libs/*.aar
+
+# Supabase project settings (URL + anon key), kept out of the repo
+daedalus-companion/supabase.properties
+
+# Supabase CLI link state (project ref, pooler URL)
+supabase/.temp/

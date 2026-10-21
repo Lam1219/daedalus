@@ -7,7 +7,10 @@ import java.util.Calendar
 import java.util.UUID
 
 /** A logged dose. [slotId] links it to a scheduled dose time (null = unscheduled / extra dose). */
-data class MedicationLog(val name: String, val dosage: String, val timestamp: Long, val slotId: String? = null)
+data class MedicationLog(val name: String, val dosage: String, val timestamp: Long, val slotId: String? = null) {
+    /** Stable ID for backup (same log → same row). */
+    val id: String get() = UUID.nameUUIDFromBytes("dose|$timestamp|$name".toByteArray()).toString()
+}
 
 /** A daily dose time set in Profile → Medication schedule. */
 data class ScheduledDose(
@@ -29,23 +32,33 @@ data class ScheduledDose(
 
 enum class Feeling { GOOD, WEARING_OFF, UNSURE }
 
-data class FeelingCheckIn(val feeling: Feeling, val timestamp: Long)
+data class FeelingCheckIn(val feeling: Feeling, val timestamp: Long) {
+    /** Stable ID for backup (same check-in → same row). */
+    val id: String get() = UUID.nameUUIDFromBytes("checkin|$timestamp|${feeling.name}".toByteArray()).toString()
+}
 
 /**
- * Small on-device store (SharedPreferences + JSON). Data stays on the phone,
- * matching the privacy promise shown in Profile.
+ * Small on-device store (SharedPreferences + JSON). The personal profile is also kept in
+ * Supabase (`profiles`) for signed-in accounts.
  */
 class LocalStore(context: Context) {
-    private val prefs = context.applicationContext.getSharedPreferences("daedalus_local", Context.MODE_PRIVATE)
+    private val appContext = context.applicationContext
+    private val prefs = appContext.getSharedPreferences("daedalus_local", Context.MODE_PRIVATE)
+
+    /** Sends the change to the signed-in account (no-op for guests or with backup off). */
+    private fun changed() = CloudBackup.syncAsync(appContext)
 
     fun medications(): List<MedicationLog> = readArray(KEY_MEDS).map {
         MedicationLog(it.getString("name"), it.optString("dosage"), it.getLong("ts"), it.optString("slot").ifBlank { null })
     }.sortedByDescending { it.timestamp }
 
-    fun addMedication(log: MedicationLog) = append(KEY_MEDS, JSONObject().apply {
-        put("name", log.name); put("dosage", log.dosage); put("ts", log.timestamp)
-        if (log.slotId != null) put("slot", log.slotId)
-    })
+    fun addMedication(log: MedicationLog) {
+        append(KEY_MEDS, JSONObject().apply {
+            put("name", log.name); put("dosage", log.dosage); put("ts", log.timestamp)
+            if (log.slotId != null) put("slot", log.slotId)
+        })
+        changed()
+    }
 
     // --- Medication schedule ---
 
@@ -58,6 +71,7 @@ class LocalStore(context: Context) {
         append(KEY_SCHEDULE, JSONObject().apply {
             put("id", dose.id); put("name", name); put("dosage", dosage); put("h", hour); put("m", minute); put("created", dose.createdAt)
         })
+        changed()
         return dose
     }
 
@@ -65,6 +79,7 @@ class LocalStore(context: Context) {
         val kept = JSONArray()
         readArray(KEY_SCHEDULE).filter { it.getString("id") != id }.forEach { kept.put(it) }
         prefs.edit().putString(KEY_SCHEDULE, kept.toString()).apply()
+        changed()
     }
 
     /** The log that marks [dose] as taken on the day containing [day], if any. */
@@ -75,9 +90,48 @@ class LocalStore(context: Context) {
         runCatching { FeelingCheckIn(Feeling.valueOf(it.getString("feeling")), it.getLong("ts")) }.getOrNull()
     }.sortedByDescending { it.timestamp }
 
-    fun addCheckIn(checkIn: FeelingCheckIn) = append(KEY_FEELINGS, JSONObject().apply {
-        put("feeling", checkIn.feeling.name); put("ts", checkIn.timestamp)
-    })
+    fun addCheckIn(checkIn: FeelingCheckIn) {
+        append(KEY_FEELINGS, JSONObject().apply {
+            put("feeling", checkIn.feeling.name); put("ts", checkIn.timestamp)
+        })
+        changed()
+    }
+
+    // --- Backup and deletion (Profile → Your data) ---
+
+    /** Whether data is backed up to the signed-in account. On by default. */
+    var cloudBackup: Boolean
+        get() = prefs.getBoolean(KEY_CLOUD_BACKUP, true)
+        set(value) = prefs.edit().putBoolean(KEY_CLOUD_BACKUP, value).apply()
+
+    /** Deletes the health history kept on this phone: doses, check-ins, schedule and profile. Settings stay. */
+    fun clearHealthData() {
+        prefs.edit()
+            .remove(KEY_MEDS).remove(KEY_FEELINGS).remove(KEY_SCHEDULE)
+            .remove(KEY_PROFILE).remove(KEY_PROFILE_OWNER).remove(KEY_PROFILE_PENDING)
+            .apply()
+    }
+
+    // --- Personal information (first-sign-in setup) ---
+
+    /** The profile saved for [owner] (the account email), or null if setup hasn't been done on this phone. */
+    fun personalProfile(owner: String?): PersonalProfile? {
+        if (prefs.getString(KEY_PROFILE_OWNER, null) != owner) return null
+        val json = prefs.getString(KEY_PROFILE, null) ?: return null
+        return runCatching { PersonalProfile.fromJson(JSONObject(json)) }.getOrNull()
+    }
+
+    /** [uploaded] = false means it still has to be sent to Supabase. */
+    fun savePersonalProfile(owner: String?, profile: PersonalProfile, uploaded: Boolean) {
+        prefs.edit()
+            .putString(KEY_PROFILE, profile.toJson().toString())
+            .putString(KEY_PROFILE_OWNER, owner)
+            .putBoolean(KEY_PROFILE_PENDING, !uploaded)
+            .apply()
+    }
+
+    fun profileUploadPending() = prefs.getBoolean(KEY_PROFILE_PENDING, false)
+    fun setProfileUploadPending(pending: Boolean) = prefs.edit().putBoolean(KEY_PROFILE_PENDING, pending).apply()
 
     fun getBoolean(key: String, default: Boolean) = prefs.getBoolean(key, default)
     fun setBoolean(key: String, value: Boolean) = prefs.edit().putBoolean(key, value).apply()
@@ -101,6 +155,10 @@ class LocalStore(context: Context) {
         private const val KEY_MEDS = "medications"
         private const val KEY_FEELINGS = "feelings"
         private const val KEY_SCHEDULE = "med_schedule"
+        private const val KEY_PROFILE = "personal_profile"
+        private const val KEY_PROFILE_OWNER = "personal_profile_owner"
+        private const val KEY_PROFILE_PENDING = "personal_profile_pending"
+        private const val KEY_CLOUD_BACKUP = "cloud_backup"
         const val CUE_WALKING = "cue_walking"
         const val CUE_TREMOR = "cue_tremor"
         const val CUE_BREATHING = "cue_breathing"
