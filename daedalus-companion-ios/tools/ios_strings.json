@@ -1,0 +1,30 @@
+{
+  "device_watch": {
+    "en": "Apple Watch",
+    "fr": "Apple Watch"
+  },
+  "watch_sub_pair": {
+    "en": "Install Daedalus from the Watch app on your iPhone",
+    "fr": "Installez Daedalus depuis l’app Watch de votre iPhone"
+  },
+  "cue_watch_missing": {
+    "en": "Apple Watch not connected. Pair it, then install Daedalus from the Watch app on your iPhone.",
+    "fr": "Apple Watch non connectée. Jumelez-la, puis installez Daedalus depuis l’app Watch de votre iPhone."
+  },
+  "meds_reminders_sub": {
+    "en": "Notifications on your iPhone",
+    "fr": "Notifications sur votre iPhone"
+  },
+  "vitals_hint": {
+    "en": "From Apple Health: readings your Apple Watch takes during the day and during cues.",
+    "fr": "D’Apple Santé : les mesures prises par votre Apple Watch pendant la journée et les signaux."
+  },
+  "journal_hr_empty": {
+    "en": "No heart-rate data for this day in Apple Health.",
+    "fr": "Aucune donnée de fréquence cardiaque pour ce jour dans Apple Santé."
+  },
+  "login_not_configured": {
+    "en": "Sign-in isn’t set up yet: add the Supabase project URL and anon key in daedalus-companion/supabase.properties, then rebuild.",
+    "fr": "La connexion n’est pas encore configurée : ajoutez l’URL du projet Supabase et la clé anon dans daedalus-companion/supabase.properties, puis recompilez."
+  }
+}

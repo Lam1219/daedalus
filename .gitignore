@@ -10,3 +10,10 @@ daedalus-companion/supabase.properties
 
 # Supabase CLI link state (project ref, pooler URL)
 supabase/.temp/
+
+# iOS: build folder and generated Supabase settings
+daedalus-companion-ios/build/
+daedalus-companion-ios/Daedalus/App/SupabaseConfig.generated.swift
+# Xcode per-user state
+xcuserdata/
+*.xcuserstate
