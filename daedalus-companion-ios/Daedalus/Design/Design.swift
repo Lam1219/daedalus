@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// Sage palette and type from the Daedalus App Design canvas (same values as the Android app).
 enum DS {
@@ -122,6 +123,7 @@ struct ListRow<Trailing: View>: View {
     var subtitle: String? = nil
     var icon: String? = nil
     var showDivider = false
+    var subtitleColor: Color = DS.muted
     var action: (() -> Void)? = nil
     @ViewBuilder var trailing: Trailing
 
@@ -131,7 +133,7 @@ struct ListRow<Trailing: View>: View {
                 if let icon { Image(systemName: icon).font(.system(size: 18)).foregroundStyle(DS.sage).frame(width: 22) }
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title).font(DS.rowTitle).foregroundStyle(DS.ink)
-                    if let subtitle { Text(subtitle).font(DS.font(13)).foregroundStyle(DS.muted).fixedSize(horizontal: false, vertical: true) }
+                    if let subtitle { Text(subtitle).font(DS.font(13)).foregroundStyle(subtitleColor).fixedSize(horizontal: false, vertical: true) }
                 }
                 Spacer(minLength: 8)
                 trailing
@@ -150,6 +152,41 @@ struct ListRow<Trailing: View>: View {
 extension ListRow where Trailing == EmptyView {
     init(title: String, subtitle: String? = nil, icon: String? = nil, showDivider: Bool = false, action: (() -> Void)? = nil) {
         self.init(title: title, subtitle: subtitle, icon: icon, showDivider: showDivider, action: action) { EmptyView() }
+    }
+}
+
+/// Something that can be undone for a few seconds (a logged dose, a deletion, a check-in).
+struct UndoItem: Equatable {
+    let id = UUID()
+    let message: String
+    let undo: () -> Void
+    static func == (a: UndoItem, b: UndoItem) -> Bool { a.id == b.id }
+}
+
+extension View {
+    /// Shows `item` at the bottom with an Undo button for about 8 seconds, then clears it.
+    func undoBar(_ item: Binding<UndoItem?>) -> some View {
+        overlay(alignment: .bottom) {
+            if let current = item.wrappedValue {
+                HStack(spacing: 12) {
+                    Text(current.message).font(DS.font(15)).foregroundStyle(.white)
+                    Spacer(minLength: 8)
+                    Button(L("undo")) { current.undo(); item.wrappedValue = nil }
+                        .font(DS.font(15, .semibold)).foregroundStyle(DS.sageTint)
+                        .frame(minWidth: 44, minHeight: 44)
+                }
+                .padding(.leading, 18).padding(.trailing, 8).padding(.vertical, 4)
+                .background(DS.ink, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .padding(.horizontal, 16).padding(.bottom, 12)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .task(id: current.id) {
+                    UIAccessibility.post(notification: .announcement, argument: current.message)
+                    try? await Task.sleep(for: .seconds(8))
+                    if item.wrappedValue?.id == current.id { withAnimation { item.wrappedValue = nil } }
+                }
+            }
+        }
+        .animation(.easeOut(duration: 0.2), value: item.wrappedValue)
     }
 }
 

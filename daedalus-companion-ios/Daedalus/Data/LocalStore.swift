@@ -20,6 +20,10 @@ final class LocalStore {
         var owner: String?
         /// Dose times removed on this phone that still have to be removed from the account.
         var deletedScheduleIds: [String] = []
+        /// Doses and check-ins removed on this phone (undo or delete), likewise. Optional so files
+        /// saved before they existed still decode.
+        var deletedDoseIds: [String]?
+        var deletedCheckInIds: [String]?
     }
 
     private var records = Records()
@@ -72,14 +76,48 @@ final class LocalStore {
 
     func addMedication(_ log: MedicationLog) {
         guard isAvailable else { return }
-        records.medications.append(log); save()
+        records.medications.append(log)
+        records.deletedDoseIds?.removeAll { $0 == log.id } // undoing a delete brings it back
+        save()
+    }
+
+    /// Removes a logged dose (undo, or delete from the list); backup deletes it from the account too.
+    func removeMedication(_ log: MedicationLog) {
+        guard isAvailable else { return }
+        records.medications.removeAll { $0.id == log.id }
+        if !(records.deletedDoseIds ?? []).contains(log.id) { records.deletedDoseIds = (records.deletedDoseIds ?? []) + [log.id] }
+        save()
+    }
+
+    /// Doses removed here that may still be in the account.
+    var deletedDoseIds: [String] { records.deletedDoseIds ?? [] }
+
+    func clearDeletedDoseIds(_ ids: [String]) {
+        records.deletedDoseIds?.removeAll { ids.contains($0) }; save(notify: false)
     }
 
     var checkIns: [FeelingCheckIn] { records.checkIns.sorted { $0.timestamp > $1.timestamp } }
 
     func addCheckIn(_ checkIn: FeelingCheckIn) {
         guard isAvailable else { return }
-        records.checkIns.append(checkIn); save()
+        records.checkIns.append(checkIn)
+        records.deletedCheckInIds?.removeAll { $0 == checkIn.id }
+        save()
+    }
+
+    /// Removes a check-in (undo); backup deletes it from the account too.
+    func removeCheckIn(_ checkIn: FeelingCheckIn) {
+        guard isAvailable else { return }
+        records.checkIns.removeAll { $0.id == checkIn.id }
+        if !(records.deletedCheckInIds ?? []).contains(checkIn.id) { records.deletedCheckInIds = (records.deletedCheckInIds ?? []) + [checkIn.id] }
+        save()
+    }
+
+    /// Check-ins removed here that may still be in the account.
+    var deletedCheckInIds: [String] { records.deletedCheckInIds ?? [] }
+
+    func clearDeletedCheckInIds(_ ids: [String]) {
+        records.deletedCheckInIds?.removeAll { ids.contains($0) }; save(notify: false)
     }
 
     // MARK: Medication schedule
@@ -154,14 +192,14 @@ final class LocalStore {
         !records.medications.isEmpty || !records.checkIns.isEmpty || !records.schedule.isEmpty || !Self.sessionFiles().isEmpty
     }
 
-    /// Adds records restored from the account, skipping any already on this phone.
+    /// Adds records restored from the account, skipping any already on this phone or removed from it.
     func mergeFromAccount(schedule: [ScheduledDose], medications: [MedicationLog], checkIns: [FeelingCheckIn]) {
         guard isAvailable else { return }
         let scheduleIds = Set(records.schedule.map(\.id)).union(records.deletedScheduleIds)
         records.schedule += schedule.filter { !scheduleIds.contains($0.id) }
-        let doseIds = Set(records.medications.map(\.id))
+        let doseIds = Set(records.medications.map(\.id)).union(deletedDoseIds)
         records.medications += medications.filter { !doseIds.contains($0.id) }
-        let checkInIds = Set(records.checkIns.map(\.id))
+        let checkInIds = Set(records.checkIns.map(\.id)).union(deletedCheckInIds)
         records.checkIns += checkIns.filter { !checkInIds.contains($0.id) }
         save(notify: false)
     }
