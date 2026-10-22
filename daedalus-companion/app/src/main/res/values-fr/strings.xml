@@ -119,6 +119,7 @@
     </plurals>
     <string name="meds_due_now">À prendre</string>
     <string name="meds_upcoming">À venir</string>
+    <string name="meds_missed">Manquée · %1$s</string>
     <string name="meds_take">Prendre</string>
     <string name="meds_extra_at">Dose supplémentaire à %1$s</string>
     <string name="undo">Annuler</string>

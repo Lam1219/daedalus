@@ -118,6 +118,7 @@
     </plurals>
     <string name="meds_due_now">Due now</string>
     <string name="meds_upcoming">Upcoming</string>
+    <string name="meds_missed">Missed · %1$s</string>
     <string name="meds_take">Take</string>
     <string name="meds_extra_at">Extra dose at %1$s</string>
     <string name="undo">Undo</string>

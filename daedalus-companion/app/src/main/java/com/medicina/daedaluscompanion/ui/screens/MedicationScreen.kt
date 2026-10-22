@@ -202,9 +202,20 @@ private fun LoggedDoses(medications: List<MedicationLog>, timeFormat: DateFormat
     }
 }
 
-private enum class DoseState { TAKEN, DUE, UPCOMING }
+internal enum class DoseState { TAKEN, DUE, MISSED, UPCOMING }
 
-/** With a schedule: each dose time today as taken / due now (with Take) / upcoming, plus extra doses. */
+/**
+ * A scheduled dose's state at [now], for a dose time at [at]: "Due now" from its time until an
+ * hour after, then "Missed". Same rule as the iPhone app.
+ */
+internal fun doseState(now: Long, at: Long, taken: Boolean): DoseState = when {
+    taken -> DoseState.TAKEN
+    now < at -> DoseState.UPCOMING
+    now < at + DUE_FOR_MS -> DoseState.DUE
+    else -> DoseState.MISSED
+}
+
+/** With a schedule: each dose time today as taken / due now / missed / upcoming, plus extra doses. */
 @Composable
 private fun ScheduledDoses(
     schedule: List<ScheduledDose>,
@@ -221,19 +232,18 @@ private fun ScheduledDoses(
         schedule.forEachIndexed { i, dose ->
             val taken = todayLogs.firstOrNull { it.slotId == dose.id }
             val at = dose.timeOn(now)
-            val state = when {
-                taken != null -> DoseState.TAKEN
-                now >= at - DUE_EARLY_MS -> DoseState.DUE
-                else -> DoseState.UPCOMING
-            }
+            val state = doseState(now, at, taken != null)
             DoseRow(
                 title = listOf(doseTime(dose), dose.name, dose.dosage).filter { it.isNotBlank() }.joinToString(" · "),
                 status = when (state) {
                     DoseState.TAKEN -> stringResource(R.string.meds_taken_at, timeFormat.format(Date(taken!!.timestamp)))
                     DoseState.DUE -> stringResource(R.string.meds_due_now)
+                    DoseState.MISSED -> stringResource(R.string.meds_missed, doseTime(dose))
                     DoseState.UPCOMING -> stringResource(R.string.meds_upcoming)
                 },
                 state = state,
+                // Take can be tapped from 30 minutes early, and late if a dose was missed.
+                canTake = state != DoseState.TAKEN && now >= at - TAKE_EARLY_MS,
                 divider = i < schedule.lastIndex || extras.isNotEmpty(),
                 onTake = { onTake(dose) },
                 onDelete = taken?.let { { onDelete(it) } },
@@ -258,6 +268,7 @@ private fun DoseRow(
     status: String,
     state: DoseState,
     divider: Boolean,
+    canTake: Boolean = false,
     onTake: () -> Unit = {},
     /** Removes a logged dose (taken by mistake); null when there's nothing to remove. */
     onDelete: (() -> Unit)? = null,
@@ -269,18 +280,23 @@ private fun DoseRow(
                     Icon(Icons.Outlined.Check, null, tint = Color.White, modifier = Modifier.size(16.dp))
                 }
                 DoseState.DUE -> Box(Modifier.size(32.dp).border(2.dp, DesignTokens.Sage, CircleShape))
-                DoseState.UPCOMING -> Box(Modifier.size(32.dp).border(2.dp, DesignTokens.SwitchOff, CircleShape))
+                DoseState.MISSED -> Box(Modifier.size(32.dp).border(2.dp, DesignTokens.Alert, CircleShape))
+                DoseState.UPCOMING -> Box(Modifier.size(32.dp).border(2.dp, DesignTokens.Outline, CircleShape))
             }
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
                 Text(title, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = DesignTokens.Ink)
                 Text(
                     status,
                     fontSize = 12.sp,
-                    fontWeight = if (state == DoseState.DUE) FontWeight.SemiBold else FontWeight.Normal,
-                    color = if (state == DoseState.DUE) DesignTokens.Sage else DesignTokens.Muted,
+                    fontWeight = if (state == DoseState.DUE || state == DoseState.MISSED) FontWeight.SemiBold else FontWeight.Normal,
+                    color = when (state) {
+                        DoseState.DUE -> DesignTokens.Sage
+                        DoseState.MISSED -> DesignTokens.Alert
+                        else -> DesignTokens.Muted
+                    },
                 )
             }
-            if (state == DoseState.DUE) {
+            if (canTake) {
                 PillButton(stringResource(R.string.meds_take), onClick = onTake, height = 48.dp)
             }
             if (state == DoseState.TAKEN && onDelete != null) {
@@ -358,8 +374,8 @@ private fun AddDoseDialog(initialName: String, initialDosage: String, onDismiss:
         title = { Text(stringResource(R.string.meds_add_cd), style = SectionStyle) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedTextField(medName, { medName = it }, label = { Text(stringResource(R.string.meds_name)) }, singleLine = true, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp))
-                OutlinedTextField(medDosage, { medDosage = it }, label = { Text(stringResource(R.string.meds_dosage)) }, singleLine = true, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp))
+                OutlinedTextField(medName, { medName = it }, label = { Text(stringResource(R.string.meds_name)) }, singleLine = true, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp), colors = fieldColors())
+                OutlinedTextField(medDosage, { medDosage = it }, label = { Text(stringResource(R.string.meds_dosage)) }, singleLine = true, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp), colors = fieldColors())
             }
         },
         confirmButton = {
@@ -374,8 +390,10 @@ private fun AddDoseDialog(initialName: String, initialDosage: String, onDismiss:
 private const val DAY_MS = 24 * 60 * 60 * 1000L
 /** How long Undo stays up after logging or deleting. */
 private const val UNDO_MS = 8_000L
-/** A dose shows "Due now" (with Take) from 30 minutes before its time. */
-private const val DUE_EARLY_MS = 30 * 60 * 1000L
+/** A dose is "Due now" for an hour after its time, then "Missed". */
+private const val DUE_FOR_MS = 60 * 60 * 1000L
+/** Take shows from 30 minutes before a dose's time. */
+private const val TAKE_EARLY_MS = 30 * 60 * 1000L
 
 private fun startOfDay(t: Long): Long = Calendar.getInstance().apply {
     timeInMillis = t; set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
