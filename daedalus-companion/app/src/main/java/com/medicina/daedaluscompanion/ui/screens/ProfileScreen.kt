@@ -33,6 +33,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.medicina.daedaluscompanion.R
+import com.medicina.daedaluscompanion.data.CloudBackup
 import com.medicina.daedaluscompanion.auth.AuthState
 import com.medicina.daedaluscompanion.ble.ConnectionState
 import com.medicina.daedaluscompanion.utils.DaedalusApplication
@@ -78,6 +79,9 @@ fun ProfileScreen(onOpenCalibration: () -> Unit, onOpenSessions: () -> Unit, onO
 
         // Account
         val authState by app.auth.state.collectAsStateWithLifecycle()
+        // Sign-out confirmation: null = hidden, true = everything is backed up, false = some isn't.
+        var signOutBackedUp by remember { mutableStateOf<Boolean?>(null) }
+        var checkingBackup by remember { mutableStateOf(false) }
         SageCard(padding = PaddingValues(horizontal = 20.dp, vertical = 4.dp)) {
             val signedIn = authState as? AuthState.SignedIn
             ListRow(
@@ -88,12 +92,54 @@ fun ProfileScreen(onOpenCalibration: () -> Unit, onOpenSessions: () -> Unit, onO
                 },
                 icon = Icons.Outlined.AccountCircle,
                 trailing = {
-                    TextButton(onClick = { scope.launch { app.auth.signOut() } }) {
+                    TextButton(
+                        enabled = !checkingBackup,
+                        onClick = {
+                            if (signedIn == null) {
+                                // Guest data stays; the person chooses what to do with it after signing in.
+                                scope.launch { app.auth.signOut() }
+                            } else {
+                                // Back up first, then confirm: signing out clears this phone's health data.
+                                checkingBackup = true
+                                scope.launch {
+                                    signOutBackedUp = CloudBackup.isFullyBackedUp(app)
+                                    checkingBackup = false
+                                }
+                            }
+                        },
+                    ) {
                         Text(
                             stringResource(if (signedIn != null) R.string.account_sign_out else R.string.account_sign_in),
                             color = DesignTokens.SageDeep, fontWeight = FontWeight.SemiBold,
                         )
                     }
+                },
+            )
+        }
+        signOutBackedUp?.let { backedUp ->
+            AlertDialog(
+                onDismissRequest = { signOutBackedUp = null },
+                containerColor = DesignTokens.Surface,
+                title = { Text(stringResource(R.string.account_sign_out_title), style = SectionStyle) },
+                text = {
+                    Text(
+                        stringResource(if (backedUp) R.string.account_sign_out_backed_up else R.string.account_sign_out_not_backed_up),
+                        fontSize = 15.sp, color = DesignTokens.Ink,
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        signOutBackedUp = null
+                        CloudBackup.launch { signOutAndClear(app, force = true) }
+                    }) {
+                        Text(
+                            stringResource(R.string.account_sign_out),
+                            color = if (backedUp) DesignTokens.SageDeep else DesignTokens.Alert, fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { signOutBackedUp = null }) { Text(stringResource(R.string.cancel), color = DesignTokens.Muted) }
                 },
             )
         }
@@ -199,6 +245,33 @@ fun ProfileScreen(onOpenCalibration: () -> Unit, onOpenSessions: () -> Unit, onO
                         connectionState == ConnectionState.CONNECTED -> chestStrapBLE.disconnect()
                         else -> chestStrapBLE.scanAndConnect()
                     }
+                },
+            )
+        }
+        signOutBackedUp?.let { backedUp ->
+            AlertDialog(
+                onDismissRequest = { signOutBackedUp = null },
+                containerColor = DesignTokens.Surface,
+                title = { Text(stringResource(R.string.account_sign_out_title), style = SectionStyle) },
+                text = {
+                    Text(
+                        stringResource(if (backedUp) R.string.account_sign_out_backed_up else R.string.account_sign_out_not_backed_up),
+                        fontSize = 15.sp, color = DesignTokens.Ink,
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        signOutBackedUp = null
+                        CloudBackup.launch { signOutAndClear(app, force = true) }
+                    }) {
+                        Text(
+                            stringResource(R.string.account_sign_out),
+                            color = if (backedUp) DesignTokens.SageDeep else DesignTokens.Alert, fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { signOutBackedUp = null }) { Text(stringResource(R.string.cancel), color = DesignTokens.Muted) }
                 },
             )
         }

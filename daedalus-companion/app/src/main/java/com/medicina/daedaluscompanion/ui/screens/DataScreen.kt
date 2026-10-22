@@ -11,6 +11,7 @@ import androidx.compose.material.icons.outlined.CleaningServices
 import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.DeleteForever
+import androidx.compose.material.icons.outlined.PersonRemove
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -27,7 +28,7 @@ import com.medicina.daedaluscompanion.data.LocalStore
 import com.medicina.daedaluscompanion.utils.DaedalusApplication
 import kotlinx.coroutines.launch
 
-private enum class DeleteAction { FREE_UP, UPLOADED, EVERYTHING }
+private enum class DeleteAction { FREE_UP, UPLOADED, EVERYTHING, ACCOUNT }
 
 /** Profile → Your data: account backup, and the three ways to delete data. */
 @Composable
@@ -35,7 +36,6 @@ fun DataScreen(onBack: () -> Unit) {
     val context = LocalContext.current
     val app = (context as? Activity)?.application as? DaedalusApplication ?: return
     val store = remember { LocalStore(context) }
-    val scope = rememberCoroutineScope()
     val signedIn = app.auth.state.collectAsStateWithLifecycle().value is AuthState.SignedIn
 
     var backupOn by remember { mutableStateOf(store.cloudBackup) }
@@ -46,7 +46,8 @@ fun DataScreen(onBack: () -> Unit) {
 
     fun run(block: suspend () -> Int) {
         busy = true; message = null
-        scope.launch {
+        // In CloudBackup's own scope: a deletion finishes even if the person leaves this screen.
+        CloudBackup.launch {
             message = block()
             sessions = loadSessions(context)
             backupOn = store.cloudBackup
@@ -109,8 +110,17 @@ fun DataScreen(onBack: () -> Unit) {
                 title = stringResource(R.string.data_delete_all_title),
                 subtitle = stringResource(if (signedIn) R.string.data_delete_all_sub else R.string.data_delete_all_guest_sub),
                 icon = Icons.Outlined.DeleteForever,
+                showDivider = signedIn,
                 onClick = if (!busy) ({ confirm = DeleteAction.EVERYTHING }) else null,
             )
+            if (signedIn) {
+                ListRow(
+                    title = stringResource(R.string.data_delete_account_title),
+                    subtitle = stringResource(R.string.data_delete_account_sub),
+                    icon = Icons.Outlined.PersonRemove,
+                    onClick = if (!busy) ({ confirm = DeleteAction.ACCOUNT }) else null,
+                )
+            }
         }
 
         if (busy) LinearProgressIndicator(Modifier.fillMaxWidth(), color = DesignTokens.Sage, trackColor = DesignTokens.SageTrack)
@@ -126,6 +136,7 @@ fun DataScreen(onBack: () -> Unit) {
                 if (signedIn) R.string.data_delete_all_confirm else R.string.data_delete_all_guest_confirm,
                 R.string.data_delete_button,
             )
+            DeleteAction.ACCOUNT -> Triple(R.string.data_delete_account_title, R.string.data_delete_account_confirm, R.string.data_delete_account_button)
         }
         AlertDialog(
             onDismissRequest = { confirm = null },
@@ -147,6 +158,9 @@ fun DataScreen(onBack: () -> Unit) {
                             // Signed-in accounts are signed out afterwards, which leaves this screen.
                             DeleteAction.EVERYTHING ->
                                 if (CloudBackup.deleteEverything(app)) R.string.data_delete_all_done else R.string.data_delete_failed
+                            // Signs out afterwards, which leaves this screen.
+                            DeleteAction.ACCOUNT ->
+                                if (CloudBackup.deleteAccount(app)) R.string.data_delete_all_done else R.string.data_delete_failed
                         }
                     }
                 }) { Text(stringResource(button), color = DesignTokens.Alert, fontWeight = FontWeight.SemiBold) }

@@ -61,8 +61,8 @@ fun LoginScreen(auth: AuthRepository, linkError: AuthError?) {
     var busy by remember { mutableStateOf(false) }
     var error by remember(linkError) { mutableStateOf(linkError) }
     var checkEmailBody by rememberSaveable { mutableStateOf(R.string.login_check_reset) }
-    // Research analysis is on unless the person opts out here (or later in Profile).
-    var allowResearch by rememberSaveable { mutableStateOf(true) }
+    // Research use is off unless the person chooses it (privacy by default; changeable in Profile).
+    var allowResearch by rememberSaveable { mutableStateOf(false) }
 
     fun go(to: Step) { step = to; error = null; password = "" }
     fun run(block: suspend () -> AuthResult, onDone: (AuthResult) -> Unit = {}) {

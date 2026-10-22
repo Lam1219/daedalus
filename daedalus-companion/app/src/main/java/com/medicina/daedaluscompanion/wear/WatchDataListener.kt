@@ -20,6 +20,13 @@ private const val TAG = "WatchDataListener"
  */
 class WatchDataListener : WearableListenerService() {
 
+    private companion object {
+        /** One file write at a time (the same file can arrive by two routes at once). */
+        val SAVE_LOCK = Any()
+        /** Sent back to the watch once a session file is saved; the watch then deletes its copy. */
+        const val ACK_PATH = "/session/ack"
+    }
+
     private val serviceScope = CoroutineScope(Dispatchers.IO)
 
     override fun onDataChanged(dataEvents: DataEventBuffer) {
@@ -93,22 +100,46 @@ class WatchDataListener : WearableListenerService() {
 
         if (fileData != null && fileData.isNotEmpty()) {
             Log.i(TAG, "Successfully extracted session file from DataItem: $fileName (${fileData.size} bytes)")
-            saveSessionFile(fileName, fileData)
+            saveSessionFile(fileName, fileData, dataItem.uri.host)
             SessionState.stopSession(mode, fileName, fileData.size.toLong())
         } else {
             Log.w(TAG, "DataItem at $path did not contain file content or asset")
         }
     }
 
-    private fun saveSessionFile(fileName: String, data: ByteArray) {
-        // Single canonical location — must match HomeScreen.kt's sessionsDir().
-        val sessionsDir = File(applicationContext.getExternalFilesDir(null), "daedalus/sessions")
-        if (!sessionsDir.exists()) sessionsDir.mkdirs()
-        File(sessionsDir, fileName).writeBytes(data)
-
-        Log.i(TAG, "Session file saved to ${sessionsDir.absolutePath}")
+    /** Saves a session file from the watch, then tells the watch ([nodeId]) it can delete its copy. */
+    private fun saveSessionFile(fileName: String, data: ByteArray, nodeId: String?) {
+        writeSessionFile(fileName, data)
+        if (nodeId != null) acknowledge(nodeId, File(fileName).name)
         // Back it up to the signed-in account (no-op for guests).
         CloudBackup.syncAsync(applicationContext)
+    }
+
+    private fun acknowledge(nodeId: String, fileName: String) {
+        serviceScope.launch {
+            try {
+                Wearable.getMessageClient(this@WatchDataListener).sendMessage(nodeId, ACK_PATH, fileName.toByteArray(Charsets.UTF_8)).await()
+            } catch (e: Exception) {
+                Log.w(TAG, "Couldn't acknowledge $fileName: ${e.message}")
+            }
+        }
+    }
+
+    private fun writeSessionFile(fileName: String, data: ByteArray): Unit = synchronized(SAVE_LOCK) {
+        // Single canonical location — must match SessionFiles.kt's sessionsDir().
+        val sessionsDir = File(applicationContext.getExternalFilesDir(null) ?: applicationContext.filesDir, "daedalus/sessions")
+        if (!sessionsDir.exists()) sessionsDir.mkdirs()
+        val target = File(sessionsDir, File(fileName).name)
+        // The same file can arrive twice (retries); keep the existing copy if it's identical.
+        if (target.exists() && target.length() == data.size.toLong() && target.readBytes().contentEquals(data)) return
+        // Write to a temporary file and rename, so backup never reads a half-written file.
+        val temp = File(sessionsDir, "${target.name}.part")
+        temp.writeBytes(data)
+        if (!temp.renameTo(target)) {
+            target.delete(); temp.renameTo(target)
+        }
+
+        Log.i(TAG, "Session file saved to ${sessionsDir.absolutePath}")
     }
 
     override fun onChannelOpened(channel: ChannelClient.Channel) {
@@ -131,7 +162,7 @@ class WatchDataListener : WearableListenerService() {
 
             val mode = extractModeFromFileName(fileName)
             Log.i(TAG, "Received session file via ChannelClient: $fileName (${fileBytes.size} bytes)")
-            saveSessionFile(fileName, fileBytes)
+            saveSessionFile(fileName, fileBytes, channel.nodeId)
             SessionState.stopSession(mode, fileName, fileBytes.size.toLong())
         } catch (e: Exception) {
             Log.e(TAG, "Failed receiving channel file $fileName: ${e.message}", e)
@@ -171,7 +202,7 @@ class WatchDataListener : WearableListenerService() {
 
             if (fileData.isNotEmpty()) {
                 Log.i(TAG, "Received session file via binary message: $fileName (${fileData.size} bytes, mode=$mode)")
-                saveSessionFile(fileName, fileData)
+                saveSessionFile(fileName, fileData, messageEvent.sourceNodeId)
                 SessionState.stopSession(mode, fileName, fileData.size.toLong())
                 return
             }
@@ -198,7 +229,7 @@ class WatchDataListener : WearableListenerService() {
                 val mode = extractModeFromFileName(fileName)
                 val contentBytes = content.toByteArray(Charsets.UTF_8)
                 Log.i(TAG, "Received session file via text message: $fileName (${contentBytes.size} bytes)")
-                saveSessionFile(fileName, contentBytes)
+                saveSessionFile(fileName, contentBytes, messageEvent.sourceNodeId)
                 SessionState.stopSession(mode, fileName, contentBytes.size.toLong())
                 return
             }
@@ -209,7 +240,7 @@ class WatchDataListener : WearableListenerService() {
         if (pathFileName.endsWith(".csv") || pathFileName.contains("session_")) {
             val mode = extractModeFromFileName(pathFileName)
             Log.i(TAG, "Received session file via path message: $pathFileName (${data.size} bytes)")
-            saveSessionFile(pathFileName, data)
+            saveSessionFile(pathFileName, data, messageEvent.sourceNodeId)
             SessionState.stopSession(mode, pathFileName, data.size.toLong())
             return
         }
@@ -246,9 +277,20 @@ class WatchDataClient(context: Context) {
     private val nodeClient = Wearable.getNodeClient(context)
     private val messageClient = Wearable.getMessageClient(context)
 
+    /**
+     * The connected watches. Without the Wear OS / Galaxy Wearable app the Wearable API isn't
+     * available and the call throws; that counts as "no watch connected" instead of crashing.
+     */
+    private suspend fun connectedNodes(): List<Node> = try {
+        nodeClient.connectedNodes.await()
+    } catch (e: Exception) {
+        Log.w(TAG, "Wearable API unavailable: ${e.message}")
+        emptyList()
+    }
+
     /** Check if a watch is connected */
     suspend fun isConnected(): Boolean {
-        val nodes = nodeClient.connectedNodes.await()
+        val nodes = connectedNodes()
         return nodes.isNotEmpty()
     }
 
@@ -269,7 +311,7 @@ class WatchDataClient(context: Context) {
 
     /** Send session start command to the watch, with the pulse rate chosen on the phone. */
     suspend fun sendSessionStart(mode: String, bpm: Int) {
-        val nodes = nodeClient.connectedNodes.await()
+        val nodes = connectedNodes()
         if (nodes.isEmpty()) {
             Log.w(TAG, "No connected watch found")
             return
@@ -291,7 +333,7 @@ class WatchDataClient(context: Context) {
      * and restarts a running cue of that mode at the new rate.
      */
     suspend fun sendCueRate(mode: String, bpm: Int) {
-        val nodes = nodeClient.connectedNodes.await()
+        val nodes = connectedNodes()
         val bytes = "rate|$mode|$bpm".toByteArray(Charsets.UTF_8)
         for (node in nodes) {
             try {
@@ -304,7 +346,7 @@ class WatchDataClient(context: Context) {
 
     /** Turn automatic stand-up detection on the watch on or off. */
     suspend fun sendStandPrompt(enabled: Boolean) {
-        val nodes = nodeClient.connectedNodes.await()
+        val nodes = connectedNodes()
         val bytes = "pref|stand|${if (enabled) 1 else 0}".toByteArray(Charsets.UTF_8)
         for (node in nodes) {
             try {
@@ -317,7 +359,7 @@ class WatchDataClient(context: Context) {
 
     /** Send session stop command to the watch */
     suspend fun sendSessionStop() {
-        val nodes = nodeClient.connectedNodes.await()
+        val nodes = connectedNodes()
         if (nodes.isEmpty()) {
             Log.w(TAG, "No connected watch found")
             return

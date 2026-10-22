@@ -27,10 +27,6 @@
     "en": "Sign-in isn’t set up yet: add the Supabase project URL and anon key in daedalus-companion/supabase.properties, then rebuild.",
     "fr": "La connexion n’est pas encore configurée : ajoutez l’URL du projet Supabase et la clé anon dans daedalus-companion/supabase.properties, puis recompilez."
   },
-  "data_research_signup_sub": {
-    "en": "Help research on Parkinson’s: share your data without your name or email. You can change this anytime in Profile.",
-    "fr": "Aidez la recherche sur le Parkinson : partagez vos données sans votre nom ni votre courriel. Vous pouvez changer d’avis à tout moment dans Profil."
-  },
   "cue_walking_sub": {
     "en": "When a freeze is detected",
     "fr": "Lors d’un blocage détecté"
@@ -42,57 +38,5 @@
   "coming_soon": {
     "en": "Coming soon",
     "fr": "Bientôt"
-  },
-  "keep_data_title": {
-    "en": "Data on this phone",
-    "fr": "Données sur ce téléphone"
-  },
-  "keep_data_guest": {
-    "en": "This phone has data you recorded without an account. Add it to your account, or delete it from this phone?",
-    "fr": "Ce téléphone contient des données enregistrées sans compte. Voulez-vous les ajouter à votre compte ou les supprimer de ce téléphone ?"
-  },
-  "keep_data_other": {
-    "en": "This phone has data from another account. To keep it, sign out and sign in to that account. Otherwise, delete it from this phone to continue.",
-    "fr": "Ce téléphone contient des données d’un autre compte. Pour les garder, déconnectez-vous et connectez-vous à ce compte. Sinon, supprimez-les de ce téléphone pour continuer."
-  },
-  "keep_data_add": {
-    "en": "Add to my account",
-    "fr": "Ajouter à mon compte"
-  },
-  "keep_data_delete": {
-    "en": "Delete from this phone",
-    "fr": "Supprimer de ce téléphone"
-  },
-  "keep_data_delete_confirm": {
-    "en": "Doses, check-ins, dose times and session recordings on this phone will be permanently deleted.",
-    "fr": "Les prises, bilans, heures de prise et enregistrements de séance de ce téléphone seront supprimés définitivement."
-  },
-  "account_sign_out_title": {
-    "en": "Sign out?",
-    "fr": "Se déconnecter ?"
-  },
-  "account_sign_out_backed_up": {
-    "en": "Everything is saved in your account. Your data will be removed from this phone and comes back when you sign in again.",
-    "fr": "Tout est enregistré dans votre compte. Vos données seront retirées de ce téléphone et reviendront à votre prochaine connexion."
-  },
-  "account_sign_out_not_backed_up": {
-    "en": "Some of your data isn’t saved in your account (backup is off or you’re offline). If you sign out now, it will be deleted from this phone.",
-    "fr": "Certaines de vos données ne sont pas enregistrées dans votre compte (sauvegarde désactivée ou pas de connexion). Si vous vous déconnectez maintenant, elles seront supprimées de ce téléphone."
-  },
-  "data_delete_account_title": {
-    "en": "Delete my account",
-    "fr": "Supprimer mon compte"
-  },
-  "data_delete_account_sub": {
-    "en": "Deletes your account, everything saved in it and your data on this phone.",
-    "fr": "Supprime votre compte, tout ce qui y est enregistré et vos données sur ce téléphone."
-  },
-  "data_delete_account_confirm": {
-    "en": "Your account and all your data, on this phone and in your account, will be permanently deleted. You’ll need to create a new account to use Daedalus with an account again. This can’t be undone.",
-    "fr": "Votre compte et toutes vos données, sur ce téléphone et dans votre compte, seront supprimés définitivement. Vous devrez créer un nouveau compte pour utiliser Daedalus avec un compte. Cette action est irréversible."
-  },
-  "data_delete_account_button": {
-    "en": "Delete account",
-    "fr": "Supprimer le compte"
   }
 }

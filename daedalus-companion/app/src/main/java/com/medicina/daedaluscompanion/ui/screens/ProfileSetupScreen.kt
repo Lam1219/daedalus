@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.PhoneAndroid
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -40,28 +41,39 @@ import com.medicina.daedaluscompanion.data.PersonalProfile
 import com.medicina.daedaluscompanion.data.CloudBackup
 import com.medicina.daedaluscompanion.data.Sex
 import com.medicina.daedaluscompanion.data.Symptom
+import com.medicina.daedaluscompanion.utils.DaedalusApplication
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.Month
 import java.time.format.TextStyle
 
 /**
- * Shows [content] once the signed-in account has its personal information; otherwise runs the
- * setup first. A profile already saved in Supabase (e.g. from another phone) is reused.
+ * After sign-in: makes sure the phone's data belongs to this account, restores the account's data,
+ * then shows [content] once the account has its personal information (otherwise runs the setup
+ * first). A profile already saved in Supabase (e.g. from another phone) is reused.
  */
 @Composable
 fun ProfileSetupGate(auth: AuthRepository, email: String?, content: @Composable () -> Unit) {
     val context = LocalContext.current
+    val app = context.applicationContext as DaedalusApplication
     val store = remember { LocalStore(context) }
-    var ready by remember(email) { mutableStateOf(store.personalProfile(email) != null) }
-    var checkedServer by remember(email) { mutableStateOf(ready) }
+    // Phone data belongs to one account. Guest data is only added if the person agrees; another
+    // account's data is never mixed in.
+    var ownership by remember(email) { mutableStateOf(checkOwnership(store, auth)) }
+    var ready by remember(email) { mutableStateOf(false) }
+    var checkedServer by remember(email) { mutableStateOf(false) }
 
-    LaunchedEffect(email) {
-        if (ready) return@LaunchedEffect
-        val remote = auth.fetchProfile()
-        if (remote is AuthRepository.RemoteProfile.Found) {
-            store.savePersonalProfile(email, PersonalProfile.fromJson(remote.json), uploaded = true)
-            ready = true
+    LaunchedEffect(email, ownership) {
+        if (ownership != Ownership.OK) return@LaunchedEffect
+        // Bring back this account's data (schedule, doses, check-ins, sessions) on a new phone.
+        CloudBackup.restoreIfNeeded(app)
+        ready = store.personalProfile(email) != null
+        if (!ready) {
+            val remote = auth.fetchProfile()
+            if (remote is AuthRepository.RemoteProfile.Found) {
+                store.savePersonalProfile(email, PersonalProfile.fromJson(remote.json), uploaded = true)
+                ready = true
+            }
         }
         checkedServer = true
     }
@@ -70,12 +82,87 @@ fun ProfileSetupGate(auth: AuthRepository, email: String?, content: @Composable 
     LaunchedEffect(email, ready) { if (ready) CloudBackup.syncAsync(context) }
 
     when {
+        ownership != Ownership.OK -> PhoneDataChoice(fromOtherAccount = ownership == Ownership.ASK_OTHER, auth = auth) {
+            ownership = Ownership.OK
+        }
         ready -> content()
         !checkedServer -> Box(Modifier.fillMaxSize().background(DesignTokens.Ground), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(color = DesignTokens.Sage)
         }
         else -> ProfileSetupScreen(auth, email, onDone = { ready = true })
     }
+}
+
+private enum class Ownership { OK, ASK_GUEST, ASK_OTHER }
+
+private fun checkOwnership(store: LocalStore, auth: AuthRepository): Ownership {
+    val userId = auth.currentUserId()
+    return when {
+        store.owner == userId -> Ownership.OK
+        store.owner == null && !store.hasHealthData() -> { store.owner = userId; Ownership.OK }
+        store.owner == null -> Ownership.ASK_GUEST
+        else -> Ownership.ASK_OTHER
+    }
+}
+
+/**
+ * Asks what to do with data already on this phone: guest data can be added to the account;
+ * another account's data can only be deleted from the phone (or the person signs out).
+ */
+@Composable
+private fun PhoneDataChoice(fromOtherAccount: Boolean, auth: AuthRepository, onDone: () -> Unit) {
+    val context = LocalContext.current
+    val store = remember { LocalStore(context) }
+    val scope = rememberCoroutineScope()
+    var confirmDelete by remember { mutableStateOf(false) }
+
+    AuthFrame(onBack = {}, showBack = false, notConfigured = false, busy = false) {
+        Icon(Icons.Outlined.PhoneAndroid, null, tint = DesignTokens.Sage, modifier = Modifier.size(36.dp))
+        Headline(R.string.keep_data_title, if (fromOtherAccount) R.string.keep_data_other else R.string.keep_data_guest)
+        Spacer(Modifier.weight(1f))
+        if (fromOtherAccount) {
+            PrimaryButton(R.string.keep_data_delete, enabled = true) { confirmDelete = true }
+            SecondaryButton(R.string.account_sign_out) { scope.launch { auth.signOut() } }
+        } else {
+            PrimaryButton(R.string.keep_data_add, enabled = true) {
+                store.owner = auth.currentUserId()
+                onDone()
+            }
+            SecondaryButton(R.string.keep_data_delete) { confirmDelete = true }
+        }
+    }
+
+    if (confirmDelete) {
+        AlertDialog(
+            onDismissRequest = { confirmDelete = false },
+            containerColor = DesignTokens.Surface,
+            title = { Text(stringResource(R.string.keep_data_delete), style = SectionStyle) },
+            text = { Text(stringResource(R.string.keep_data_delete_confirm), fontSize = 15.sp, color = DesignTokens.Ink) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmDelete = false
+                    store.clearHealthData()
+                    store.owner = auth.currentUserId()
+                    MedReminders.reschedule(context)
+                    onDone()
+                }) { Text(stringResource(R.string.data_delete_button), color = DesignTokens.Alert, fontWeight = FontWeight.SemiBold) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmDelete = false }) { Text(stringResource(R.string.cancel), color = DesignTokens.Muted) }
+            },
+        )
+    }
+}
+
+@Composable
+private fun SecondaryButton(@StringRes label: Int, onClick: () -> Unit) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth().height(56.dp),
+        shape = RoundedCornerShape(28.dp),
+        border = BorderStroke(1.dp, DesignTokens.SageLine),
+        colors = ButtonDefaults.outlinedButtonColors(containerColor = DesignTokens.Surface, contentColor = DesignTokens.SageDeep),
+    ) { Text(stringResource(label), fontSize = 16.sp, fontWeight = FontWeight.SemiBold) }
 }
 
 private enum class SetupStep { NAME, BIRTH, SEX, LIFESTYLE, MEDS, SYMPTOMS }

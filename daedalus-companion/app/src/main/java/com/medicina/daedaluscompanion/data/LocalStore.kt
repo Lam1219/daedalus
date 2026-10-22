@@ -1,6 +1,7 @@
 package com.medicina.daedaluscompanion.data
 
 import android.content.Context
+import com.medicina.daedaluscompanion.ui.screens.sessionsDir
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.Calendar
@@ -38,8 +39,8 @@ data class FeelingCheckIn(val feeling: Feeling, val timestamp: Long) {
 }
 
 /**
- * Small on-device store (SharedPreferences + JSON). The personal profile is also kept in
- * Supabase (`profiles`) for signed-in accounts.
+ * Small on-device store (SharedPreferences + JSON). The records belong to one account
+ * ([owner], its Supabase user ID) or to a guest (null); see CloudBackup.
  */
 class LocalStore(context: Context) {
     private val appContext = context.applicationContext
@@ -78,8 +79,21 @@ class LocalStore(context: Context) {
     fun removeScheduledDose(id: String) {
         val kept = JSONArray()
         readArray(KEY_SCHEDULE).filter { it.getString("id") != id }.forEach { kept.put(it) }
-        prefs.edit().putString(KEY_SCHEDULE, kept.toString()).apply()
+        prefs.edit()
+            .putString(KEY_SCHEDULE, kept.toString())
+            .putString(KEY_DELETED_SCHEDULE, JSONArray(deletedScheduleIds() + id).toString())
+            .apply()
         changed()
+    }
+
+    /** Dose times removed on this phone that the account still has. */
+    fun deletedScheduleIds(): List<String> {
+        val a = runCatching { JSONArray(prefs.getString(KEY_DELETED_SCHEDULE, "[]")) }.getOrDefault(JSONArray())
+        return (0 until a.length()).map { a.getString(it) }
+    }
+
+    fun clearDeletedScheduleIds(ids: List<String>) {
+        prefs.edit().putString(KEY_DELETED_SCHEDULE, JSONArray(deletedScheduleIds() - ids.toSet()).toString()).apply()
     }
 
     /** The log that marks [dose] as taken on the day containing [day], if any. */
@@ -104,12 +118,44 @@ class LocalStore(context: Context) {
         get() = prefs.getBoolean(KEY_CLOUD_BACKUP, true)
         set(value) = prefs.edit().putBoolean(KEY_CLOUD_BACKUP, value).apply()
 
-    /** Deletes the health history kept on this phone: doses, check-ins, schedule and profile. Settings stay. */
+    /** Deletes the health history kept on this phone: doses, check-ins, schedule, profile and
+     *  session files. Settings stay. */
     fun clearHealthData() {
         prefs.edit()
-            .remove(KEY_MEDS).remove(KEY_FEELINGS).remove(KEY_SCHEDULE)
+            .remove(KEY_MEDS).remove(KEY_FEELINGS).remove(KEY_SCHEDULE).remove(KEY_DELETED_SCHEDULE)
             .remove(KEY_PROFILE).remove(KEY_PROFILE_OWNER).remove(KEY_PROFILE_PENDING)
             .apply()
+        sessionsDir(appContext).listFiles()?.filter { it.isFile }?.forEach { it.delete() }
+    }
+
+    // --- Account ownership ---
+
+    /** The account these records belong to (Supabase user ID), or null for guest use. */
+    var owner: String?
+        get() = prefs.getString(KEY_OWNER, null)
+        set(value) = prefs.edit().putString(KEY_OWNER, value).apply()
+
+    /** Whether there's any health data on this phone (records or session files). */
+    fun hasHealthData(): Boolean =
+        medications().isNotEmpty() || checkIns().isNotEmpty() || schedule().isNotEmpty() ||
+            sessionsDir(appContext).listFiles()?.any { it.isFile && it.extension == "csv" } == true
+
+    /** Adds records restored from the account, skipping any already on this phone. */
+    fun mergeFromAccount(schedule: List<ScheduledDose>, medications: List<MedicationLog>, checkIns: List<FeelingCheckIn>) {
+        val scheduleIds = schedule().map { it.id }.toSet() + deletedScheduleIds()
+        val doseIds = medications().map { it.id }.toSet()
+        val checkInIds = checkIns().map { it.id }.toSet()
+        val sched = JSONArray(prefs.getString(KEY_SCHEDULE, "[]"))
+        schedule.filter { it.id !in scheduleIds }.forEach {
+            sched.put(JSONObject().put("id", it.id).put("name", it.name).put("dosage", it.dosage).put("h", it.hour).put("m", it.minute).put("created", it.createdAt))
+        }
+        val meds = JSONArray(prefs.getString(KEY_MEDS, "[]"))
+        medications.filter { it.id !in doseIds }.forEach {
+            meds.put(JSONObject().put("name", it.name).put("dosage", it.dosage).put("ts", it.timestamp).apply { if (it.slotId != null) put("slot", it.slotId) })
+        }
+        val feel = JSONArray(prefs.getString(KEY_FEELINGS, "[]"))
+        checkIns.filter { it.id !in checkInIds }.forEach { feel.put(JSONObject().put("feeling", it.feeling.name).put("ts", it.timestamp)) }
+        prefs.edit().putString(KEY_SCHEDULE, sched.toString()).putString(KEY_MEDS, meds.toString()).putString(KEY_FEELINGS, feel.toString()).apply()
     }
 
     // --- Personal information (first-sign-in setup) ---
@@ -159,6 +205,8 @@ class LocalStore(context: Context) {
         private const val KEY_PROFILE_OWNER = "personal_profile_owner"
         private const val KEY_PROFILE_PENDING = "personal_profile_pending"
         private const val KEY_CLOUD_BACKUP = "cloud_backup"
+        private const val KEY_OWNER = "owner"
+        private const val KEY_DELETED_SCHEDULE = "deleted_schedule_ids"
         const val CUE_WALKING = "cue_walking"
         const val CUE_TREMOR = "cue_tremor"
         const val CUE_BREATHING = "cue_breathing"

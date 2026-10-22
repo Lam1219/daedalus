@@ -18,17 +18,23 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.time.Instant
+import java.time.OffsetDateTime
 
 private const val TAG = "CloudBackup"
 
 /**
- * Backs up the phone's health data to the signed-in account in Supabase, and deletes it.
+ * Backs up the phone's health data to the signed-in account in Supabase, restores it, and
+ * deletes it. Same rules as the iPhone app:
  *
+ * - Phone data belongs to one account (LocalStore.owner) or to a guest. Only the owner's data is
+ *   backed up; guest data is added to an account only if the person agrees (ProfileSetupGate).
  * - Backup: profile, medication schedule, dose logs, check-ins and watch session files. Runs at
  *   start, after each change and when a session arrives; whatever fails (offline) is retried later.
- *   Guests and people who turned backup off keep everything on the phone only.
+ * - Restore: the first time an account is used on this phone, its data is brought back from
+ *   Supabase before anything is uploaded, so a new phone never overwrites the account.
  * - Deleting: free up space (phone copies of backed-up sessions), delete uploaded data
- *   (account only, turns backup off), or delete everything (phone + account, then sign out).
+ *   (account only, turns backup off), delete everything (phone + account data, then sign out),
+ *   or delete the account itself.
  */
 object CloudBackup {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -39,8 +45,46 @@ object CloudBackup {
         scope.launch { sync(app) }
     }
 
+    /** Runs [block] in this object's own scope, so it finishes even if the screen that started it closes. */
+    fun launch(block: suspend CloudBackup.() -> Unit) {
+        scope.launch { block() }
+    }
+
     /** Backs up everything not yet in the account. True when it's all there. */
     suspend fun sync(app: DaedalusApplication): Boolean = mutex.withLock { syncLocked(app) }
+
+    /** The first time this account is used on this phone: brings its data back from Supabase. */
+    suspend fun restoreIfNeeded(app: DaedalusApplication): Boolean = mutex.withLock { restoreLocked(app) }
+
+    /**
+     * Backs up what it can, then clears this phone's health data and signs out, so the next person
+     * to use the phone starts empty. Without [force], keeps everything and returns false when some
+     * data isn't backed up.
+     */
+    suspend fun signOutAndClear(app: DaedalusApplication, force: Boolean): Boolean = mutex.withLock {
+        val backedUp = syncLocked(app)
+        if (!backedUp && !force) return false
+        LocalStore(app).run { clearHealthData(); owner = null }
+        MedReminders.reschedule(app)
+        app.auth.signOut()
+        return true
+    }
+
+    /** Whether everything on this phone is in the account (used to word the sign-out warning). */
+    suspend fun isFullyBackedUp(app: DaedalusApplication): Boolean = sync(app)
+
+    /** Deletes the account itself, everything saved in it, and this phone's health data. */
+    suspend fun deleteAccount(app: DaedalusApplication): Boolean = mutex.withLock {
+        val userId = app.auth.userId() ?: return false
+        if (!deleteUploadedLocked(app)) return false
+        val token = app.auth.accessToken() ?: return false
+        if (!ok(app.auth.requestText("POST", "/rest/v1/rpc/delete_my_account", "{}".toByteArray(), token), "delete_my_account")) return false
+        app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().remove("restored:$userId").apply()
+        LocalStore(app).run { clearHealthData(); owner = null; cloudBackup = true }
+        MedReminders.reschedule(app)
+        app.auth.signOut()
+        return true
+    }
 
     enum class FreeUpResult { DONE, NOT_BACKED_UP }
 
@@ -49,7 +93,7 @@ object CloudBackup {
         if (!syncLocked(app)) return FreeUpResult.NOT_BACKED_UP
         val owner = owner(app) ?: return FreeUpResult.NOT_BACKED_UP
         val uploaded = uploadedSet(app, owner, KIND_SESSIONS)
-        sessionFiles(app).filter { it.name in uploaded }.forEach { it.delete() }
+        sessionFiles(app).filter { sessionKey(it) in uploaded }.forEach { it.delete() }
         return FreeUpResult.DONE
     }
 
@@ -60,8 +104,7 @@ object CloudBackup {
     suspend fun deleteEverything(app: DaedalusApplication): Boolean = mutex.withLock {
         val signedIn = owner(app) != null
         if (signedIn && !deleteUploadedLocked(app)) return false
-        sessionFiles(app).forEach { it.delete() }
-        LocalStore(app).run { clearHealthData(); cloudBackup = true }
+        LocalStore(app).run { clearHealthData(); owner = null; cloudBackup = true }
         MedReminders.reschedule(app)
         if (signedIn) app.auth.signOut()
         return true
@@ -74,6 +117,9 @@ object CloudBackup {
         val store = LocalStore(app)
         if (!store.cloudBackup) return false
         val auth = app.auth
+        if (store.owner == null || store.owner != auth.currentUserId()) return false
+        // Bring the account's data back first, so this phone never overwrites it.
+        if (!restoreLocked(app)) return false
 
         val profile = store.personalProfile(owner)
         if (profile != null && store.profileUploadPending()) {
@@ -81,7 +127,7 @@ object CloudBackup {
             store.setProfileUploadPending(false)
         }
 
-        // The schedule mirrors the phone: removed dose times are removed from the account too.
+        // Dose times: send the phone's, and remove only those deleted on this phone.
         val schedule = store.schedule()
         if (schedule.isNotEmpty()) {
             val rows = JSONArray(schedule.map {
@@ -89,9 +135,12 @@ object CloudBackup {
             })
             if (!upsert(app, "medication_schedule", rows)) return false
         }
-        val keep = schedule.joinToString(",") { it.id }
-        val filter = if (keep.isEmpty()) "user_id=not.is.null" else "id=not.in.($keep)"
-        if (!ok(auth.requestText("DELETE", "/rest/v1/medication_schedule?$filter", null, auth.accessToken()))) return false
+        val deleted = store.deletedScheduleIds()
+        if (deleted.isNotEmpty()) {
+            val ids = deleted.joinToString(",")
+            if (!ok(auth.requestText("DELETE", "/rest/v1/medication_schedule?id=in.($ids)", null, auth.accessToken()), "delete dose times")) return false
+            store.clearDeletedScheduleIds(deleted)
+        }
 
         // Dose logs and check-ins are only ever added, so just send the new ones.
         val scheduleIds = schedule.map { it.id }.toSet()
@@ -119,16 +168,75 @@ object CloudBackup {
         }
 
         val doneSessions = uploadedSet(app, owner, KIND_SESSIONS)
-        val newSessions = sessionFiles(app).filter { it.name !in doneSessions }.sortedBy { it.lastModified() }
+        val newSessions = sessionFiles(app).filter { sessionKey(it) !in doneSessions }.sortedBy { it.lastModified() }
         for (file in newSessions) {
             val name = file.nameWithoutExtension
             val startedAt = extractDate(name)?.let { Instant.ofEpochMilli(it).toString() }
             if (!auth.uploadSessionFile(file.name, file.readBytes(), extractMode(name), startedAt)) return false
-            markUploaded(app, owner, KIND_SESSIONS, listOf(file.name))
+            markUploaded(app, owner, KIND_SESSIONS, listOf(sessionKey(file)))
         }
         if (newSessions.isNotEmpty() || newDoses.isNotEmpty() || newCheckIns.isNotEmpty()) {
             Log.i(TAG, "Backed up ${newSessions.size} sessions, ${newDoses.size} doses, ${newCheckIns.size} check-ins")
         }
+        return true
+    }
+
+    // --- Restore ---
+
+    private suspend fun restoreLocked(app: DaedalusApplication): Boolean {
+        val auth = app.auth
+        val store = LocalStore(app)
+        val userId = auth.currentUserId() ?: return false
+        if (store.owner != userId) return false
+        val prefs = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        if (prefs.getBoolean("restored:$userId", false)) return true
+        val token = auth.accessToken() ?: return false
+        suspend fun get(path: String): JSONArray? {
+            val result = auth.requestText("GET", path, null, token)
+            if (!ok(result, "restore $path")) return null
+            return runCatching { JSONArray(result!!.second) }.getOrNull()
+        }
+        val schedule = get("/rest/v1/medication_schedule?select=*") ?: return false
+        val doses = get("/rest/v1/dose_logs?select=*") ?: return false
+        val checkIns = get("/rest/v1/checkins?select=*") ?: return false
+        val sessions = get("/rest/v1/session_files?select=object_path") ?: return false
+
+        fun millis(o: JSONObject, key: String) = runCatching { OffsetDateTime.parse(o.getString(key)).toInstant().toEpochMilli() }.getOrNull()
+        store.mergeFromAccount(
+            schedule = (0 until schedule.length()).map { schedule.getJSONObject(it) }.map {
+                ScheduledDose(it.getString("id"), it.getString("name"), it.optString("dosage"), it.getInt("hour"), it.getInt("minute"),
+                    millis(it, "created_at") ?: System.currentTimeMillis())
+            },
+            medications = (0 until doses.length()).map { doses.getJSONObject(it) }.mapNotNull { o ->
+                millis(o, "taken_at")?.let { MedicationLog(o.getString("medication"), o.optString("dosage"), it, o.optString("schedule_id").takeUnless { o.isNull("schedule_id") || it.isBlank() }) }
+            },
+            checkIns = (0 until checkIns.length()).map { checkIns.getJSONObject(it) }.mapNotNull { o ->
+                val feeling = runCatching { Feeling.valueOf(o.getString("feeling").uppercase()) }.getOrNull()
+                val at = millis(o, "recorded_at")
+                if (feeling != null && at != null) FeelingCheckIn(feeling, at) else null
+            },
+        )
+        // What came from the account is already there.
+        val email = owner(app)
+        if (email != null) {
+            markUploaded(app, email, KIND_DOSES, store.medications().map { it.id })
+            markUploaded(app, email, KIND_CHECKINS, store.checkIns().map { it.id })
+        }
+        val dir = sessionsDir(app).apply { mkdirs() }
+        for (i in 0 until sessions.length()) {
+            val path = sessions.getJSONObject(i).getString("object_path")
+            val name = File(path).name
+            val target = File(dir, name)
+            if (!target.exists()) {
+                val file = auth.requestText("GET", "/storage/v1/object/sessions/${path.split('/').joinToString("/") { Uri.encode(it) }}", null, token)
+                if (!ok(file, "restore $name")) return false
+                File(dir, "$name.part").apply { writeText(file!!.second) }.renameTo(target)
+            }
+            if (email != null) markUploaded(app, email, KIND_SESSIONS, listOf(sessionKey(target)))
+        }
+        prefs.edit().putBoolean("restored:$userId", true).apply()
+        MedReminders.reschedule(app)
+        Log.i(TAG, "Restored ${schedule.length()} dose times, ${doses.length()} doses, ${checkIns.length()} check-ins, ${sessions.length()} sessions")
         return true
     }
 
@@ -149,6 +257,24 @@ object CloudBackup {
         val auth = app.auth
         val token = auth.accessToken() ?: return false
         val userId = auth.userId() ?: return false
+        // Off before deleting, so a change made meanwhile isn't uploaded again.
+        val store = LocalStore(app)
+        val backupWasOn = store.cloudBackup
+        store.cloudBackup = false
+        if (!deleteRemote(app, token, userId)) {
+            store.cloudBackup = backupWasOn
+            return false
+        }
+        // Nothing is in the account now; keep it that way until backup is turned back on.
+        app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().apply {
+            listOf(KIND_SESSIONS, KIND_DOSES, KIND_CHECKINS).forEach { remove("$it:$owner") }
+        }.apply()
+        store.setProfileUploadPending(true)
+        return true
+    }
+
+    private suspend fun deleteRemote(app: DaedalusApplication, token: String, userId: String): Boolean {
+        val auth = app.auth
 
         // Session files first: Storage only lets each user delete their own folder.
         var emptied = false
@@ -167,19 +293,18 @@ object CloudBackup {
             }
         }
         if (!emptied) return false
-        if (!ok(auth.requestText("POST", "/rest/v1/rpc/delete_my_data", "{}".toByteArray(), token), "delete_my_data")) return false
-
-        // Nothing is in the account now; keep it that way until backup is turned back on.
-        app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().apply {
-            listOf(KIND_SESSIONS, KIND_DOSES, KIND_CHECKINS).forEach { remove("$it:$owner") }
-        }.apply()
-        LocalStore(app).run { cloudBackup = false; setProfileUploadPending(true) }
-        return true
+        return ok(auth.requestText("POST", "/rest/v1/rpc/delete_my_data", "{}".toByteArray(), token), "delete_my_data")
     }
 
     // --- Helpers ---
 
     private fun owner(app: DaedalusApplication) = (app.auth.state.value as? AuthState.SignedIn)?.email
+
+    /**
+     * Upload marker for a session file: its name and size, so a copy that was later replaced by a
+     * longer one (e.g. a retried transfer) is uploaded again.
+     */
+    private fun sessionKey(file: File) = "${file.name}|${file.length()}"
 
     private fun sessionFiles(app: DaedalusApplication): List<File> =
         sessionsDir(app).listFiles()?.filter { it.isFile && it.extension == "csv" }.orEmpty()

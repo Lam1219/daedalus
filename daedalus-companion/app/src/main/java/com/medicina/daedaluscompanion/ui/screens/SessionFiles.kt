@@ -19,7 +19,7 @@ data class SessionItem(
 
 /** Single canonical location session files live in — must match WatchDataListener.kt's saveSessionFile(). */
 fun sessionsDir(context: Context): File =
-    File(context.getExternalFilesDir(null), "daedalus/sessions")
+    File(context.getExternalFilesDir(null) ?: context.filesDir, "daedalus/sessions")
 
 /**
  * Directories session files used to be written to redundantly, before saveSessionFile() was
