@@ -121,6 +121,11 @@
     <string name="meds_upcoming">À venir</string>
     <string name="meds_take">Prendre</string>
     <string name="meds_extra_at">Dose supplémentaire à %1$s</string>
+    <string name="undo">Annuler</string>
+    <string name="meds_logged">Dose notée</string>
+    <string name="meds_deleted">Dose supprimée</string>
+    <string name="meds_delete_cd">Supprimer %1$s</string>
+    <string name="feel_saved_short">Ressenti enregistré</string>
     <string name="meds_reminders">Rappels de dose</string>
     <string name="meds_reminders_sub">Sur votre montre et votre téléphone</string>
     <string name="meds_week_of">%1$d doses sur %2$d</string>

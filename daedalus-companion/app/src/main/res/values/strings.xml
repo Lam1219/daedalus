@@ -120,6 +120,11 @@
     <string name="meds_upcoming">Upcoming</string>
     <string name="meds_take">Take</string>
     <string name="meds_extra_at">Extra dose at %1$s</string>
+    <string name="undo">Undo</string>
+    <string name="meds_logged">Dose logged</string>
+    <string name="meds_deleted">Dose deleted</string>
+    <string name="meds_delete_cd">Delete %1$s</string>
+    <string name="feel_saved_short">Check-in saved</string>
     <string name="meds_reminders">Dose reminders</string>
     <string name="meds_reminders_sub">On your watch and phone</string>
     <string name="meds_week_of">%1$d of %2$d doses</string>

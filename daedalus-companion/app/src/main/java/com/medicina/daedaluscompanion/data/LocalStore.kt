@@ -58,8 +58,20 @@ class LocalStore(context: Context) {
             put("name", log.name); put("dosage", log.dosage); put("ts", log.timestamp)
             if (log.slotId != null) put("slot", log.slotId)
         })
+        clearTombstones(KEY_DELETED_DOSES, listOf(log.id)) // undoing a delete brings it back
         changed()
     }
+
+    /** Removes a logged dose (undo, or delete from the list); backup deletes it from the account too. */
+    fun removeMedication(log: MedicationLog) {
+        removeWhere(KEY_MEDS, KEY_DELETED_DOSES, log.id) {
+            MedicationLog(it.getString("name"), it.optString("dosage"), it.getLong("ts")).id
+        }
+    }
+
+    /** Doses removed on this phone that may still be in the account. */
+    fun deletedDoseIds(): List<String> = tombstones(KEY_DELETED_DOSES)
+    fun clearDeletedDoseIds(ids: List<String>) = clearTombstones(KEY_DELETED_DOSES, ids)
 
     // --- Medication schedule ---
 
@@ -76,25 +88,11 @@ class LocalStore(context: Context) {
         return dose
     }
 
-    fun removeScheduledDose(id: String) {
-        val kept = JSONArray()
-        readArray(KEY_SCHEDULE).filter { it.getString("id") != id }.forEach { kept.put(it) }
-        prefs.edit()
-            .putString(KEY_SCHEDULE, kept.toString())
-            .putString(KEY_DELETED_SCHEDULE, JSONArray(deletedScheduleIds() + id).toString())
-            .apply()
-        changed()
-    }
+    fun removeScheduledDose(id: String) = removeWhere(KEY_SCHEDULE, KEY_DELETED_SCHEDULE, id) { it.getString("id") }
 
     /** Dose times removed on this phone that the account still has. */
-    fun deletedScheduleIds(): List<String> {
-        val a = runCatching { JSONArray(prefs.getString(KEY_DELETED_SCHEDULE, "[]")) }.getOrDefault(JSONArray())
-        return (0 until a.length()).map { a.getString(it) }
-    }
-
-    fun clearDeletedScheduleIds(ids: List<String>) {
-        prefs.edit().putString(KEY_DELETED_SCHEDULE, JSONArray(deletedScheduleIds() - ids.toSet()).toString()).apply()
-    }
+    fun deletedScheduleIds(): List<String> = tombstones(KEY_DELETED_SCHEDULE)
+    fun clearDeletedScheduleIds(ids: List<String>) = clearTombstones(KEY_DELETED_SCHEDULE, ids)
 
     /** The log that marks [dose] as taken on the day containing [day], if any. */
     fun takenLog(dose: ScheduledDose, day: Long, logs: List<MedicationLog> = medications()): MedicationLog? =
@@ -108,8 +106,20 @@ class LocalStore(context: Context) {
         append(KEY_FEELINGS, JSONObject().apply {
             put("feeling", checkIn.feeling.name); put("ts", checkIn.timestamp)
         })
+        clearTombstones(KEY_DELETED_CHECKINS, listOf(checkIn.id))
         changed()
     }
+
+    /** Removes a check-in (undo); backup deletes it from the account too. */
+    fun removeCheckIn(checkIn: FeelingCheckIn) {
+        removeWhere(KEY_FEELINGS, KEY_DELETED_CHECKINS, checkIn.id) {
+            FeelingCheckIn(Feeling.valueOf(it.getString("feeling")), it.getLong("ts")).id
+        }
+    }
+
+    /** Check-ins removed on this phone that may still be in the account. */
+    fun deletedCheckInIds(): List<String> = tombstones(KEY_DELETED_CHECKINS)
+    fun clearDeletedCheckInIds(ids: List<String>) = clearTombstones(KEY_DELETED_CHECKINS, ids)
 
     // --- Backup and deletion (Profile → Your data) ---
 
@@ -122,7 +132,8 @@ class LocalStore(context: Context) {
      *  session files. Settings stay. */
     fun clearHealthData() {
         prefs.edit()
-            .remove(KEY_MEDS).remove(KEY_FEELINGS).remove(KEY_SCHEDULE).remove(KEY_DELETED_SCHEDULE)
+            .remove(KEY_MEDS).remove(KEY_FEELINGS).remove(KEY_SCHEDULE)
+            .remove(KEY_DELETED_SCHEDULE).remove(KEY_DELETED_DOSES).remove(KEY_DELETED_CHECKINS)
             .remove(KEY_PROFILE).remove(KEY_PROFILE_OWNER).remove(KEY_PROFILE_PENDING)
             .apply()
         sessionsDir(appContext).listFiles()?.filter { it.isFile }?.forEach { it.delete() }
@@ -140,11 +151,11 @@ class LocalStore(context: Context) {
         medications().isNotEmpty() || checkIns().isNotEmpty() || schedule().isNotEmpty() ||
             sessionsDir(appContext).listFiles()?.any { it.isFile && it.extension == "csv" } == true
 
-    /** Adds records restored from the account, skipping any already on this phone. */
+    /** Adds records restored from the account, skipping any already on this phone or removed from it. */
     fun mergeFromAccount(schedule: List<ScheduledDose>, medications: List<MedicationLog>, checkIns: List<FeelingCheckIn>) {
         val scheduleIds = schedule().map { it.id }.toSet() + deletedScheduleIds()
-        val doseIds = medications().map { it.id }.toSet()
-        val checkInIds = checkIns().map { it.id }.toSet()
+        val doseIds = medications().map { it.id }.toSet() + deletedDoseIds()
+        val checkInIds = checkIns().map { it.id }.toSet() + deletedCheckInIds()
         val sched = JSONArray(prefs.getString(KEY_SCHEDULE, "[]"))
         schedule.filter { it.id !in scheduleIds }.forEach {
             sched.put(JSONObject().put("id", it.id).put("name", it.name).put("dosage", it.dosage).put("h", it.hour).put("m", it.minute).put("created", it.createdAt))
@@ -191,6 +202,26 @@ class LocalStore(context: Context) {
         return (0 until array.length()).map { array.getJSONObject(it) }
     }
 
+    /** Drops the items in [key] whose ID is [id] and records the ID so backup deletes it from the account. */
+    private fun removeWhere(key: String, tombstoneKey: String, id: String, idOf: (JSONObject) -> String) {
+        val kept = JSONArray()
+        readArray(key).filter { runCatching { idOf(it) }.getOrNull() != id }.forEach { kept.put(it) }
+        prefs.edit()
+            .putString(key, kept.toString())
+            .putString(tombstoneKey, JSONArray((tombstones(tombstoneKey) + id).distinct()).toString())
+            .apply()
+        changed()
+    }
+
+    private fun tombstones(key: String): List<String> {
+        val a = runCatching { JSONArray(prefs.getString(key, "[]")) }.getOrDefault(JSONArray())
+        return (0 until a.length()).map { a.getString(it) }
+    }
+
+    private fun clearTombstones(key: String, ids: List<String>) {
+        prefs.edit().putString(key, JSONArray(tombstones(key) - ids.toSet()).toString()).apply()
+    }
+
     private fun append(key: String, item: JSONObject) {
         val array = runCatching { JSONArray(prefs.getString(key, "[]")) }.getOrDefault(JSONArray())
         array.put(item)
@@ -207,6 +238,8 @@ class LocalStore(context: Context) {
         private const val KEY_CLOUD_BACKUP = "cloud_backup"
         private const val KEY_OWNER = "owner"
         private const val KEY_DELETED_SCHEDULE = "deleted_schedule_ids"
+        private const val KEY_DELETED_DOSES = "deleted_dose_ids"
+        private const val KEY_DELETED_CHECKINS = "deleted_checkin_ids"
         const val CUE_WALKING = "cue_walking"
         const val CUE_TREMOR = "cue_tremor"
         const val CUE_BREATHING = "cue_breathing"

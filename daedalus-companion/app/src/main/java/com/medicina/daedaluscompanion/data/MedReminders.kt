@@ -93,14 +93,15 @@ object MedReminders {
             .onFailure { Log.w(TAG, "Reminder not shown (notification permission?): ${it.message}") }
     }
 
-    /** Logs [dose] as taken now, unless it is already logged today. */
-    fun markTaken(context: Context, dose: ScheduledDose) {
+    /** Logs [dose] as taken now, unless it is already logged today. Returns the new log, if any. */
+    fun markTaken(context: Context, dose: ScheduledDose): MedicationLog? {
         val store = LocalStore(context)
         val now = System.currentTimeMillis()
-        if (store.takenLog(dose, now) == null) {
-            store.addMedication(MedicationLog(dose.name, dose.dosage, now, dose.id))
-        }
+        val log = if (store.takenLog(dose, now) == null) {
+            MedicationLog(dose.name, dose.dosage, now, dose.id).also { store.addMedication(it) }
+        } else null
         NotificationManagerCompat.from(context).cancel(dose.id.hashCode())
+        return log
     }
 }
 
