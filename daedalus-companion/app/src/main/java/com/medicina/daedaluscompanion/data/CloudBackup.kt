@@ -6,6 +6,7 @@ import android.util.Log
 import com.medicina.daedaluscompanion.auth.AuthState
 import com.medicina.daedaluscompanion.ui.screens.extractDate
 import com.medicina.daedaluscompanion.ui.screens.extractMode
+import com.medicina.daedaluscompanion.ui.screens.migrateLegacySessionFiles
 import com.medicina.daedaluscompanion.ui.screens.sessionsDir
 import com.medicina.daedaluscompanion.utils.DaedalusApplication
 import kotlinx.coroutines.CoroutineScope
@@ -322,7 +323,7 @@ object CloudBackup {
     private fun sessionKey(file: File) = "${file.name}|${file.length()}"
 
     private fun sessionFiles(app: DaedalusApplication): List<File> =
-        sessionsDir(app).listFiles()?.filter { it.isFile && it.extension == "csv" }.orEmpty()
+        sessionsDir(app).also { migrateLegacySessionFiles(app) }.listFiles()?.filter { it.isFile && it.extension == "csv" }.orEmpty()
 
     private fun ok(result: Pair<Int, String>?, what: String? = null): Boolean {
         val success = result != null && result.first in 200..299

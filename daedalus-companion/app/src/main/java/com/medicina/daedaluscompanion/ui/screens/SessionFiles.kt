@@ -17,38 +17,62 @@ data class SessionItem(
     val size: Long,
 )
 
-/** Single canonical location session files live in — must match WatchDataListener.kt's saveSessionFile(). */
-fun sessionsDir(context: Context): File =
-    File(context.getExternalFilesDir(null) ?: context.filesDir, "daedalus/sessions")
+/**
+ * Single canonical location session files live in. App-internal storage, so other apps and a USB
+ * connection can't read them. WatchDataListener, SessionState and CloudBackup all use this.
+ */
+fun sessionsDir(context: Context): File = File(context.filesDir, "daedalus/sessions")
 
 /**
- * Directories session files used to be written to redundantly, before saveSessionFile() was
- * consolidated to write only to sessionsDir(). Swept into sessionsDir() on load so files from
- * earlier builds aren't orphaned (invisible to the list, and skipped by "delete all").
+ * Directories session files were written to by earlier builds, including external storage
+ * (readable over USB). Moved into sessionsDir() once, so none are orphaned or left exposed.
  */
-private fun legacySessionDirs(context: Context): List<File> = listOf(
-    File(context.getExternalFilesDir(null), "sessions"),
-    File(context.filesDir, "daedalus/sessions"),
+private fun legacySessionDirs(context: Context): List<File> = listOfNotNull(
+    context.getExternalFilesDir(null)?.let { File(it, "daedalus/sessions") },
+    context.getExternalFilesDir(null)?.let { File(it, "sessions") },
     File(context.filesDir, "sessions"),
-    File(context.filesDir.parent, "files/sessions"),
     File(android.os.Environment.getExternalStorageDirectory(), "Daedalus/sessions"),
 )
 
-private fun migrateLegacySessionFiles(context: Context) {
-    val target = sessionsDir(context)
-    if (!target.exists()) target.mkdirs()
+private val migrationLock = Any()
+@Volatile private var migrationChecked = false
 
-    for (dir in legacySessionDirs(context)) {
-        if (!dir.exists()) continue
-        dir.listFiles()?.filter { it.isFile }?.forEach { file ->
-            val destination = File(target, file.name)
-            if (!destination.exists()) {
-                file.copyTo(destination, overwrite = false)
+/**
+ * Moves session files from [legacySessionDirs] into [sessionsDir]. Runs once per install (a flag
+ * is kept once nothing is left to move); cheap to call again. Copies to a temporary file and
+ * renames, so an interrupted move never leaves a cut-off copy.
+ */
+fun migrateLegacySessionFiles(context: Context) {
+    if (migrationChecked) return
+    synchronized(migrationLock) {
+        if (migrationChecked) return
+        val prefs = context.getSharedPreferences(MIGRATION_PREFS, Context.MODE_PRIVATE)
+        if (prefs.getBoolean(KEY_MIGRATED_INTERNAL, false)) { migrationChecked = true; return }
+        val target = sessionsDir(context).apply { mkdirs() }
+        var allMoved = true
+        for (dir in legacySessionDirs(context)) {
+            dir.listFiles()?.filter { it.isFile && !it.name.endsWith(".part") }?.forEach { file ->
+                runCatching {
+                    val destination = File(target, file.name)
+                    // Keep the longer copy if both exist (a retried transfer can be the complete one).
+                    if (!destination.exists() || file.length() > destination.length()) {
+                        val temp = File(target, "${file.name}.part")
+                        file.copyTo(temp, overwrite = true)
+                        destination.delete()
+                        if (!temp.renameTo(destination)) error("rename failed")
+                    }
+                    file.delete()
+                }.onFailure { allMoved = false }
             }
-            file.delete()
+            dir.listFiles()?.filter { it.isFile && it.name.endsWith(".part") }?.forEach { it.delete() }
         }
+        if (allMoved) prefs.edit().putBoolean(KEY_MIGRATED_INTERNAL, true).apply()
+        migrationChecked = allMoved
     }
 }
+
+private const val MIGRATION_PREFS = "session_files"
+private const val KEY_MIGRATED_INTERNAL = "migrated_to_internal"
 
 fun loadSessions(context: Context): List<SessionItem> {
     migrateLegacySessionFiles(context)

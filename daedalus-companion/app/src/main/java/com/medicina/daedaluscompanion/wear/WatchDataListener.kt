@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.google.android.gms.wearable.*
 import com.medicina.daedaluscompanion.data.CloudBackup
+import com.medicina.daedaluscompanion.ui.screens.sessionsDir
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -126,20 +127,19 @@ class WatchDataListener : WearableListenerService() {
     }
 
     private fun writeSessionFile(fileName: String, data: ByteArray): Unit = synchronized(SAVE_LOCK) {
-        // Single canonical location — must match SessionFiles.kt's sessionsDir().
-        val sessionsDir = File(applicationContext.getExternalFilesDir(null) ?: applicationContext.filesDir, "daedalus/sessions")
-        if (!sessionsDir.exists()) sessionsDir.mkdirs()
-        val target = File(sessionsDir, File(fileName).name)
+        // Single canonical location, in app-internal storage.
+        val dir = sessionsDir(applicationContext).apply { mkdirs() }
+        val target = File(dir, File(fileName).name)
         // The same file can arrive twice (retries); keep the existing copy if it's identical.
         if (target.exists() && target.length() == data.size.toLong() && target.readBytes().contentEquals(data)) return
         // Write to a temporary file and rename, so backup never reads a half-written file.
-        val temp = File(sessionsDir, "${target.name}.part")
+        val temp = File(dir, "${target.name}.part")
         temp.writeBytes(data)
         if (!temp.renameTo(target)) {
             target.delete(); temp.renameTo(target)
         }
 
-        Log.i(TAG, "Session file saved to ${sessionsDir.absolutePath}")
+        Log.i(TAG, "Session file saved to ${dir.absolutePath}")
     }
 
     override fun onChannelOpened(channel: ChannelClient.Channel) {

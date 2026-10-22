@@ -1,6 +1,7 @@
 package com.medicina.daedaluscompanion.data
 
 import android.content.Context
+import com.medicina.daedaluscompanion.ui.screens.migrateLegacySessionFiles
 import com.medicina.daedaluscompanion.ui.screens.sessionsDir
 import org.json.JSONArray
 import org.json.JSONObject
@@ -136,6 +137,7 @@ class LocalStore(context: Context) {
             .remove(KEY_DELETED_SCHEDULE).remove(KEY_DELETED_DOSES).remove(KEY_DELETED_CHECKINS)
             .remove(KEY_PROFILE).remove(KEY_PROFILE_OWNER).remove(KEY_PROFILE_PENDING)
             .apply()
+        migrateLegacySessionFiles(appContext) // so no old copy is left on external storage
         sessionsDir(appContext).listFiles()?.filter { it.isFile }?.forEach { it.delete() }
     }
 
