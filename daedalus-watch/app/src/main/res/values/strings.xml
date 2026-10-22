@@ -3,7 +3,8 @@
     <string name="app_name">Daedalus</string>
 
     <!-- Home -->
-    <string name="status_cues_on">Cues on</string>
+    <string name="status_ready">Ready</string>
+    <string name="status_phone_missing">Phone not connected</string>
     <string name="im_stuck">I’m stuck</string>
     <string name="unit_bpm">bpm</string>
     <string name="unit_per_min">/min</string>

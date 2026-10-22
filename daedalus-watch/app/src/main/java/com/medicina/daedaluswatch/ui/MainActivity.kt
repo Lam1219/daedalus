@@ -2,6 +2,7 @@ package com.medicina.daedaluswatch.ui
 
 import android.Manifest
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -17,9 +18,11 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
+import com.google.android.gms.wearable.Wearable
 import com.medicina.daedaluswatch.R
 import com.medicina.daedaluswatch.haptics.CueRates
 import com.medicina.daedaluswatch.haptics.HapticService
+import com.medicina.daedaluswatch.sensor.HeartRatePermission
 import com.medicina.daedaluswatch.sensor.StandWatchService
 import com.medicina.daedaluswatch.sync.SessionSyncManager
 import java.util.Locale
@@ -40,7 +43,10 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     private lateinit var screenBreathe: View
     private lateinit var screenCue: View
 
+    private lateinit var tvHomeStatus: TextView
+    private lateinit var dotHomeStatus: View
     private lateinit var tvHomeHr: TextView
+    private lateinit var groupHomeBreathing: View
     private lateinit var tvHomeBreathing: TextView
     private lateinit var tvWalkRate: TextView
     private lateinit var ring: RingView
@@ -56,6 +62,8 @@ class MainActivity : ComponentActivity(), SensorEventListener {
 
     private var sensorManager: SensorManager? = null
     private var homeHeartRate = 0
+    private var phoneConnected = true
+    private var lastPhoneCheckMs = 0L
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -74,7 +82,10 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         screenWalk = findViewById(R.id.screen_walk)
         screenBreathe = findViewById(R.id.screen_breathe)
         screenCue = findViewById(R.id.screen_cue)
+        tvHomeStatus = findViewById(R.id.tv_home_status)
+        dotHomeStatus = findViewById(R.id.dot_home_status)
         tvHomeHr = findViewById(R.id.tv_home_hr)
+        groupHomeBreathing = findViewById(R.id.group_home_breathing)
         tvHomeBreathing = findViewById(R.id.tv_home_breathing)
         tvWalkRate = findViewById(R.id.tv_walk_rate)
         ring = findViewById(R.id.ring)
@@ -103,10 +114,11 @@ class MainActivity : ComponentActivity(), SensorEventListener {
 
     override fun onResume() {
         super.onResume()
+        lastPhoneCheckMs = 0L
         handler.post(frame)
         // Live heart rate for the home screen while it's visible.
         val hr = sensorManager?.getDefaultSensor(Sensor.TYPE_HEART_RATE)
-        if (hr != null && checkSelfPermission("android.permission.health.READ_HEART_RATE") == PackageManager.PERMISSION_GRANTED) {
+        if (hr != null && HeartRatePermission.isGranted(this)) {
             sensorManager?.registerListener(this, hr, SensorManager.SENSOR_DELAY_NORMAL)
         }
     }
@@ -143,7 +155,10 @@ class MainActivity : ComponentActivity(), SensorEventListener {
             show(screenHome)
             val hr = HapticService.latestHeartRate.takeIf { it > 0 } ?: homeHeartRate
             tvHomeHr.text = if (hr > 0) hr.toString() else getString(R.string.value_none)
-            tvHomeBreathing.text = getString(R.string.value_none)
+            val breathing = HapticService.latestBreathing?.takeIf { it > 0f }
+            groupHomeBreathing.visibility = if (breathing != null) View.VISIBLE else View.GONE
+            if (breathing != null) tvHomeBreathing.text = Math.round(breathing).toString()
+            renderHomeStatus(now)
             return
         }
         val bpm = HapticService.runningBpm
@@ -193,6 +208,20 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         }
     }
 
+    /** "Ready" while the phone is reachable, otherwise says so; "I'm stuck" works either way. */
+    private fun renderHomeStatus(now: Long) {
+        if (now - lastPhoneCheckMs > PHONE_CHECK_MS) {
+            lastPhoneCheckMs = now
+            Wearable.getNodeClient(this).connectedNodes
+                .addOnSuccessListener { nodes -> phoneConnected = nodes.isNotEmpty() }
+                .addOnFailureListener { phoneConnected = false }
+        }
+        tvHomeStatus.setText(if (phoneConnected) R.string.status_ready else R.string.status_phone_missing)
+        val color = getColor(if (phoneConnected) R.color.watch_sage else R.color.watch_muted)
+        tvHomeStatus.setTextColor(color)
+        dotHomeStatus.backgroundTintList = ColorStateList.valueOf(color)
+    }
+
     private fun startWalkingCue() {
         if (HapticService.isServiceRunning) return
         val intent = Intent(this, HapticService::class.java).apply {
@@ -216,16 +245,18 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            // This watch's heart rate sensors are gated by this permission, not BODY_SENSORS
-            // — confirmed via `dumpsys sensorservice`.
-            permissionsToRequest.add("android.permission.health.READ_HEART_RATE")
-        }
+        // Wear OS 5+ gates heart rate with the health permission (confirmed via
+        // `dumpsys sensorservice`); BODY_SENSORS above covers older watches.
+        if (HeartRatePermission.name !in permissionsToRequest) permissionsToRequest.add(HeartRatePermission.name)
         val missing = permissionsToRequest.filter {
             checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED
         }
         if (missing.isNotEmpty()) {
             permissionLauncher.launch(missing.toTypedArray())
         }
+    }
+
+    private companion object {
+        const val PHONE_CHECK_MS = 15_000L
     }
 }
