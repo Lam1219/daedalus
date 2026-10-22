@@ -203,7 +203,7 @@
     <string name="cat_haptic">Haptics</string>
 
     <!-- Login -->
-    <string name="login_not_configured">Sign-in isn’t set up yet: add the Supabase project URL and anon key in supabase.properties.</string>
+    <string name="login_not_configured">Sign-in isn’t available in this version.</string>
     <string name="login_sign_up">Sign up</string>
     <string name="login_sign_in_button">Sign in</string>
     <string name="login_email">Email</string>
@@ -237,7 +237,7 @@
     <string name="login_reset_title">Choose a new password</string>
     <string name="login_reset_subtitle">You’ll use it next time you sign in with email.</string>
     <string name="login_reset_save">Save password</string>
-    <string name="login_err_not_configured">Sign-in isn’t set up in this build yet.</string>
+    <string name="login_err_not_configured">Sign-in isn’t available in this version.</string>
     <string name="login_err_credentials">Email or password is incorrect.</string>
     <string name="login_no_account_hint">Check that your email is typed correctly. New to Daedalus? Create an account with this email.</string>
     <string name="login_create_account_button">Create an account</string>

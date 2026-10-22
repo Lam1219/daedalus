@@ -207,7 +207,7 @@
     <string name="cat_haptic">Haptique</string>
 
     <!-- Login -->
-    <string name="login_not_configured">La connexion n’est pas encore configurée : ajoutez l’URL du projet Supabase et la clé anon dans supabase.properties.</string>
+    <string name="login_not_configured">La connexion n’est pas disponible dans cette version.</string>
     <string name="login_sign_up">S’inscrire</string>
     <string name="login_sign_in_button">Se connecter</string>
     <string name="login_email">Courriel</string>
@@ -241,7 +241,7 @@
     <string name="login_reset_title">Choisissez un nouveau mot de passe</string>
     <string name="login_reset_subtitle">Vous l’utiliserez à votre prochaine connexion par courriel.</string>
     <string name="login_reset_save">Enregistrer le mot de passe</string>
-    <string name="login_err_not_configured">La connexion n’est pas encore configurée dans cette version.</string>
+    <string name="login_err_not_configured">La connexion n’est pas disponible dans cette version.</string>
     <string name="login_err_credentials">Courriel ou mot de passe incorrect.</string>
     <string name="login_no_account_hint">Vérifiez que votre courriel est bien écrit. Nouveau sur Daedalus ? Créez un compte avec ce courriel.</string>
     <string name="login_create_account_button">Créer un compte</string>
