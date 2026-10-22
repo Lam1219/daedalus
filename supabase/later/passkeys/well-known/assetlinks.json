@@ -1,0 +1,15 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.medicina.daedaluscompanion",
+      "sha256_cert_fingerprints": [
+        "D9:CB:33:1D:2C:59:77:E1:22:38:13:26:29:7C:90:C3:2A:A9:8D:40:5E:AA:20:93:40:63:14:EE:ED:4D:D1:93"
+      ]
+    }
+  }
+]

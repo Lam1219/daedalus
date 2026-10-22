@@ -29,14 +29,12 @@ import java.text.DateFormat
 import java.util.Date
 
 /** Profile → Medication schedule: the daily dose times that drive the Meds checklist and reminders. */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MedScheduleScreen(onBack: () -> Unit) {
     val context = LocalContext.current
     val store = remember { LocalStore(context) }
     var doses by remember { mutableStateOf(store.schedule()) }
     var showAdd by remember { mutableStateOf(false) }
-    val notifPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
     fun changed() {
         doses = store.schedule()
@@ -70,45 +68,66 @@ fun MedScheduleScreen(onBack: () -> Unit) {
     }
 
     if (showAdd) {
-        val time = rememberTimePickerState(8, 0, is24Hour = android.text.format.DateFormat.is24HourFormat(context))
-        var name by remember { mutableStateOf(doses.lastOrNull()?.name ?: "") }
-        var dosage by remember { mutableStateOf(doses.lastOrNull()?.dosage ?: "") }
-        AlertDialog(
-            onDismissRequest = { showAdd = false },
-            containerColor = DesignTokens.Surface,
-            shape = RoundedCornerShape(DesignTokens.RadiusXLarge),
-            title = { Text(stringResource(R.string.schedule_add), style = SectionStyle) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    TimeInput(
-                        state = time,
-                        colors = TimePickerDefaults.colors(
-                            timeSelectorSelectedContainerColor = DesignTokens.SageTint,
-                            timeSelectorSelectedContentColor = DesignTokens.SageDeep,
-                            periodSelectorSelectedContainerColor = DesignTokens.SageTint,
-                            periodSelectorSelectedContentColor = DesignTokens.SageDeep,
-                        ),
-                    )
-                    OutlinedTextField(name, { name = it }, label = { Text(stringResource(R.string.meds_name)) }, singleLine = true, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp))
-                    OutlinedTextField(dosage, { dosage = it }, label = { Text(stringResource(R.string.meds_dosage)) }, singleLine = true, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp))
-                }
-            },
-            confirmButton = {
-                PillButton(stringResource(R.string.meds_save), enabled = name.isNotBlank(), height = 44.dp, onClick = {
-                    store.addScheduledDose(name.trim(), dosage.trim(), time.hour, time.minute)
-                    changed()
-                    showAdd = false
-                    // Reminders need notification permission on Android 13+.
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        notifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-                    }
-                })
-            },
-            dismissButton = {
-                TextButton(onClick = { showAdd = false }) { Text(stringResource(R.string.cancel), color = DesignTokens.Muted) }
+        AddDoseDialog(
+            initialName = doses.lastOrNull()?.name ?: "",
+            initialDosage = doses.lastOrNull()?.dosage ?: "",
+            onDismiss = { showAdd = false },
+            onSave = { name, dosage, hour, minute ->
+                store.addScheduledDose(name, dosage, hour, minute)
+                changed()
+                showAdd = false
             },
         )
     }
+}
+
+/** Dialog for one daily dose time: time, medication name and dosage. Also asks for notification permission. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddDoseDialog(
+    initialName: String,
+    initialDosage: String,
+    onDismiss: () -> Unit,
+    onSave: (name: String, dosage: String, hour: Int, minute: Int) -> Unit,
+) {
+    val context = LocalContext.current
+    val notifPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+    val time = rememberTimePickerState(8, 0, is24Hour = android.text.format.DateFormat.is24HourFormat(context))
+    var name by remember { mutableStateOf(initialName) }
+    var dosage by remember { mutableStateOf(initialDosage) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = DesignTokens.Surface,
+        shape = RoundedCornerShape(DesignTokens.RadiusXLarge),
+        title = { Text(stringResource(R.string.schedule_add), style = SectionStyle) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                TimeInput(
+                    state = time,
+                    colors = TimePickerDefaults.colors(
+                        timeSelectorSelectedContainerColor = DesignTokens.SageTint,
+                        timeSelectorSelectedContentColor = DesignTokens.SageDeep,
+                        periodSelectorSelectedContainerColor = DesignTokens.SageTint,
+                        periodSelectorSelectedContentColor = DesignTokens.SageDeep,
+                    ),
+                )
+                OutlinedTextField(name, { name = it }, label = { Text(stringResource(R.string.meds_name)) }, singleLine = true, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp))
+                OutlinedTextField(dosage, { dosage = it }, label = { Text(stringResource(R.string.meds_dosage)) }, singleLine = true, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp))
+            }
+        },
+        confirmButton = {
+            PillButton(stringResource(R.string.meds_save), enabled = name.isNotBlank(), height = 44.dp, onClick = {
+                onSave(name.trim(), dosage.trim(), time.hour, time.minute)
+                // Reminders need notification permission on Android 13+.
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    notifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            })
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel), color = DesignTokens.Muted) }
+        },
+    )
 }
 
 /** "8:00" / "8 h 00" etc. in the device's time format. */

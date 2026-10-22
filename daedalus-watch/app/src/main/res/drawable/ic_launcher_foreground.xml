@@ -1,34 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Daedalus icon: a tulip (the Parkinson's symbol) held by a supporting hand. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Watch face -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M54,36
-            C43,36 34,45 34,56
-            C34,67 43,76 54,76
-            C65,76 74,67 74,56
-            C74,45 65,36 54,36Z" />
-    <!-- Watch band top -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M44,28 L44,36 L64,36 L64,28 C64,26 62,24 60,24 L48,24 C46,24 44,26 44,28Z" />
-    <!-- Watch band bottom -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M44,76 L44,84 C44,86 46,88 48,88 L60,88 C62,88 64,86 64,84 L64,76 L44,76Z" />
-    <!-- Watch hands -->
-    <path
-        android:fillColor="#1976D2"
-        android:pathData="M53,56 L53,44 L55,44 L55,56 L53,56Z" />
-    <path
-        android:fillColor="#1976D2"
-        android:pathData="M54,55 L62,52 L63,54 L55,57 L54,55Z" />
-    <!-- Center dot -->
-    <path
-        android:fillColor="#1976D2"
-        android:pathData="M54,54 C53,54 52,55 52,56 C52,57 53,58 54,58 C55,58 56,57 56,56 C56,55 55,54 54,54Z" />
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:translateY="-2.5"
+        android:scaleX="1.0"
+        android:scaleY="1.0">
+        <!-- Supporting hand -->
+        <path
+            android:pathData="M32.5,54 A22,22 0 1,0 75.5,54"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="5"
+            android:strokeLineCap="round" />
+        <!-- Stem -->
+        <path
+            android:pathData="M54,52 L54,72.5"
+            android:strokeColor="#A9BBA3"
+            android:strokeWidth="3.2"
+            android:strokeLineCap="round" />
+        <!-- Leaf -->
+        <path
+            android:fillColor="#A9BBA3"
+            android:pathData="M54,69 C47,68 42.5,63 42,57 C48,57.5 53,61.5 54,67 Z" />
+        <!-- Tulip -->
+        <path
+            android:fillColor="#D7E2D1"
+            android:pathData="M44,35.5 Q44.5,34 46,35 L49.5,38.5 Q51.5,33.5 53.2,31.6 Q54,30.8 54.8,31.6 Q56.5,33.5 58.5,38.5 L62,35 Q63.5,34 64,35.5 L64,43 C64,49 59.5,53 54,53 C48.5,53 44,49 44,43 Z" />
+    </group>
 </vector>

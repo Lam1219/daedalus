@@ -1,6 +1,7 @@
 package com.medicina.daedaluscompanion.utils
 
 import android.app.Application
+import com.medicina.daedaluscompanion.auth.AuthRepository
 import com.medicina.daedaluscompanion.ble.ChestStrapBLEManager
 import com.medicina.daedaluscompanion.wear.WatchDataClient
 
@@ -15,10 +16,14 @@ class DaedalusApplication : Application() {
     
     lateinit var watchClient: WatchDataClient
         private set
+
+    lateinit var auth: AuthRepository
+        private set
     
     override fun onCreate() {
         super.onCreate()
         chestStrapBLE = ChestStrapBLEManager(this)
         watchClient = WatchDataClient(this)
+        auth = AuthRepository(this)
     }
 }

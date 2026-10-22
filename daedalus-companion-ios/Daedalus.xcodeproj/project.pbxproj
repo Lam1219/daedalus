@@ -1,0 +1,733 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0784CC2D874022FFB75DA788 /* DaedalusWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 8A98CA60806FDA7790A94004 /* DaedalusWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		08FC2ADBDB98552816D5CF3D /* MedReminders.swift in Sources */ = {isa = PBXBuildFile; fileRef = 752E5F5417A42F9D09058327 /* MedReminders.swift */; };
+		0CDD4718802CE5F770B9F6C5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B0F91B77F0B357FB846209A9 /* Assets.xcassets */; };
+		0D966510097EADF44C99762D /* WatchLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83C3B53C70907B4943E83703 /* WatchLink.swift */; };
+		12E4A0E7FBDDF6C6D42131D4 /* DaedalusApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C23B60DB03E8595B2184402 /* DaedalusApp.swift */; };
+		145E717F3AFCD8FD946660D8 /* CuesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A63F4925B0072B7FDF98E883 /* CuesView.swift */; };
+		1862AE7F018FD71D3B2EB8C4 /* CloudBackup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0DB3DE9769F7837F7FA71D /* CloudBackup.swift */; };
+		1F6C119D28201826F66E10DE /* LoginFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10A7CD730672C40D09C58F0D /* LoginFlow.swift */; };
+		2CD36334978480D045CBAC1B /* WatchProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6485044222FB7804202F8BD9 /* WatchProtocol.swift */; };
+		32C04F0CA5489AA6C4C1427A /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 675D7D8586FCD11DA1D47627 /* Localizable.xcstrings */; };
+		3956FE6BDA0DBBD5F7D0C1F9 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 7386EEDFDB9894B5761CEF7C /* Localizable.xcstrings */; };
+		3E6046F6EC69CDD52B2465A9 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE84C1953F000FC5BE1558CF /* TodayView.swift */; };
+		5387B7EB7E1D10FDBB5203C2 /* manrope_semibold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 48CC127CC7FB9AD883E5409D /* manrope_semibold.ttf */; };
+		61F09CF93724F2E102C32EAC /* MedScheduleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE98915962602BDAFA647BC6 /* MedScheduleView.swift */; };
+		69E34C15252127C85449C270 /* CueController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC53BFD500D6DD6922476C1E /* CueController.swift */; };
+		76DDC0599BBB0FA5805D68D1 /* SupabaseConfig.generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8C0E85CA17A183E43C3D4B /* SupabaseConfig.generated.swift */; };
+		7793AF2E9919EAAC84BD73AC /* JournalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC4F0BD0A6312FACE4F69A1 /* JournalView.swift */; };
+		7B91F7EEE151B2F1A3653FD3 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BDAC5D608121DFEFB934519 /* L10n.swift */; };
+		7FB24DB39E27298BB6692D9C /* manrope_bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 7C8AA5A878C87B0770574072 /* manrope_bold.ttf */; };
+		85FBEC43F9ECAA797639A744 /* ProfileSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 267DD789F692A1D3E17C0687 /* ProfileSetup.swift */; };
+		8CA92F99DE02DA4C422D5801 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5480976F7A695C8F734CBC8A /* ProfileView.swift */; };
+		9221ACE197FE8A0FA6FFAA7E /* manrope_medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D5C7D06A6F17CEC09E507CAE /* manrope_medium.ttf */; };
+		9D1EEBC4D8EF846763F495DA /* LocalStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965BE0D9BAACE252E18E7C71 /* LocalStore.swift */; };
+		A3EC5EBDEFB2B24BA10499A9 /* DataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25F06693D2BF6B4001975D85 /* DataView.swift */; };
+		AEDF68C94B44D64DBCB11E34 /* HealthData.swift in Sources */ = {isa = PBXBuildFile; fileRef = C777DC18C33DC287833A4911 /* HealthData.swift */; };
+		B6A909ACAC3AE3B7408A20CE /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7290F1FBACD782140136A03E /* Models.swift */; };
+		BB9CD4F8850972800F2FDB90 /* DaedalusWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 909E49D914C50518C3340242 /* DaedalusWatchApp.swift */; };
+		BF6EDB9EEE7A7FFFFEF5511B /* AuthStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0C5976F2BE265F97C2454DD /* AuthStore.swift */; };
+		C269D4B49DDEE98E2228A8CC /* Design.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDFBE00D91B272086D0E0E14 /* Design.swift */; };
+		C535FBC585C00487C5184002 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 37638DCE1ECA226E98C9DBCB /* Assets.xcassets */; };
+		D23BD99F1083C915C8CEE9D0 /* manrope_regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A0137D3444643C96BB3A98D1 /* manrope_regular.ttf */; };
+		E0476FC4F6EAF024F97EAE8D /* MedsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F31A82F4FF9D31DE11AE556 /* MedsView.swift */; };
+		E2C8371ABC03A9B169B7C383 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB34ACE4A9297B33034FB71 /* MainTabView.swift */; };
+		E957ADC0D05BB75EE04FDBD9 /* WatchProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6485044222FB7804202F8BD9 /* WatchProtocol.swift */; };
+		F021738A49AC03BF597E0C44 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 33426E7B5ABB34E301994154 /* Supabase */; };
+		F70C1092E2E675D3664716F1 /* CueScreens.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7733875C0BFF73204F9F8B8 /* CueScreens.swift */; };
+		FE1F0DC5DEE1558CDD16A9AF /* PhoneLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F5401E8E6F4E13365D53753 /* PhoneLink.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		1CD750450645A012BF1CED38 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 85D211DC92CB8803770FEB66 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F370E9202B1F91D4A6EE0B86;
+			remoteInfo = DaedalusWatch;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		ADC87D41F6A01E4E7A919518 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				0784CC2D874022FFB75DA788 /* DaedalusWatch.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		0F5401E8E6F4E13365D53753 /* PhoneLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneLink.swift; sourceTree = "<group>"; };
+		10A7CD730672C40D09C58F0D /* LoginFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginFlow.swift; sourceTree = "<group>"; };
+		1710CA52690E77273A6925F1 /* Daedalus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Daedalus.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		25F06693D2BF6B4001975D85 /* DataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataView.swift; sourceTree = "<group>"; };
+		267DD789F692A1D3E17C0687 /* ProfileSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSetup.swift; sourceTree = "<group>"; };
+		2B8C0E85CA17A183E43C3D4B /* SupabaseConfig.generated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.generated.swift; sourceTree = "<group>"; };
+		2FB34ACE4A9297B33034FB71 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		37638DCE1ECA226E98C9DBCB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		4183DA03665BBD2AD94DDC8A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		48CC127CC7FB9AD883E5409D /* manrope_semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = manrope_semibold.ttf; sourceTree = "<group>"; };
+		4A0DB3DE9769F7837F7FA71D /* CloudBackup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudBackup.swift; sourceTree = "<group>"; };
+		4E30DD3AE97D04D9F87B29D9 /* Daedalus.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Daedalus.entitlements; sourceTree = "<group>"; };
+		5480976F7A695C8F734CBC8A /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		5EC4F0BD0A6312FACE4F69A1 /* JournalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalView.swift; sourceTree = "<group>"; };
+		6485044222FB7804202F8BD9 /* WatchProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchProtocol.swift; sourceTree = "<group>"; };
+		675D7D8586FCD11DA1D47627 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		69FAD5B8C178EB8A12CDA0FC /* DaedalusWatch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DaedalusWatch.entitlements; sourceTree = "<group>"; };
+		6BDAC5D608121DFEFB934519 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
+		6F31A82F4FF9D31DE11AE556 /* MedsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedsView.swift; sourceTree = "<group>"; };
+		7290F1FBACD782140136A03E /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		7386EEDFDB9894B5761CEF7C /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		752E5F5417A42F9D09058327 /* MedReminders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedReminders.swift; sourceTree = "<group>"; };
+		7C23B60DB03E8595B2184402 /* DaedalusApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DaedalusApp.swift; sourceTree = "<group>"; };
+		7C8AA5A878C87B0770574072 /* manrope_bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = manrope_bold.ttf; sourceTree = "<group>"; };
+		83C3B53C70907B4943E83703 /* WatchLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchLink.swift; sourceTree = "<group>"; };
+		8A98CA60806FDA7790A94004 /* DaedalusWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DaedalusWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		909E49D914C50518C3340242 /* DaedalusWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DaedalusWatchApp.swift; sourceTree = "<group>"; };
+		965BE0D9BAACE252E18E7C71 /* LocalStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalStore.swift; sourceTree = "<group>"; };
+		A0137D3444643C96BB3A98D1 /* manrope_regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = manrope_regular.ttf; sourceTree = "<group>"; };
+		A0C5976F2BE265F97C2454DD /* AuthStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthStore.swift; sourceTree = "<group>"; };
+		A63F4925B0072B7FDF98E883 /* CuesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CuesView.swift; sourceTree = "<group>"; };
+		B0F91B77F0B357FB846209A9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		BE84C1953F000FC5BE1558CF /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
+		C7733875C0BFF73204F9F8B8 /* CueScreens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CueScreens.swift; sourceTree = "<group>"; };
+		C777DC18C33DC287833A4911 /* HealthData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthData.swift; sourceTree = "<group>"; };
+		D5C7D06A6F17CEC09E507CAE /* manrope_medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = manrope_medium.ttf; sourceTree = "<group>"; };
+		DC53BFD500D6DD6922476C1E /* CueController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CueController.swift; sourceTree = "<group>"; };
+		DDFBE00D91B272086D0E0E14 /* Design.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Design.swift; sourceTree = "<group>"; };
+		EE98915962602BDAFA647BC6 /* MedScheduleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedScheduleView.swift; sourceTree = "<group>"; };
+		F557102433200564ED36EE3C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		E6466E688375E52479BFFF4E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F021738A49AC03BF597E0C44 /* Supabase in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		030310DE1A8721E6CBAC0F75 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				7C23B60DB03E8595B2184402 /* DaedalusApp.swift */,
+				6BDAC5D608121DFEFB934519 /* L10n.swift */,
+				2B8C0E85CA17A183E43C3D4B /* SupabaseConfig.generated.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		14778AD355F8F62425F05930 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1710CA52690E77273A6925F1 /* Daedalus.app */,
+				8A98CA60806FDA7790A94004 /* DaedalusWatch.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		182CE3EF7AEE6A1E55DC1F4E /* App */ = {
+			isa = PBXGroup;
+			children = (
+				909E49D914C50518C3340242 /* DaedalusWatchApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		378BEEDBEA83AEDF1AB0C9AB /* Design */ = {
+			isa = PBXGroup;
+			children = (
+				DDFBE00D91B272086D0E0E14 /* Design.swift */,
+			);
+			path = Design;
+			sourceTree = "<group>";
+		};
+		43DB51D5126C93B2AD077367 /* Screens */ = {
+			isa = PBXGroup;
+			children = (
+				A63F4925B0072B7FDF98E883 /* CuesView.swift */,
+				25F06693D2BF6B4001975D85 /* DataView.swift */,
+				5EC4F0BD0A6312FACE4F69A1 /* JournalView.swift */,
+				10A7CD730672C40D09C58F0D /* LoginFlow.swift */,
+				2FB34ACE4A9297B33034FB71 /* MainTabView.swift */,
+				EE98915962602BDAFA647BC6 /* MedScheduleView.swift */,
+				6F31A82F4FF9D31DE11AE556 /* MedsView.swift */,
+				267DD789F692A1D3E17C0687 /* ProfileSetup.swift */,
+				5480976F7A695C8F734CBC8A /* ProfileView.swift */,
+				BE84C1953F000FC5BE1558CF /* TodayView.swift */,
+			);
+			path = Screens;
+			sourceTree = "<group>";
+		};
+		6F136A14E4FAA8ADAA753EBA /* Cue */ = {
+			isa = PBXGroup;
+			children = (
+				DC53BFD500D6DD6922476C1E /* CueController.swift */,
+				0F5401E8E6F4E13365D53753 /* PhoneLink.swift */,
+			);
+			path = Cue;
+			sourceTree = "<group>";
+		};
+		70681464EACBBF058B1A53C7 /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				A0C5976F2BE265F97C2454DD /* AuthStore.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		74F4774A26FC7712AF263106 = {
+			isa = PBXGroup;
+			children = (
+				DACFF21C191A2CF3ADB12C2A /* Daedalus */,
+				81AA08A19ACFA16D71D7C6C7 /* DaedalusWatch */,
+				ED177B80FD9A76CC08CA8AB2 /* Shared */,
+				14778AD355F8F62425F05930 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		81AA08A19ACFA16D71D7C6C7 /* DaedalusWatch */ = {
+			isa = PBXGroup;
+			children = (
+				182CE3EF7AEE6A1E55DC1F4E /* App */,
+				6F136A14E4FAA8ADAA753EBA /* Cue */,
+				DB1B963662F94419B441D29F /* Resources */,
+				FFFC7F58389CD85621A4CA1E /* Screens */,
+			);
+			path = DaedalusWatch;
+			sourceTree = "<group>";
+		};
+		ADAF5B271C52A506BB58913D /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				4A0DB3DE9769F7837F7FA71D /* CloudBackup.swift */,
+				C777DC18C33DC287833A4911 /* HealthData.swift */,
+				965BE0D9BAACE252E18E7C71 /* LocalStore.swift */,
+				752E5F5417A42F9D09058327 /* MedReminders.swift */,
+				7290F1FBACD782140136A03E /* Models.swift */,
+				83C3B53C70907B4943E83703 /* WatchLink.swift */,
+			);
+			path = Data;
+			sourceTree = "<group>";
+		};
+		DACFF21C191A2CF3ADB12C2A /* Daedalus */ = {
+			isa = PBXGroup;
+			children = (
+				030310DE1A8721E6CBAC0F75 /* App */,
+				70681464EACBBF058B1A53C7 /* Auth */,
+				ADAF5B271C52A506BB58913D /* Data */,
+				378BEEDBEA83AEDF1AB0C9AB /* Design */,
+				F579256210CD4B0C5830788F /* Resources */,
+				43DB51D5126C93B2AD077367 /* Screens */,
+			);
+			path = Daedalus;
+			sourceTree = "<group>";
+		};
+		DB1B963662F94419B441D29F /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				B0F91B77F0B357FB846209A9 /* Assets.xcassets */,
+				69FAD5B8C178EB8A12CDA0FC /* DaedalusWatch.entitlements */,
+				4183DA03665BBD2AD94DDC8A /* Info.plist */,
+				7386EEDFDB9894B5761CEF7C /* Localizable.xcstrings */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		ED177B80FD9A76CC08CA8AB2 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				6485044222FB7804202F8BD9 /* WatchProtocol.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		F579256210CD4B0C5830788F /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				37638DCE1ECA226E98C9DBCB /* Assets.xcassets */,
+				4E30DD3AE97D04D9F87B29D9 /* Daedalus.entitlements */,
+				F557102433200564ED36EE3C /* Info.plist */,
+				675D7D8586FCD11DA1D47627 /* Localizable.xcstrings */,
+				F6017AD1AE3C884F1617547E /* Fonts */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		F6017AD1AE3C884F1617547E /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				7C8AA5A878C87B0770574072 /* manrope_bold.ttf */,
+				D5C7D06A6F17CEC09E507CAE /* manrope_medium.ttf */,
+				A0137D3444643C96BB3A98D1 /* manrope_regular.ttf */,
+				48CC127CC7FB9AD883E5409D /* manrope_semibold.ttf */,
+			);
+			path = Fonts;
+			sourceTree = "<group>";
+		};
+		FFFC7F58389CD85621A4CA1E /* Screens */ = {
+			isa = PBXGroup;
+			children = (
+				C7733875C0BFF73204F9F8B8 /* CueScreens.swift */,
+			);
+			path = Screens;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		8555330590FAE9F123DFDEEB /* Daedalus */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 24648E0C9665D89C6841852E /* Build configuration list for PBXNativeTarget "Daedalus" */;
+			buildPhases = (
+				E3F2B19F31C9D93BF72D6DE7 /* Supabase settings */,
+				E58633E151C18BD2837D3620 /* Sources */,
+				0B0008EBF96A8547DEBF51E9 /* Resources */,
+				E6466E688375E52479BFFF4E /* Frameworks */,
+				ADC87D41F6A01E4E7A919518 /* Embed Watch Content */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C73E332ACDF0FB168A02841F /* PBXTargetDependency */,
+			);
+			name = Daedalus;
+			packageProductDependencies = (
+				33426E7B5ABB34E301994154 /* Supabase */,
+			);
+			productName = Daedalus;
+			productReference = 1710CA52690E77273A6925F1 /* Daedalus.app */;
+			productType = "com.apple.product-type.application";
+		};
+		F370E9202B1F91D4A6EE0B86 /* DaedalusWatch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 93D5024E4873A0B667E535A4 /* Build configuration list for PBXNativeTarget "DaedalusWatch" */;
+			buildPhases = (
+				1948FFDFF463703883A89B71 /* Sources */,
+				2D3FFC04651DA25B8CD97059 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DaedalusWatch;
+			packageProductDependencies = (
+			);
+			productName = DaedalusWatch;
+			productReference = 8A98CA60806FDA7790A94004 /* DaedalusWatch.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		85D211DC92CB8803770FEB66 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					8555330590FAE9F123DFDEEB = {
+						ProvisioningStyle = Automatic;
+					};
+					F370E9202B1F91D4A6EE0B86 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 6A11B8CF15E7777F0BA13AC4 /* Build configuration list for PBXProject "Daedalus" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+				fr,
+			);
+			mainGroup = 74F4774A26FC7712AF263106;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				7156DC1E9A123733C50B5955 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 14778AD355F8F62425F05930 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				8555330590FAE9F123DFDEEB /* Daedalus */,
+				F370E9202B1F91D4A6EE0B86 /* DaedalusWatch */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		0B0008EBF96A8547DEBF51E9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C535FBC585C00487C5184002 /* Assets.xcassets in Resources */,
+				32C04F0CA5489AA6C4C1427A /* Localizable.xcstrings in Resources */,
+				7FB24DB39E27298BB6692D9C /* manrope_bold.ttf in Resources */,
+				9221ACE197FE8A0FA6FFAA7E /* manrope_medium.ttf in Resources */,
+				D23BD99F1083C915C8CEE9D0 /* manrope_regular.ttf in Resources */,
+				5387B7EB7E1D10FDBB5203C2 /* manrope_semibold.ttf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2D3FFC04651DA25B8CD97059 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0CDD4718802CE5F770B9F6C5 /* Assets.xcassets in Resources */,
+				3956FE6BDA0DBBD5F7D0C1F9 /* Localizable.xcstrings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		E3F2B19F31C9D93BF72D6DE7 /* Supabase settings */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Supabase settings";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(SRCROOT)/Daedalus/App/SupabaseConfig.generated.swift",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Writes the Supabase URL and anon key (shared with the Android app's\n# supabase.properties, not committed) into a generated, git-ignored Swift file.\n\"${SRCROOT}/tools/supabase_config.sh\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1948FFDFF463703883A89B71 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				69E34C15252127C85449C270 /* CueController.swift in Sources */,
+				F70C1092E2E675D3664716F1 /* CueScreens.swift in Sources */,
+				BB9CD4F8850972800F2FDB90 /* DaedalusWatchApp.swift in Sources */,
+				FE1F0DC5DEE1558CDD16A9AF /* PhoneLink.swift in Sources */,
+				E957ADC0D05BB75EE04FDBD9 /* WatchProtocol.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E58633E151C18BD2837D3620 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF6EDB9EEE7A7FFFFEF5511B /* AuthStore.swift in Sources */,
+				1862AE7F018FD71D3B2EB8C4 /* CloudBackup.swift in Sources */,
+				145E717F3AFCD8FD946660D8 /* CuesView.swift in Sources */,
+				12E4A0E7FBDDF6C6D42131D4 /* DaedalusApp.swift in Sources */,
+				A3EC5EBDEFB2B24BA10499A9 /* DataView.swift in Sources */,
+				C269D4B49DDEE98E2228A8CC /* Design.swift in Sources */,
+				AEDF68C94B44D64DBCB11E34 /* HealthData.swift in Sources */,
+				7793AF2E9919EAAC84BD73AC /* JournalView.swift in Sources */,
+				7B91F7EEE151B2F1A3653FD3 /* L10n.swift in Sources */,
+				9D1EEBC4D8EF846763F495DA /* LocalStore.swift in Sources */,
+				1F6C119D28201826F66E10DE /* LoginFlow.swift in Sources */,
+				E2C8371ABC03A9B169B7C383 /* MainTabView.swift in Sources */,
+				08FC2ADBDB98552816D5CF3D /* MedReminders.swift in Sources */,
+				61F09CF93724F2E102C32EAC /* MedScheduleView.swift in Sources */,
+				E0476FC4F6EAF024F97EAE8D /* MedsView.swift in Sources */,
+				B6A909ACAC3AE3B7408A20CE /* Models.swift in Sources */,
+				85FBEC43F9ECAA797639A744 /* ProfileSetup.swift in Sources */,
+				8CA92F99DE02DA4C422D5801 /* ProfileView.swift in Sources */,
+				76DDC0599BBB0FA5805D68D1 /* SupabaseConfig.generated.swift in Sources */,
+				3E6046F6EC69CDD52B2465A9 /* TodayView.swift in Sources */,
+				0D966510097EADF44C99762D /* WatchLink.swift in Sources */,
+				2CD36334978480D045CBAC1B /* WatchProtocol.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		C73E332ACDF0FB168A02841F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F370E9202B1F91D4A6EE0B86 /* DaedalusWatch */;
+			targetProxy = 1CD750450645A012BF1CED38 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		3F8C5D778CF1D28BBBACF626 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.10;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
+		5D58A4117DCCD215AA978BC1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Daedalus/Resources/Daedalus.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = SFQ29D84T9;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Daedalus/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.medicina.daedaluscompanion;
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		744BCBFB26D7C1952852BBD3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Daedalus/Resources/Daedalus.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = SFQ29D84T9;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Daedalus/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.medicina.daedaluscompanion;
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		8200B0E6AA3D965E6BB4241A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = DaedalusWatch/Resources/DaedalusWatch.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = SFQ29D84T9;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = DaedalusWatch/Resources/Info.plist;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.medicina.daedaluscompanion.watchkitapp;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+			};
+			name = Release;
+		};
+		B9A28563C18E3F79B4FCF4D1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = DaedalusWatch/Resources/DaedalusWatch.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = SFQ29D84T9;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = DaedalusWatch/Resources/Info.plist;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.medicina.daedaluscompanion.watchkitapp;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+			};
+			name = Debug;
+		};
+		D73831969BA3180DB511AA7C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.10;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		24648E0C9665D89C6841852E /* Build configuration list for PBXNativeTarget "Daedalus" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				744BCBFB26D7C1952852BBD3 /* Debug */,
+				5D58A4117DCCD215AA978BC1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		6A11B8CF15E7777F0BA13AC4 /* Build configuration list for PBXProject "Daedalus" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D73831969BA3180DB511AA7C /* Debug */,
+				3F8C5D778CF1D28BBBACF626 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		93D5024E4873A0B667E535A4 /* Build configuration list for PBXNativeTarget "DaedalusWatch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B9A28563C18E3F79B4FCF4D1 /* Debug */,
+				8200B0E6AA3D965E6BB4241A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		7156DC1E9A123733C50B5955 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.20.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		33426E7B5ABB34E301994154 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7156DC1E9A123733C50B5955 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 85D211DC92CB8803770FEB66 /* Project object */;
+}

@@ -3,6 +3,7 @@ package com.medicina.daedaluscompanion.wear
 import android.content.Context
 import android.util.Log
 import com.google.android.gms.wearable.*
+import com.medicina.daedaluscompanion.data.CloudBackup
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -106,6 +107,8 @@ class WatchDataListener : WearableListenerService() {
         File(sessionsDir, fileName).writeBytes(data)
 
         Log.i(TAG, "Session file saved to ${sessionsDir.absolutePath}")
+        // Back it up to the signed-in account (no-op for guests).
+        CloudBackup.syncAsync(applicationContext)
     }
 
     override fun onChannelOpened(channel: ChannelClient.Channel) {

@@ -1,5 +1,6 @@
 package com.medicina.daedaluscompanion.ui
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -19,19 +20,56 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.lifecycleScope
 import com.medicina.daedaluscompanion.R
+import com.medicina.daedaluscompanion.auth.AuthError
+import com.medicina.daedaluscompanion.auth.AuthResult
+import com.medicina.daedaluscompanion.auth.AuthState
+import com.medicina.daedaluscompanion.utils.DaedalusApplication
+import kotlinx.coroutines.launch
 import com.medicina.daedaluscompanion.data.MedReminders
 import com.medicina.daedaluscompanion.ui.screens.*
 
 /** AppCompatActivity so the in-app language switch (AppCompatDelegate) works below Android 13. */
 class MainActivity : AppCompatActivity() {
+    /** Error from the last email link (expired confirmation / reset), shown on the login screen. */
+    private var callbackError by mutableStateOf<AuthError?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val auth = (application as DaedalusApplication).auth
         // Keep dose reminder alarms in step with the schedule.
         MedReminders.reschedule(this)
+        lifecycleScope.launch { auth.refreshIfNeeded() }
+        handleAuthCallback(intent)
         val openMeds = intent?.getStringExtra(MedReminders.EXTRA_OPEN_TAB) == "meds"
         setContent {
-            DaedalusTheme { DaedalusApp(startOnMeds = openMeds) }
+            DaedalusTheme {
+                when (val state = auth.state.collectAsState().value) {
+                    AuthState.Loading -> Unit
+                    AuthState.SignedOut -> LoginScreen(auth, callbackError)
+                    AuthState.SettingNewPassword -> NewPasswordScreen(auth)
+                    // First sign-in on this account: personal information before the app.
+                    is AuthState.SignedIn -> ProfileSetupGate(auth, state.email) { DaedalusApp(startOnMeds = openMeds) }
+                    AuthState.Guest -> DaedalusApp(startOnMeds = openMeds)
+                }
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleAuthCallback(intent)
+    }
+
+    /** daedalus://auth-callback#… from a confirmation or password-reset email. */
+    private fun handleAuthCallback(intent: Intent?) {
+        val uri = intent?.data ?: return
+        if (uri.scheme != "daedalus" || uri.host != "auth-callback") return
+        val auth = (application as DaedalusApplication).auth
+        lifecycleScope.launch {
+            val result = auth.handleCallback(uri)
+            callbackError = (result as? AuthResult.Failure)?.error
         }
     }
 }
@@ -44,7 +82,7 @@ private enum class Tab(@StringRes val label: Int, val icon: ImageVector) {
     PROFILE(R.string.nav_profile, Icons.Outlined.Person),
 }
 
-private enum class SubScreen { NONE, CALIBRATION, SESSIONS, SCHEDULE }
+private enum class SubScreen { NONE, CALIBRATION, SESSIONS, SCHEDULE, DATA }
 
 @Composable
 fun DaedalusApp(startOnMeds: Boolean = false) {
@@ -88,6 +126,7 @@ fun DaedalusApp(startOnMeds: Boolean = false) {
                 sub == SubScreen.CALIBRATION -> CalibrationScreen(onBack = { sub = SubScreen.NONE })
                 sub == SubScreen.SESSIONS -> SessionsScreen(onBack = { sub = SubScreen.NONE })
                 sub == SubScreen.SCHEDULE -> MedScheduleScreen(onBack = { sub = SubScreen.NONE })
+                sub == SubScreen.DATA -> DataScreen(onBack = { sub = SubScreen.NONE })
                 else -> when (tab) {
                     Tab.TODAY -> HomeScreen(
                         onOpenCues = { tab = Tab.CUES },
@@ -101,6 +140,7 @@ fun DaedalusApp(startOnMeds: Boolean = false) {
                         onOpenCalibration = { sub = SubScreen.CALIBRATION },
                         onOpenSessions = { sub = SubScreen.SESSIONS },
                         onOpenSchedule = { sub = SubScreen.SCHEDULE },
+                        onOpenData = { sub = SubScreen.DATA },
                     )
                 }
             }

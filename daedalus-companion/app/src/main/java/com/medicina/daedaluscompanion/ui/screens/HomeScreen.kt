@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.android.gms.wearable.Wearable
 import com.medicina.daedaluscompanion.R
+import com.medicina.daedaluscompanion.auth.AuthState
 import com.medicina.daedaluscompanion.ble.ConnectionState
 import com.medicina.daedaluscompanion.data.LocalStore
 import com.medicina.daedaluscompanion.utils.DaedalusApplication
@@ -104,13 +105,19 @@ fun HomeScreen(onOpenCues: () -> Unit, onOpenMeds: () -> Unit, onOpenProfile: ()
     } else null
 
     val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-    val greeting = stringResource(
+    val greetingBase = stringResource(
         when {
             hour < 12 -> R.string.greeting_morning
             hour < 18 -> R.string.greeting_afternoon
             else -> R.string.greeting_evening
         }
     )
+    // "Good evening, Marie" once the signed-in account has a first name.
+    val authState = app?.auth?.state?.collectAsState()?.value
+    val firstName = remember(authState) {
+        (authState as? AuthState.SignedIn)?.let { store.personalProfile(it.email)?.firstName }?.ifBlank { null }
+    }
+    val greeting = if (firstName != null) stringResource(R.string.greeting_with_name, greetingBase, firstName) else greetingBase
     val dateLabel = remember { DateFormat.getDateInstance(DateFormat.FULL).format(Date()) }
     val timeFormat = remember { DateFormat.getTimeInstance(DateFormat.SHORT) }
 

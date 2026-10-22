@@ -1,0 +1,4 @@
+# Copy to supabase.properties (not committed) and fill in from Project Settings -> API.
+# Use the anon public key only, never the service_role key.
+SUPABASE_URL=https://<project-ref>.supabase.co
+SUPABASE_ANON_KEY=<anon public key>
