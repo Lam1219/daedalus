@@ -7,18 +7,25 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.medicina.daedaluscompanion.R
 import com.medicina.daedaluscompanion.ui.MainActivity
+import java.time.Instant
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 private const val TAG = "MedReminders"
 
 /**
- * Daily dose reminders for the medication schedule. Each dose time gets an alarm that may
- * fire up to 10 minutes late (no exact-alarm permission needed). The notification also
- * shows on the paired watch through Wear OS notification bridging.
+ * Daily dose reminders for the medication schedule. Each dose time gets an exact alarm that
+ * also fires in Doze (USE_EXACT_ALARM on Android 13+, SCHEDULE_EXACT_ALARM on 12). The next
+ * time is worked out by calendar day, so it stays at the same clock time across daylight-saving
+ * changes, and alarms are set again after a reboot or a time or time-zone change. The
+ * notification also shows on the paired watch through Wear OS notification bridging.
  */
 object MedReminders {
     private const val CHANNEL = "daedalus_dose_reminders"
@@ -28,6 +35,7 @@ object MedReminders {
     const val EXTRA_OPEN_TAB = "open_tab"
     private const val PREFS = "med_reminder_alarms"
     private const val KEY_CODES = "codes"
+    /** Without exact alarms (permission revoked on Android 12), allow this much delay. */
     private const val WINDOW_MS = 10 * 60 * 1000L
 
     /** Cancels every reminder alarm, then sets the next one for each dose if reminders are on. */
@@ -43,16 +51,30 @@ object MedReminders {
             return
         }
         val now = System.currentTimeMillis()
+        val exact = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || am.canScheduleExactAlarms()
         val codes = mutableSetOf<String>()
         store.schedule().forEach { dose ->
-            var at = dose.timeOn(now)
-            if (at <= now) at += 24 * 60 * 60 * 1000L
+            val at = nextTime(dose.hour, dose.minute, now, ZoneId.systemDefault())
             val code = dose.id.hashCode()
-            am.setWindow(AlarmManager.RTC_WAKEUP, at, WINDOW_MS, alarmIntent(context, code, dose.id))
+            val intent = alarmIntent(context, code, dose.id)
+            if (exact) am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, intent)
+            else am.setWindow(AlarmManager.RTC_WAKEUP, at, WINDOW_MS, intent)
             codes += code.toString()
         }
         prefs.edit().putStringSet(KEY_CODES, codes).apply()
         Log.i(TAG, "Scheduled ${codes.size} dose reminder(s)")
+    }
+
+    /**
+     * The next [hour]:[minute] after [now] in [zone], counted in calendar days rather than 24-hour
+     * steps, so a reminder stays at 8:00 on the day the clocks change. A time that doesn't exist
+     * that day (skipped by a spring-forward) moves to just after the gap.
+     */
+    fun nextTime(hour: Int, minute: Int, now: Long, zone: ZoneId): Long {
+        val nowZoned = Instant.ofEpochMilli(now).atZone(zone)
+        var at = ZonedDateTime.of(nowZoned.toLocalDate(), LocalTime.of(hour, minute), zone)
+        if (!at.isAfter(nowZoned)) at = ZonedDateTime.of(nowZoned.toLocalDate().plusDays(1), LocalTime.of(hour, minute), zone)
+        return at.toInstant().toEpochMilli()
     }
 
     private fun alarmIntent(context: Context, code: Int, slotId: String?): PendingIntent {
@@ -124,9 +146,22 @@ class MedReminderReceiver : BroadcastReceiver() {
     }
 }
 
-/** Alarms are cleared on reboot; set them again. */
+/**
+ * Sets the alarms again when they are cleared (reboot, app update) or would be wrong: the clock
+ * or time zone changed, or exact alarms were allowed again.
+ */
 class MedReminderBootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == Intent.ACTION_BOOT_COMPLETED) MedReminders.reschedule(context)
+        if (intent.action in RESCHEDULE_ACTIONS) MedReminders.reschedule(context)
+    }
+
+    private companion object {
+        val RESCHEDULE_ACTIONS = setOf(
+            Intent.ACTION_BOOT_COMPLETED,
+            Intent.ACTION_MY_PACKAGE_REPLACED,
+            Intent.ACTION_TIMEZONE_CHANGED,
+            Intent.ACTION_TIME_CHANGED, // "android.intent.action.TIME_SET"
+            AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED,
+        )
     }
 }
