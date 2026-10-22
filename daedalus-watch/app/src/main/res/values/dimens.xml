@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sizes for small round watches (under 220dp, e.g. 40mm Galaxy Watch: 198dp).
+     values-sw220dp has the larger sizes for 44mm and Pro models (225dp). -->
+<resources>
+    <!-- Walking ring: distance from the screen edge, so the content fits inside it. -->
+    <dimen name="ring_inset">8dp</dimen>
+    <dimen name="walk_rate_text">38sp</dimen>
+    <dimen name="stuck_size">90dp</dimen>
+    <!-- "Step with each pulse" only fits inside the ring on larger watches. -->
+    <bool name="show_walk_hint">false</bool>
+</resources>

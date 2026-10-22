@@ -59,6 +59,11 @@ class AuthRepository(context: Context) {
     private val anonKey = BuildConfig.SUPABASE_ANON_KEY
     val isConfigured = baseUrl.isNotBlank() && anonKey.isNotBlank()
 
+    init {
+        // Developer detail stays in the log; people see only "Sign-in isn't available in this version".
+        if (!isConfigured) Log.w(TAG, "Supabase isn't configured: add the project URL and anon key to supabase.properties")
+    }
+
     private val prefs = openPrefs(context.applicationContext)
 
     /**

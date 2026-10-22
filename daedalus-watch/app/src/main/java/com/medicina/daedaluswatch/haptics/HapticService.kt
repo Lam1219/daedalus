@@ -1,5 +1,6 @@
 package com.medicina.daedaluswatch.haptics
 
+import com.medicina.daedaluswatch.sensor.HeartRatePermission
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -289,12 +290,10 @@ class HapticService : Service() {
         gyroscope?.let { sensorManager?.registerListener(sensorListener, it, 20000) }
 
         if (heartRateSensor != null) {
-            val granted = checkSelfPermission("android.permission.health.READ_HEART_RATE") ==
-                android.content.pm.PackageManager.PERMISSION_GRANTED
-            if (granted) {
+            if (HeartRatePermission.isGranted(this)) {
                 sensorManager?.registerListener(sensorListener, heartRateSensor, SensorManager.SENSOR_DELAY_NORMAL)
             } else {
-                Log.w("HapticService", "Heart rate sensor present but READ_HEART_RATE not granted — recording 0 BPM. Open the watch app once to grant permissions.")
+                Log.w("HapticService", "Heart rate sensor present but ${HeartRatePermission.name} not granted — recording 0 BPM. Open the watch app once to grant permissions.")
             }
         }
 

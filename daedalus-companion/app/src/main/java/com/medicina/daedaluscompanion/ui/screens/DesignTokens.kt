@@ -22,6 +22,8 @@ object DesignTokens {
     val NavInactive = Color(0xFF66726A)
     val Divider = Color(0xFFECEFE9)
     val SwitchOff = Color(0xFFD5DCD1)
+    /** Borders of fields, unselected choices, checkboxes and off switches: 3.1:1 on white (WCAG 1.4.11). */
+    val Outline = Color(0xFF869681)
     val Alert = Color(0xFFA15C2E)
 
     // Legacy names kept so older screens keep compiling against the new palette.

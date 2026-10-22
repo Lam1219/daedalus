@@ -69,10 +69,14 @@
     <string name="cue_rate_up">Accélérer de %1$d</string>
     <string name="cue_slower">%1$d · plus lent</string>
     <string name="cue_faster">plus rapide · %1$d</string>
+    <string name="coming_soon">Bientôt</string>
+    <string name="cue_starting">Démarrage…</string>
+    <string name="cue_stopping">Arrêt…</string>
+    <string name="cue_no_reply">Votre montre n’a pas répondu. Vérifiez qu’elle est à proximité et allumée, puis réessayez.</string>
     <string name="cue_auto_title">Repères automatiques</string>
-    <string name="cue_auto_note">Vos choix sont enregistrés et seront utilisés quand la détection sur la montre sera activée.</string>
+    <string name="cue_auto_note">Votre montre lancera ces repères d’elle-même lorsqu’elle détectera un blocage, des tremblements ou une respiration rapide. D’ici là, lancez les repères depuis cet écran ou avec « Je suis bloqué·e » sur votre montre.</string>
     <string name="cue_walking">Repère de marche</string>
-    <string name="cue_walking_sub">Lors d’un blocage détecté ou si vous touchez « Je suis bloqué·e »</string>
+    <string name="cue_walking_sub">Lors d’un blocage détecté</string>
     <string name="cue_tremor">Ancrage du tremblement</string>
     <string name="cue_tremor_sub">Pendant un tremblement détecté</string>
     <string name="cue_breathing">Repère respiratoire</string>
@@ -115,8 +119,14 @@
     </plurals>
     <string name="meds_due_now">À prendre</string>
     <string name="meds_upcoming">À venir</string>
+    <string name="meds_missed">Manquée · %1$s</string>
     <string name="meds_take">Prendre</string>
     <string name="meds_extra_at">Dose supplémentaire à %1$s</string>
+    <string name="undo">Annuler</string>
+    <string name="meds_logged">Dose notée</string>
+    <string name="meds_deleted">Dose supprimée</string>
+    <string name="meds_delete_cd">Supprimer %1$s</string>
+    <string name="feel_saved_short">Ressenti enregistré</string>
     <string name="meds_reminders">Rappels de dose</string>
     <string name="meds_reminders_sub">Sur votre montre et votre téléphone</string>
     <string name="meds_week_of">%1$d doses sur %2$d</string>
@@ -197,7 +207,7 @@
     <string name="cat_haptic">Haptique</string>
 
     <!-- Login -->
-    <string name="login_not_configured">La connexion n’est pas encore configurée : ajoutez l’URL du projet Supabase et la clé anon dans supabase.properties.</string>
+    <string name="login_not_configured">La connexion n’est pas disponible dans cette version.</string>
     <string name="login_sign_up">S’inscrire</string>
     <string name="login_sign_in_button">Se connecter</string>
     <string name="login_email">Courriel</string>
@@ -231,7 +241,7 @@
     <string name="login_reset_title">Choisissez un nouveau mot de passe</string>
     <string name="login_reset_subtitle">Vous l’utiliserez à votre prochaine connexion par courriel.</string>
     <string name="login_reset_save">Enregistrer le mot de passe</string>
-    <string name="login_err_not_configured">La connexion n’est pas encore configurée dans cette version.</string>
+    <string name="login_err_not_configured">La connexion n’est pas disponible dans cette version.</string>
     <string name="login_err_credentials">Courriel ou mot de passe incorrect.</string>
     <string name="login_no_account_hint">Vérifiez que votre courriel est bien écrit. Nouveau sur Daedalus ? Créez un compte avec ce courriel.</string>
     <string name="login_create_account_button">Créer un compte</string>

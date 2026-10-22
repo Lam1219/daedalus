@@ -6,6 +6,7 @@ import android.util.Log
 import com.medicina.daedaluscompanion.auth.AuthState
 import com.medicina.daedaluscompanion.ui.screens.extractDate
 import com.medicina.daedaluscompanion.ui.screens.extractMode
+import com.medicina.daedaluscompanion.ui.screens.migrateLegacySessionFiles
 import com.medicina.daedaluscompanion.ui.screens.sessionsDir
 import com.medicina.daedaluscompanion.utils.DaedalusApplication
 import kotlinx.coroutines.CoroutineScope
@@ -142,7 +143,11 @@ object CloudBackup {
             store.clearDeletedScheduleIds(deleted)
         }
 
-        // Dose logs and check-ins are only ever added, so just send the new ones.
+        // Doses and check-ins removed on this phone (undo or delete) are removed from the account.
+        if (!deleteRemoved(app, owner, "dose_logs", KIND_DOSES, store.deletedDoseIds(), store::clearDeletedDoseIds)) return false
+        if (!deleteRemoved(app, owner, "checkins", KIND_CHECKINS, store.deletedCheckInIds(), store::clearDeletedCheckInIds)) return false
+
+        // Otherwise dose logs and check-ins are only added, so just send the new ones.
         val scheduleIds = schedule.map { it.id }.toSet()
         val doneDoses = uploadedSet(app, owner, KIND_DOSES)
         val newDoses = store.medications().filter { it.id !in doneDoses }
@@ -178,6 +183,17 @@ object CloudBackup {
         if (newSessions.isNotEmpty() || newDoses.isNotEmpty() || newCheckIns.isNotEmpty()) {
             Log.i(TAG, "Backed up ${newSessions.size} sessions, ${newDoses.size} doses, ${newCheckIns.size} check-ins")
         }
+        return true
+    }
+
+    private suspend fun deleteRemoved(
+        app: DaedalusApplication, owner: String, table: String, kind: String, ids: List<String>, clear: (List<String>) -> Unit,
+    ): Boolean {
+        if (ids.isEmpty()) return true
+        val auth = app.auth
+        if (!ok(auth.requestText("DELETE", "/rest/v1/$table?id=in.(${ids.joinToString(",")})", null, auth.accessToken()), "delete from $table")) return false
+        clear(ids)
+        unmarkUploaded(app, owner, kind, ids)
         return true
     }
 
@@ -307,7 +323,7 @@ object CloudBackup {
     private fun sessionKey(file: File) = "${file.name}|${file.length()}"
 
     private fun sessionFiles(app: DaedalusApplication): List<File> =
-        sessionsDir(app).listFiles()?.filter { it.isFile && it.extension == "csv" }.orEmpty()
+        sessionsDir(app).also { migrateLegacySessionFiles(app) }.listFiles()?.filter { it.isFile && it.extension == "csv" }.orEmpty()
 
     private fun ok(result: Pair<Int, String>?, what: String? = null): Boolean {
         val success = result != null && result.first in 200..299
@@ -323,6 +339,11 @@ object CloudBackup {
 
     private fun markUploaded(app: DaedalusApplication, owner: String, kind: String, ids: List<String>) {
         val all = uploadedSet(app, owner, kind) + ids
+        app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString("$kind:$owner", JSONArray(all.toList()).toString()).apply()
+    }
+
+    private fun unmarkUploaded(app: DaedalusApplication, owner: String, kind: String, ids: List<String>) {
+        val all = uploadedSet(app, owner, kind) - ids.toSet()
         app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString("$kind:$owner", JSONArray(all.toList()).toString()).apply()
     }
 

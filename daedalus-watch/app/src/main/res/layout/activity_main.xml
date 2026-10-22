@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Watch screens from the Daedalus App Design canvas (450 px design = 225 dp at 2.0x).
+     Text is about twice the design's pixel size and every button is at least 48 dp, so they
+     stay readable and easy to hit with a tremor.
      Exactly one screen is visible at a time; MainActivity switches them by cue state. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -22,7 +24,7 @@
             android:format24Hour="H:mm"
             android:letterSpacing="0.02"
             android:textFontWeight="600"
-            android:textSize="10sp" />
+            android:textSize="16sp" />
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -32,8 +34,9 @@
             android:orientation="horizontal">
 
             <View
-                android:layout_width="4dp"
-                android:layout_height="4dp"
+                android:id="@+id/dot_home_status"
+                android:layout_width="8dp"
+                android:layout_height="8dp"
                 android:background="@drawable/bg_dot_sage" />
 
             <TextView
@@ -41,18 +44,18 @@
                 style="@style/WatchText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="3dp"
-                android:text="@string/status_cues_on"
+                android:layout_marginStart="6dp"
+                android:text="@string/status_ready"
                 android:textColor="@color/watch_sage"
                 android:textFontWeight="600"
-                android:textSize="7.5sp" />
+                android:textSize="14sp" />
         </LinearLayout>
 
         <LinearLayout
             android:id="@+id/btn_stuck"
-            android:layout_width="90dp"
-            android:layout_height="90dp"
-            android:layout_marginTop="9dp"
+            android:layout_width="@dimen/stuck_size"
+            android:layout_height="@dimen/stuck_size"
+            android:layout_marginTop="8dp"
             android:background="@drawable/bg_circle_sage"
             android:clickable="true"
             android:contentDescription="@string/im_stuck"
@@ -62,8 +65,8 @@
             android:orientation="vertical">
 
             <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
+                android:layout_width="26dp"
+                android:layout_height="26dp"
                 android:importantForAccessibility="no"
                 android:src="@drawable/ic_footprints"
                 android:tint="@color/watch_ground" />
@@ -72,27 +75,27 @@
                 style="@style/WatchText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
+                android:layout_marginTop="4dp"
                 android:gravity="center"
                 android:importantForAccessibility="no"
-                android:lineSpacingMultiplier="1.0"
-                android:maxWidth="75dp"
+                android:lineSpacingMultiplier="0.95"
+                android:maxWidth="92dp"
                 android:text="@string/im_stuck"
                 android:textColor="@color/watch_ground"
                 android:textFontWeight="700"
-                android:textSize="10sp" />
+                android:textSize="16sp" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="9dp"
+            android:layout_marginTop="8dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <ImageView
-                android:layout_width="9dp"
-                android:layout_height="9dp"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
                 android:contentDescription="@string/cd_heart_rate"
                 android:src="@drawable/ic_heart"
                 android:tint="@color/watch_sage" />
@@ -102,46 +105,56 @@
                 style="@style/WatchText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="3dp"
+                android:layout_marginStart="4dp"
                 android:text="@string/value_none"
                 android:textFontWeight="600"
-                android:textSize="9sp" />
+                android:textSize="16sp" />
 
             <TextView
                 style="@style/WatchText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="2dp"
+                android:layout_marginStart="3dp"
                 android:text="@string/unit_bpm"
                 android:textColor="@color/watch_muted"
-                android:textSize="6.5sp" />
+                android:textSize="12sp" />
 
-            <ImageView
-                android:layout_width="9dp"
-                android:layout_height="9dp"
-                android:layout_marginStart="14dp"
-                android:contentDescription="@string/cd_breathing"
-                android:src="@drawable/ic_wind"
-                android:tint="@color/watch_sage" />
-
-            <TextView
-                android:id="@+id/tv_home_breathing"
-                style="@style/WatchText"
+            <!-- Breathing rate: hidden until the watch has a value. -->
+            <LinearLayout
+                android:id="@+id/group_home_breathing"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="3dp"
-                android:text="@string/value_none"
-                android:textFontWeight="600"
-                android:textSize="9sp" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:visibility="gone">
 
-            <TextView
-                style="@style/WatchText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="2dp"
-                android:text="@string/unit_per_min"
-                android:textColor="@color/watch_muted"
-                android:textSize="6.5sp" />
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:layout_marginStart="14dp"
+                    android:contentDescription="@string/cd_breathing"
+                    android:src="@drawable/ic_wind"
+                    android:tint="@color/watch_sage" />
+
+                <TextView
+                    android:id="@+id/tv_home_breathing"
+                    style="@style/WatchText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:text="@string/value_none"
+                    android:textFontWeight="600"
+                    android:textSize="16sp" />
+
+                <TextView
+                    style="@style/WatchText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="3dp"
+                    android:text="@string/unit_per_min"
+                    android:textColor="@color/watch_muted"
+                    android:textSize="12sp" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 
@@ -170,8 +183,8 @@
                 android:orientation="horizontal">
 
                 <ImageView
-                    android:layout_width="10dp"
-                    android:layout_height="10dp"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
                     android:importantForAccessibility="no"
                     android:src="@drawable/ic_footprints"
                     android:tint="@color/watch_sage" />
@@ -180,11 +193,11 @@
                     style="@style/WatchText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
-                    android:text="@string/walk_label"
+                    android:layout_marginStart="5dp"
+                    android:text="@string/mode_walk"
                     android:textColor="@color/watch_sage"
                     android:textFontWeight="600"
-                    android:textSize="8sp" />
+                    android:textSize="14sp" />
             </LinearLayout>
 
             <TextView
@@ -195,44 +208,47 @@
                 android:includeFontPadding="false"
                 android:letterSpacing="-0.04"
                 android:textFontWeight="600"
-                android:textSize="48sp" />
+                android:textSize="@dimen/walk_rate_text" />
 
             <TextView
                 style="@style/WatchText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
                 android:text="@string/unit_steps_min"
                 android:textColor="@color/watch_muted"
-                android:textSize="8sp" />
+                android:textSize="14sp" />
 
             <TextView
+                android:id="@+id/tv_walk_hint"
                 style="@style/WatchText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
+                android:gravity="center"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:maxWidth="170dp"
                 android:text="@string/hint_step"
                 android:textColor="@color/watch_muted"
-                android:textSize="7sp" />
+                android:textSize="13sp" />
 
             <LinearLayout
                 android:id="@+id/btn_walk_stop"
                 android:layout_width="wrap_content"
-                android:layout_height="26dp"
-                android:layout_marginTop="7dp"
+                android:layout_height="52dp"
+                android:layout_marginTop="8dp"
                 android:background="@drawable/bg_pill_raised"
                 android:clickable="true"
                 android:contentDescription="@string/cd_stop"
                 android:focusable="true"
                 android:foreground="?android:attr/selectableItemBackground"
                 android:gravity="center"
-                android:minWidth="70dp"
+                android:minWidth="124dp"
                 android:orientation="horizontal"
-                android:paddingHorizontal="12dp">
+                android:paddingHorizontal="18dp">
 
                 <ImageView
-                    android:layout_width="9dp"
-                    android:layout_height="9dp"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
                     android:importantForAccessibility="no"
                     android:src="@drawable/ic_stop"
                     android:tint="@color/watch_ink" />
@@ -241,11 +257,11 @@
                     style="@style/WatchText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
+                    android:layout_marginStart="8dp"
                     android:importantForAccessibility="no"
                     android:text="@string/stop"
                     android:textFontWeight="700"
-                    android:textSize="8.5sp" />
+                    android:textSize="16sp" />
             </LinearLayout>
         </LinearLayout>
     </FrameLayout>
@@ -265,9 +281,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:gravity="center_horizontal"
-            android:orientation="vertical"
-            android:paddingTop="35dp">
+            android:gravity="center"
+            android:orientation="vertical">
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -276,8 +291,8 @@
                 android:orientation="horizontal">
 
                 <ImageView
-                    android:layout_width="9dp"
-                    android:layout_height="9dp"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
                     android:importantForAccessibility="no"
                     android:src="@drawable/ic_wind"
                     android:tint="@color/watch_sage" />
@@ -286,11 +301,11 @@
                     style="@style/WatchText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
+                    android:layout_marginStart="5dp"
                     android:text="@string/breathe_label"
                     android:textColor="@color/watch_sage"
                     android:textFontWeight="600"
-                    android:textSize="7.5sp" />
+                    android:textSize="14sp" />
             </LinearLayout>
 
             <TextView
@@ -298,48 +313,50 @@
                 style="@style/WatchText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="26dp"
+                android:layout_marginTop="6dp"
                 android:letterSpacing="-0.02"
                 android:text="@string/breathe_in"
                 android:textFontWeight="600"
-                android:textSize="20sp" />
+                android:textSize="26sp" />
 
             <TextView
                 android:id="@+id/tv_breathe_rhythm"
                 style="@style/WatchText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="2dp"
                 android:textColor="@color/watch_soft"
-                android:textSize="8sp" />
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/tv_breathe_why"
                 style="@style/WatchText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="28dp"
+                android:layout_marginTop="6dp"
                 android:gravity="center"
-                android:maxWidth="140dp"
+                android:maxLines="2"
+                android:maxWidth="160dp"
                 android:textColor="@color/watch_muted"
-                android:textSize="7sp" />
+                android:textSize="13sp" />
 
             <TextView
                 android:id="@+id/btn_breathe_done"
                 style="@style/WatchText"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:background="?android:attr/selectableItemBackground"
+                android:layout_height="52dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_pill_raised"
                 android:clickable="true"
                 android:focusable="true"
-                android:minHeight="24dp"
-                android:paddingHorizontal="9dp"
-                android:paddingVertical="5dp"
+                android:foreground="?android:attr/selectableItemBackground"
+                android:gravity="center"
+                android:minWidth="124dp"
+                android:paddingHorizontal="18dp"
                 android:text="@string/done"
                 android:textColor="@color/watch_sage"
                 android:textFontWeight="700"
-                android:textSize="7.5sp" />
+                android:textSize="16sp" />
         </LinearLayout>
     </FrameLayout>
 
@@ -353,14 +370,14 @@
         android:visibility="gone">
 
         <FrameLayout
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:background="@drawable/bg_circle_surface">
 
             <ImageView
                 android:id="@+id/iv_cue_icon"
-                android:layout_width="18dp"
-                android:layout_height="18dp"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
                 android:layout_gravity="center"
                 android:importantForAccessibility="no"
                 android:src="@drawable/ic_waves"
@@ -372,58 +389,60 @@
             style="@style/WatchText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="7dp"
+            android:layout_marginTop="6dp"
             android:gravity="center"
             android:letterSpacing="-0.02"
-            android:maxWidth="150dp"
+            android:maxWidth="160dp"
             android:textFontWeight="600"
-            android:textSize="14sp" />
+            android:textSize="18sp" />
 
         <TextView
             android:id="@+id/tv_cue_sub"
             style="@style/WatchText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
+            android:layout_marginTop="2dp"
+            android:gravity="center"
+            android:maxWidth="160dp"
             android:textColor="@color/watch_sage"
             android:textFontWeight="600"
-            android:textSize="8sp" />
+            android:textSize="14sp" />
 
         <TextView
             android:id="@+id/tv_cue_timer"
             style="@style/WatchText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
+            android:layout_marginTop="2dp"
             android:letterSpacing="-0.02"
             android:textFontWeight="600"
-            android:textSize="20sp" />
+            android:textSize="26sp" />
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="7dp"
+            android:layout_marginTop="8dp"
             android:orientation="horizontal">
 
             <ImageButton
                 android:id="@+id/btn_cue_pause"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
                 android:background="@drawable/bg_circle_raised"
                 android:contentDescription="@string/cd_pause"
-                android:padding="10dp"
+                android:padding="16dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_pause"
                 android:tint="@color/watch_ink" />
 
             <ImageButton
                 android:id="@+id/btn_cue_stop"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_marginStart="7dp"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:layout_marginStart="12dp"
                 android:background="@drawable/bg_circle_sage"
                 android:contentDescription="@string/cd_stop"
-                android:padding="10dp"
+                android:padding="16dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_stop"
                 android:tint="@color/watch_ground" />

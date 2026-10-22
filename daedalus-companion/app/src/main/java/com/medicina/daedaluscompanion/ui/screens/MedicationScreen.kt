@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.NotificationsNone
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -36,6 +37,8 @@ import com.medicina.daedaluscompanion.data.LocalStore
 import com.medicina.daedaluscompanion.data.MedReminders
 import com.medicina.daedaluscompanion.data.MedicationLog
 import com.medicina.daedaluscompanion.data.ScheduledDose
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import java.text.DateFormat
 import java.util.Calendar
 import java.util.Date
@@ -54,32 +57,76 @@ fun MedicationScreen() {
     var lastCheckIn by remember { mutableStateOf(store.checkIns().firstOrNull()?.takeIf { isToday(it.timestamp) }) }
     var showAddDialog by remember { mutableStateOf(false) }
     val timeFormat = remember { DateFormat.getTimeInstance(DateFormat.SHORT) }
+    val scope = rememberCoroutineScope()
+    val snackbar = remember { SnackbarHostState() }
+    val undoLabel = stringResource(R.string.undo)
+    val doseLogged = stringResource(R.string.meds_logged)
+    val doseDeleted = stringResource(R.string.meds_deleted)
+    val checkInSaved = stringResource(R.string.feel_saved_short)
 
-    ScreenColumn(Modifier.verticalScroll(rememberScrollState())) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(R.string.meds_title), style = TitleStyle)
-            FilledIconButton(
-                onClick = { showAddDialog = true },
-                modifier = Modifier.size(44.dp),
-                colors = IconButtonDefaults.filledIconButtonColors(containerColor = DesignTokens.SageDeep, contentColor = Color.White),
-            ) { Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.meds_add_cd)) }
-        }
-
-        FeelingCard(lastCheckIn, timeFormat) { feeling ->
-            val c = FeelingCheckIn(feeling, System.currentTimeMillis())
-            store.addCheckIn(c)
-            lastCheckIn = c
-        }
-
-        if (schedule.isEmpty()) {
-            LoggedDoses(medications, timeFormat, onAdd = { showAddDialog = true })
-        } else {
-            ScheduledDoses(schedule, medications, timeFormat) { dose ->
-                MedReminders.markTaken(context, dose)
-                medications = store.medications()
+    /** Shows [message] with Undo for about 8 seconds; [undo] runs only if it's tapped. */
+    fun offerUndo(message: String, undo: () -> Unit) {
+        scope.launch {
+            snackbar.currentSnackbarData?.dismiss()
+            val result = withTimeoutOrNull(UNDO_MS) {
+                snackbar.showSnackbar(message, actionLabel = undoLabel, duration = SnackbarDuration.Indefinite)
             }
-            RemindersCard(store)
-            WeekCard(schedule, medications)
+            if (result == SnackbarResult.ActionPerformed) undo()
+        }
+    }
+
+    fun logDose(log: MedicationLog) {
+        store.addMedication(log)
+        medications = store.medications()
+        offerUndo(doseLogged) { store.removeMedication(log); medications = store.medications() }
+    }
+
+    fun deleteDose(log: MedicationLog) {
+        store.removeMedication(log)
+        medications = store.medications()
+        offerUndo(doseDeleted) { store.addMedication(log); medications = store.medications() }
+    }
+
+    Box(Modifier.fillMaxSize()) {
+        ScreenColumn(Modifier.verticalScroll(rememberScrollState())) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.meds_title), style = TitleStyle)
+                FilledIconButton(
+                    onClick = { showAddDialog = true },
+                    modifier = Modifier.size(48.dp),
+                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = DesignTokens.SageDeep, contentColor = Color.White),
+                ) { Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.meds_add_cd)) }
+            }
+
+            FeelingCard(lastCheckIn, timeFormat) { feeling ->
+                val previous = lastCheckIn
+                val c = FeelingCheckIn(feeling, System.currentTimeMillis())
+                store.addCheckIn(c)
+                lastCheckIn = c
+                offerUndo(checkInSaved) { store.removeCheckIn(c); lastCheckIn = previous }
+            }
+
+            if (schedule.isEmpty()) {
+                LoggedDoses(medications, timeFormat, onAdd = { showAddDialog = true }, onDelete = ::deleteDose)
+            } else {
+                ScheduledDoses(schedule, medications, timeFormat, onDelete = ::deleteDose) { dose ->
+                    MedReminders.markTaken(context, dose)?.let { log ->
+                        medications = store.medications()
+                        offerUndo(doseLogged) { store.removeMedication(log); medications = store.medications() }
+                    }
+                }
+                RemindersCard(store)
+                WeekCard(schedule, medications)
+            }
+        }
+        SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).padding(16.dp)) { data ->
+            Snackbar(
+                data,
+                shape = RoundedCornerShape(14.dp),
+                containerColor = DesignTokens.Ink,
+                contentColor = Color.White,
+                actionColor = DesignTokens.SageTint,
+            )
         }
     }
 
@@ -89,8 +136,7 @@ fun MedicationScreen() {
             initialDosage = medications.firstOrNull()?.dosage ?: schedule.firstOrNull()?.dosage ?: "",
             onDismiss = { showAddDialog = false },
             onSave = { name, dosage ->
-                store.addMedication(MedicationLog(name, dosage, System.currentTimeMillis()))
-                medications = store.medications()
+                logDose(MedicationLog(name, dosage, System.currentTimeMillis()))
                 showAddDialog = false
             },
         )
@@ -109,9 +155,9 @@ private fun FeelingCard(lastCheckIn: FeelingCheckIn?, timeFormat: DateFormat, on
                     onClick = { onPick(feeling) },
                     shape = RoundedCornerShape(20.dp),
                     color = if (on) DesignTokens.SageDeep else DesignTokens.Surface,
-                    modifier = Modifier.height(40.dp).semantics { selected = on },
+                    modifier = Modifier.heightIn(min = 48.dp).semantics { selected = on },
                 ) {
-                    Box(Modifier.padding(horizontal = 14.dp), contentAlignment = Alignment.Center) {
+                    Box(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), contentAlignment = Alignment.Center) {
                         Text(stringResource(label), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = if (on) Color.White else DesignTokens.Ink)
                     }
                 }
@@ -126,7 +172,7 @@ private fun FeelingCard(lastCheckIn: FeelingCheckIn?, timeFormat: DateFormat, on
 
 /** No schedule: today's logged doses, newest first (the original Meds screen). */
 @Composable
-private fun LoggedDoses(medications: List<MedicationLog>, timeFormat: DateFormat, onAdd: () -> Unit) {
+private fun LoggedDoses(medications: List<MedicationLog>, timeFormat: DateFormat, onAdd: () -> Unit, onDelete: (MedicationLog) -> Unit) {
     val today = medications.filter { isToday(it.timestamp) }
     SageCard(padding = PaddingValues(horizontal = 20.dp, vertical = 6.dp)) {
         Text(stringResource(R.string.meds_today), style = RowTitleStyle, modifier = Modifier.padding(top = 12.dp, bottom = 4.dp))
@@ -139,6 +185,7 @@ private fun LoggedDoses(medications: List<MedicationLog>, timeFormat: DateFormat
                 status = stringResource(R.string.meds_taken_at, timeFormat.format(Date(med.timestamp))),
                 state = DoseState.TAKEN,
                 divider = i < today.lastIndex,
+                onDelete = { onDelete(med) },
             )
         }
         Spacer(Modifier.height(6.dp))
@@ -155,14 +202,26 @@ private fun LoggedDoses(medications: List<MedicationLog>, timeFormat: DateFormat
     }
 }
 
-private enum class DoseState { TAKEN, DUE, UPCOMING }
+internal enum class DoseState { TAKEN, DUE, MISSED, UPCOMING }
 
-/** With a schedule: each dose time today as taken / due now (with Take) / upcoming, plus extra doses. */
+/**
+ * A scheduled dose's state at [now], for a dose time at [at]: "Due now" from its time until an
+ * hour after, then "Missed". Same rule as the iPhone app.
+ */
+internal fun doseState(now: Long, at: Long, taken: Boolean): DoseState = when {
+    taken -> DoseState.TAKEN
+    now < at -> DoseState.UPCOMING
+    now < at + DUE_FOR_MS -> DoseState.DUE
+    else -> DoseState.MISSED
+}
+
+/** With a schedule: each dose time today as taken / due now / missed / upcoming, plus extra doses. */
 @Composable
 private fun ScheduledDoses(
     schedule: List<ScheduledDose>,
     medications: List<MedicationLog>,
     timeFormat: DateFormat,
+    onDelete: (MedicationLog) -> Unit,
     onTake: (ScheduledDose) -> Unit,
 ) {
     val now = System.currentTimeMillis()
@@ -173,21 +232,21 @@ private fun ScheduledDoses(
         schedule.forEachIndexed { i, dose ->
             val taken = todayLogs.firstOrNull { it.slotId == dose.id }
             val at = dose.timeOn(now)
-            val state = when {
-                taken != null -> DoseState.TAKEN
-                now >= at - DUE_EARLY_MS -> DoseState.DUE
-                else -> DoseState.UPCOMING
-            }
+            val state = doseState(now, at, taken != null)
             DoseRow(
                 title = listOf(doseTime(dose), dose.name, dose.dosage).filter { it.isNotBlank() }.joinToString(" · "),
                 status = when (state) {
                     DoseState.TAKEN -> stringResource(R.string.meds_taken_at, timeFormat.format(Date(taken!!.timestamp)))
                     DoseState.DUE -> stringResource(R.string.meds_due_now)
+                    DoseState.MISSED -> stringResource(R.string.meds_missed, doseTime(dose))
                     DoseState.UPCOMING -> stringResource(R.string.meds_upcoming)
                 },
                 state = state,
+                // Take can be tapped from 30 minutes early, and late if a dose was missed.
+                canTake = state != DoseState.TAKEN && now >= at - TAKE_EARLY_MS,
                 divider = i < schedule.lastIndex || extras.isNotEmpty(),
                 onTake = { onTake(dose) },
+                onDelete = taken?.let { { onDelete(it) } },
             )
         }
         extras.forEachIndexed { i, med ->
@@ -196,6 +255,7 @@ private fun ScheduledDoses(
                 status = stringResource(R.string.meds_extra_at, timeFormat.format(Date(med.timestamp))),
                 state = DoseState.TAKEN,
                 divider = i < extras.lastIndex,
+                onDelete = { onDelete(med) },
             )
         }
         Spacer(Modifier.height(6.dp))
@@ -203,7 +263,16 @@ private fun ScheduledDoses(
 }
 
 @Composable
-private fun DoseRow(title: String, status: String, state: DoseState, divider: Boolean, onTake: () -> Unit = {}) {
+private fun DoseRow(
+    title: String,
+    status: String,
+    state: DoseState,
+    divider: Boolean,
+    canTake: Boolean = false,
+    onTake: () -> Unit = {},
+    /** Removes a logged dose (taken by mistake); null when there's nothing to remove. */
+    onDelete: (() -> Unit)? = null,
+) {
     Column {
         Row(Modifier.padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             when (state) {
@@ -211,19 +280,29 @@ private fun DoseRow(title: String, status: String, state: DoseState, divider: Bo
                     Icon(Icons.Outlined.Check, null, tint = Color.White, modifier = Modifier.size(16.dp))
                 }
                 DoseState.DUE -> Box(Modifier.size(32.dp).border(2.dp, DesignTokens.Sage, CircleShape))
-                DoseState.UPCOMING -> Box(Modifier.size(32.dp).border(2.dp, DesignTokens.SwitchOff, CircleShape))
+                DoseState.MISSED -> Box(Modifier.size(32.dp).border(2.dp, DesignTokens.Alert, CircleShape))
+                DoseState.UPCOMING -> Box(Modifier.size(32.dp).border(2.dp, DesignTokens.Outline, CircleShape))
             }
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
                 Text(title, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = DesignTokens.Ink)
                 Text(
                     status,
                     fontSize = 12.sp,
-                    fontWeight = if (state == DoseState.DUE) FontWeight.SemiBold else FontWeight.Normal,
-                    color = if (state == DoseState.DUE) DesignTokens.Sage else DesignTokens.Muted,
+                    fontWeight = if (state == DoseState.DUE || state == DoseState.MISSED) FontWeight.SemiBold else FontWeight.Normal,
+                    color = when (state) {
+                        DoseState.DUE -> DesignTokens.Sage
+                        DoseState.MISSED -> DesignTokens.Alert
+                        else -> DesignTokens.Muted
+                    },
                 )
             }
-            if (state == DoseState.DUE) {
-                PillButton(stringResource(R.string.meds_take), onClick = onTake, height = 40.dp)
+            if (canTake) {
+                PillButton(stringResource(R.string.meds_take), onClick = onTake, height = 48.dp)
+            }
+            if (state == DoseState.TAKEN && onDelete != null) {
+                IconButton(onClick = onDelete, modifier = Modifier.size(48.dp)) {
+                    Icon(Icons.Outlined.DeleteOutline, stringResource(R.string.meds_delete_cd, title), tint = DesignTokens.Muted)
+                }
             }
         }
         if (divider) HorizontalDivider(color = DesignTokens.Divider)
@@ -295,8 +374,8 @@ private fun AddDoseDialog(initialName: String, initialDosage: String, onDismiss:
         title = { Text(stringResource(R.string.meds_add_cd), style = SectionStyle) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedTextField(medName, { medName = it }, label = { Text(stringResource(R.string.meds_name)) }, singleLine = true, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp))
-                OutlinedTextField(medDosage, { medDosage = it }, label = { Text(stringResource(R.string.meds_dosage)) }, singleLine = true, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp))
+                OutlinedTextField(medName, { medName = it }, label = { Text(stringResource(R.string.meds_name)) }, singleLine = true, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp), colors = fieldColors())
+                OutlinedTextField(medDosage, { medDosage = it }, label = { Text(stringResource(R.string.meds_dosage)) }, singleLine = true, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp), colors = fieldColors())
             }
         },
         confirmButton = {
@@ -309,8 +388,12 @@ private fun AddDoseDialog(initialName: String, initialDosage: String, onDismiss:
 }
 
 private const val DAY_MS = 24 * 60 * 60 * 1000L
-/** A dose shows "Due now" (with Take) from 30 minutes before its time. */
-private const val DUE_EARLY_MS = 30 * 60 * 1000L
+/** How long Undo stays up after logging or deleting. */
+private const val UNDO_MS = 8_000L
+/** A dose is "Due now" for an hour after its time, then "Missed". */
+private const val DUE_FOR_MS = 60 * 60 * 1000L
+/** Take shows from 30 minutes before a dose's time. */
+private const val TAKE_EARLY_MS = 30 * 60 * 1000L
 
 private fun startOfDay(t: Long): Long = Calendar.getInstance().apply {
     timeInMillis = t; set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)

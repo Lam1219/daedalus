@@ -69,10 +69,14 @@
     <string name="cue_rate_up">Faster by %1$d</string>
     <string name="cue_slower">%1$d · slower</string>
     <string name="cue_faster">faster · %1$d</string>
+    <string name="coming_soon">Coming soon</string>
+    <string name="cue_starting">Starting…</string>
+    <string name="cue_stopping">Stopping…</string>
+    <string name="cue_no_reply">Your watch didn’t answer. Check that it’s nearby and awake, then try again.</string>
     <string name="cue_auto_title">Automatic cues</string>
-    <string name="cue_auto_note">Your choices are saved now and will be used when on-watch detection is turned on.</string>
+    <string name="cue_auto_note">Your watch will start these cues by itself when it detects a freeze, a tremor or fast breathing. Until then, start cues from this screen or with “I’m stuck” on your watch.</string>
     <string name="cue_walking">Walking cue</string>
-    <string name="cue_walking_sub">When a freeze is detected or you tap “I’m stuck”</string>
+    <string name="cue_walking_sub">When a freeze is detected</string>
     <string name="cue_tremor">Tremor grounding</string>
     <string name="cue_tremor_sub">While a tremor is detected</string>
     <string name="cue_breathing">Breathing cue</string>
@@ -114,8 +118,14 @@
     </plurals>
     <string name="meds_due_now">Due now</string>
     <string name="meds_upcoming">Upcoming</string>
+    <string name="meds_missed">Missed · %1$s</string>
     <string name="meds_take">Take</string>
     <string name="meds_extra_at">Extra dose at %1$s</string>
+    <string name="undo">Undo</string>
+    <string name="meds_logged">Dose logged</string>
+    <string name="meds_deleted">Dose deleted</string>
+    <string name="meds_delete_cd">Delete %1$s</string>
+    <string name="feel_saved_short">Check-in saved</string>
     <string name="meds_reminders">Dose reminders</string>
     <string name="meds_reminders_sub">On your watch and phone</string>
     <string name="meds_week_of">%1$d of %2$d doses</string>
@@ -193,7 +203,7 @@
     <string name="cat_haptic">Haptics</string>
 
     <!-- Login -->
-    <string name="login_not_configured">Sign-in isn’t set up yet: add the Supabase project URL and anon key in supabase.properties.</string>
+    <string name="login_not_configured">Sign-in isn’t available in this version.</string>
     <string name="login_sign_up">Sign up</string>
     <string name="login_sign_in_button">Sign in</string>
     <string name="login_email">Email</string>
@@ -227,7 +237,7 @@
     <string name="login_reset_title">Choose a new password</string>
     <string name="login_reset_subtitle">You’ll use it next time you sign in with email.</string>
     <string name="login_reset_save">Save password</string>
-    <string name="login_err_not_configured">Sign-in isn’t set up in this build yet.</string>
+    <string name="login_err_not_configured">Sign-in isn’t available in this version.</string>
     <string name="login_err_credentials">Email or password is incorrect.</string>
     <string name="login_no_account_hint">Check that your email is typed correctly. New to Daedalus? Create an account with this email.</string>
     <string name="login_create_account_button">Create an account</string>

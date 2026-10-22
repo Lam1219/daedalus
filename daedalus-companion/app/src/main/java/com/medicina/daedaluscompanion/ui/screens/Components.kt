@@ -155,7 +155,7 @@ fun SageSwitch(checked: Boolean, onCheckedChange: (Boolean) -> Unit, enabled: Bo
             checkedBorderColor = DesignTokens.Sage,
             uncheckedThumbColor = Color.White,
             uncheckedTrackColor = DesignTokens.SwitchOff,
-            uncheckedBorderColor = DesignTokens.SwitchOff,
+            uncheckedBorderColor = DesignTokens.Outline,
         ),
     )
 }

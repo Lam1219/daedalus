@@ -3,6 +3,7 @@ package com.medicina.daedaluscompanion.utils
 import android.app.Application
 import com.medicina.daedaluscompanion.auth.AuthRepository
 import com.medicina.daedaluscompanion.ble.ChestStrapBLEManager
+import com.medicina.daedaluscompanion.ui.screens.migrateLegacySessionFiles
 import com.medicina.daedaluscompanion.wear.WatchDataClient
 
 /**
@@ -25,5 +26,7 @@ class DaedalusApplication : Application() {
         chestStrapBLE = ChestStrapBLEManager(this)
         watchClient = WatchDataClient(this)
         auth = AuthRepository(this)
+        // One-time move of session files off external storage (readable over USB).
+        Thread { migrateLegacySessionFiles(this) }.start()
     }
 }

@@ -2,6 +2,7 @@ package com.medicina.daedaluscompanion.wear
 
 import android.content.Context
 import android.util.Log
+import com.medicina.daedaluscompanion.ui.screens.sessionsDir
 import java.io.File
 
 private const val TAG = "SessionState"
@@ -51,30 +52,25 @@ object SessionState {
 
     fun reassembleFile(context: Context, fileName: String) {
         val session = activeSession ?: return
-        val targetDirs = listOf(
-            File(context.filesDir, "sessions"),
-            File(context.filesDir, "daedalus/sessions"),
-            File(context.getExternalFilesDir(null), "daedalus/sessions"),
-            File(context.getExternalFilesDir(null), "sessions")
-        )
-
+        // Same single, app-internal location as WatchDataListener; temp file + rename so backup
+        // never reads a half-written copy.
         var mainFile: File? = null
-        for (dir in targetDirs) {
-            try {
-                if (!dir.exists()) dir.mkdirs()
-                val outputFile = File(dir, fileName)
-                outputFile.outputStream().use { out ->
-                    var index = 0
-                    while (session.chunks.containsKey(index)) {
-                        val chunk = session.chunks[index] ?: break
-                        out.write(chunk)
-                        index++
-                    }
+        try {
+            val dir = sessionsDir(context).apply { mkdirs() }
+            val outputFile = File(dir, File(fileName).name)
+            val temp = File(dir, "${outputFile.name}.part")
+            temp.outputStream().use { out ->
+                var index = 0
+                while (session.chunks.containsKey(index)) {
+                    val chunk = session.chunks[index] ?: break
+                    out.write(chunk)
+                    index++
                 }
-                if (mainFile == null) mainFile = outputFile
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed reassembling file in ${dir.absolutePath}: ${e.message}")
             }
+            if (!temp.renameTo(outputFile)) { outputFile.delete(); temp.renameTo(outputFile) }
+            mainFile = outputFile
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed reassembling $fileName: ${e.message}")
         }
 
         val size = mainFile?.length() ?: 0L

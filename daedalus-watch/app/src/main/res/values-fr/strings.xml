@@ -3,7 +3,8 @@
     <string name="app_name">Daedalus</string>
 
     <!-- Home -->
-    <string name="status_cues_on">Repères activés</string>
+    <string name="status_ready">Prêt·e</string>
+    <string name="status_phone_missing">Téléphone non connecté</string>
     <string name="im_stuck">Je suis bloqué·e</string>
     <string name="unit_bpm">bpm</string>
     <string name="unit_per_min">/min</string>
@@ -18,9 +19,8 @@
     <string name="mode_calm">Calme</string>
 
     <!-- Walking cue -->
-    <string name="walk_label">Repère de marche</string>
     <string name="unit_steps_min">pas par minute</string>
-    <string name="hint_step">Un pas à chaque vibration</string>
+    <string name="hint_step">Un pas par vibration</string>
     <string name="stop">Arrêter</string>
 
     <!-- Breathing cue -->
