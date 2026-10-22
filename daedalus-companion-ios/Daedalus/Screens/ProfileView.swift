@@ -53,7 +53,7 @@ struct ProfileView: View {
                         icon: "flask",
                         showDivider: true
                     ) {
-                        SageToggle(isOn: Binding(get: { allowResearch == true }, set: { allow in
+                        SageToggle(label: L("data_research_title"), isOn: Binding(get: { allowResearch == true }, set: { allow in
                             let before = allowResearch
                             allowResearch = allow; researchSaveFailed = false
                             Task {
@@ -127,7 +127,7 @@ struct SessionsView: View {
                 let sorted = files.sorted { $0.lastPathComponent > $1.lastPathComponent }
                 ForEach(Array(sorted.enumerated()), id: \.element) { i, file in
                     let info = SessionFileName(file.deletingPathExtension().lastPathComponent)
-                    let size = (try? file.resourceValues(forKeys: [.fileSizeKey]).fileSize).map { Int64($0 ?? 0) } ?? 0
+                    let size = Int64((try? file.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0)
                     ListRow(title: L(CueMode.byId(info.mode)?.labelKey ?? "mode_other"),
                             subtitle: "\(info.startedAt.map(Fmt.dayTime) ?? file.lastPathComponent) · \(Fmt.fileSize(size))",
                             icon: "doc.text", showDivider: i < sorted.count - 1) {

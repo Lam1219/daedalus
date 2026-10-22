@@ -29,7 +29,7 @@ struct MedsView: View {
                 scheduledDoses
                 SageCard(padding: .card()) {
                     ListRow(title: L("meds_reminders"), subtitle: L("meds_reminders_sub"), icon: "bell") {
-                        SageToggle(isOn: Binding(get: { store.medReminders }, set: { on in
+                        SageToggle(label: L("meds_reminders"), isOn: Binding(get: { store.medReminders }, set: { on in
                             store.medReminders = on
                             Task { if on { await MedReminders.requestPermission() }; await MedReminders.reschedule() }
                         }))

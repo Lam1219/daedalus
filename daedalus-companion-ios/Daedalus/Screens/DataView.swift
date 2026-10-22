@@ -24,7 +24,7 @@ struct DataView: View {
                 if signedIn {
                     ListRow(title: L("data_backup_title"), subtitle: L(store.cloudBackup ? "data_backup_on" : "data_backup_off"),
                             icon: store.cloudBackup ? "icloud.and.arrow.up" : "icloud.slash") {
-                        SageToggle(isOn: Binding(get: { store.cloudBackup }, set: { on in
+                        SageToggle(label: L("data_backup_title"), isOn: Binding(get: { store.cloudBackup }, set: { on in
                             store.cloudBackup = on
                             if on { run { await CloudBackup.shared.sync() ? "data_backup_done" : "data_backup_failed" } }
                         }))

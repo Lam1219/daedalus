@@ -233,7 +233,7 @@ struct FieldBox<Content: View>: View {
             .tint(DS.sageDeep)
             .padding(.horizontal, 16).frame(minHeight: 56)
             .background(DS.surface, in: RoundedRectangle(cornerRadius: 16))
-            .overlay(RoundedRectangle(cornerRadius: 16).stroke(DS.switchOff, lineWidth: 1))
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(DS.outline, lineWidth: 1))
     }
 }
 
@@ -302,7 +302,7 @@ struct DataPromise: View {
                     Text(L("data_research_signup_sub")).font(DS.font(13)).foregroundStyle(DS.muted).fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 0)
-                SageToggle(isOn: $allowResearch)
+                SageToggle(label: L("data_research_title"), isOn: $allowResearch)
             }
         }
         .padding(18)
