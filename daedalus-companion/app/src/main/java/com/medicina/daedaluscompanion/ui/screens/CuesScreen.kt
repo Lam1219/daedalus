@@ -1,6 +1,5 @@
 package com.medicina.daedaluscompanion.ui.screens
 
-import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
@@ -8,7 +7,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.DirectionsWalk
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Air
+import androidx.compose.material.icons.outlined.PanTool
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Remove
 import androidx.compose.material.icons.outlined.Stop
@@ -19,7 +21,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -30,7 +34,9 @@ import com.medicina.daedaluscompanion.R
 import com.medicina.daedaluscompanion.data.LocalStore
 import com.medicina.daedaluscompanion.wear.SessionState
 import com.medicina.daedaluscompanion.wear.WatchDataClient
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 @Composable
 fun CuesScreen() {
@@ -43,6 +49,8 @@ fun CuesScreen() {
     var activeMode by remember { mutableStateOf(SessionState.getActiveSessionMode()) }
     var selectedMode by remember { mutableStateOf(HAPTIC_MODES.first()) }
     var isSending by remember { mutableStateOf(false) }
+    // Shown under the Start button: the watch isn't connected, or didn't answer in time.
+    var startProblem by remember { mutableStateOf<Int?>(null) }
 
     LaunchedEffect(Unit) {
         while (true) {
@@ -73,20 +81,30 @@ fun CuesScreen() {
         // Keep the watch in sync so "I'm stuck" and a running cue use the new rate.
         scope.launch { runCatching { watchClient.sendCueRate(mode.id, snapped) } }
     }
-    val notConnected = stringResource(R.string.cue_watch_missing)
-
     fun toggleSession() {
         if (isSending) return
         isSending = true
+        startProblem = null
+        val wasActive = isSessionActive
         scope.launch {
             try {
-                when {
-                    !watchClient.isConnected() -> Toast.makeText(context, notConnected, Toast.LENGTH_SHORT).show()
-                    // The UI reflects start/stop only once the watch acknowledges it
-                    // over /session/control — see WatchDataListener.
-                    isSessionActive -> watchClient.sendSessionStop()
-                    else -> watchClient.sendSessionStart(selectedMode.id, rates[selectedMode.id] ?: selectedMode.bpm)
+                if (!runCatching { watchClient.isConnected() }.getOrDefault(false)) {
+                    startProblem = R.string.cue_watch_missing
+                    return@launch
                 }
+                // The UI reflects start/stop only once the watch acknowledges it
+                // over /session/control — see WatchDataListener.
+                runCatching {
+                    if (wasActive) watchClient.sendSessionStop()
+                    else watchClient.sendSessionStart(selectedMode.id, rates[selectedMode.id] ?: selectedMode.bpm)
+                }
+                // Keep "Starting…" up until the watch answers, or give up after a while.
+                val answered = withTimeoutOrNull(WATCH_REPLY_TIMEOUT_MS) {
+                    while (SessionState.isSessionActive == wasActive) delay(250)
+                } != null
+                isSessionActive = SessionState.isSessionActive
+                activeMode = SessionState.getActiveSessionMode()
+                if (!answered) startProblem = R.string.cue_no_reply
             } finally {
                 isSending = false
             }
@@ -148,12 +166,28 @@ fun CuesScreen() {
                 enabled = !isSending,
                 modifier = Modifier.fillMaxWidth().height(48.dp),
                 shape = RoundedCornerShape(24.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = DesignTokens.SageDeep),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White, contentColor = DesignTokens.SageDeep,
+                    disabledContainerColor = Color.White, disabledContentColor = DesignTokens.SageDeep,
+                ),
                 border = if (isSessionActive) BorderStroke(1.dp, DesignTokens.SageLine) else null,
             ) {
-                Icon(if (isSessionActive) Icons.Outlined.Stop else Icons.Outlined.PlayArrow, null, modifier = Modifier.size(20.dp))
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(if (isSessionActive) R.string.cue_stop else R.string.cue_start), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                if (isSending) {
+                    CircularProgressIndicator(Modifier.size(18.dp), color = DesignTokens.SageDeep, strokeWidth = 2.dp)
+                    Spacer(Modifier.width(10.dp))
+                    Text(stringResource(if (isSessionActive) R.string.cue_stopping else R.string.cue_starting), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                } else {
+                    Icon(if (isSessionActive) Icons.Outlined.Stop else Icons.Outlined.PlayArrow, null, modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(if (isSessionActive) R.string.cue_stop else R.string.cue_start), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                }
+            }
+            startProblem?.let {
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    stringResource(it), fontSize = 13.sp, color = DesignTokens.OnSageDeep,
+                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                )
             }
         }
 
@@ -193,20 +227,34 @@ fun CuesScreen() {
             }
         }
 
-        // Automatic cues (preferences saved for the on-watch cue engine)
-        Text(stringResource(R.string.cue_auto_title), style = SectionStyle)
+        // Automatic cues: detection isn't built yet, so they're shown as coming, never as on.
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(stringResource(R.string.cue_auto_title), style = SectionStyle)
+            Surface(shape = RoundedCornerShape(50), color = DesignTokens.SageTint) {
+                Text(
+                    stringResource(R.string.coming_soon), fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
+                    color = DesignTokens.SageDeep, modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                )
+            }
+        }
+        Text(stringResource(R.string.cue_auto_note), style = CaptionStyle)
         SageCard(padding = PaddingValues(horizontal = 20.dp, vertical = 4.dp)) {
-            CueToggle(store, LocalStore.CUE_WALKING, true, R.string.cue_walking, R.string.cue_walking_sub, divider = true)
-            CueToggle(store, LocalStore.CUE_TREMOR, true, R.string.cue_tremor, R.string.cue_tremor_sub, divider = true)
-            CueToggle(store, LocalStore.CUE_BREATHING, true, R.string.cue_breathing, R.string.cue_breathing_sub, divider = true)
+            ListRow(stringResource(R.string.cue_walking), stringResource(R.string.cue_walking_sub), icon = Icons.AutoMirrored.Outlined.DirectionsWalk, showDivider = true)
+            ListRow(stringResource(R.string.cue_tremor), stringResource(R.string.cue_tremor_sub), icon = Icons.Outlined.PanTool, showDivider = true)
+            ListRow(stringResource(R.string.cue_breathing), stringResource(R.string.cue_breathing_sub), icon = Icons.Outlined.Air)
+        }
+
+        // Stand-up detection does run on the Galaxy Watch, so this one keeps its switch.
+        SageCard(padding = PaddingValues(horizontal = 20.dp, vertical = 4.dp)) {
             CueToggle(store, LocalStore.CUE_STAND, false, R.string.cue_stand, R.string.cue_stand_sub, divider = false) { on ->
                 // The watch runs stand-up detection in the background while this is on.
                 scope.launch { runCatching { watchClient.sendStandPrompt(on) } }
             }
         }
-        Text(stringResource(R.string.cue_auto_note), style = CaptionStyle)
     }
 }
+
+private const val WATCH_REPLY_TIMEOUT_MS = 10_000L
 
 private data class RateRange(val min: Int, val max: Int, val step: Int)
 
