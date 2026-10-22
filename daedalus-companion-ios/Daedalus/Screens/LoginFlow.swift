@@ -1,9 +1,10 @@
 import SwiftUI
 
-/// Sign-in in small steps, one question per screen (Wealthsimple-style):
-/// welcome (Sign in / Sign up) → email → password, plus create account and password reset.
+/// Sign-in, Wealthsimple-style: welcome (Sign in / Sign up) → email and password on one screen,
+/// plus create account and password reset.
 struct LoginFlow: View {
-    private enum Step { case welcome, email, password, create, checkEmail }
+    private enum Step { case welcome, signIn, create, checkEmail }
+    private enum Field { case email, password }
 
     @State private var auth = AuthStore.shared
     @State private var step: Step = .welcome
@@ -14,18 +15,19 @@ struct LoginFlow: View {
     @State private var checkEmailKey = "login_check_reset"
     // Research use is off unless the person chooses it (privacy by default; changeable in Profile).
     @State private var allowResearch = false
+    @FocusState private var focus: Field?
 
     private var looksLikeEmail: Bool { email.range(of: #"^[^@\s]+@[^@\s]+\.[^@\s]+$"#, options: .regularExpression) != nil }
 
     var body: some View {
         if step == .welcome {
             WelcomeView(
-                onSignIn: { go(.email) },
+                onSignIn: { go(.signIn) },
                 onSignUp: { go(.create) },
                 onGuest: { auth.continueAsGuest() }
             )
         } else {
-            AuthFrame(onBack: { go(step == .password ? .email : .welcome) }, notConfigured: !auth.isConfigured, busy: busy) {
+            AuthFrame(onBack: { go(.welcome) }, notConfigured: !auth.isConfigured, busy: busy) {
                 content
             }
         }
@@ -35,25 +37,24 @@ struct LoginFlow: View {
         switch step {
         case .welcome:
             EmptyView()
-        case .email:
-            EmailField(text: $email) { if looksLikeEmail { go(.password) } }
-            ErrorText(error ?? auth.linkError)
-            Spacer(minLength: 24)
-            Button(L("login_continue")) { go(.password) }
-                .buttonStyle(PillButtonStyle()).disabled(!looksLikeEmail || busy)
-
-        case .password:
-            Headline(title: L("login_password_title"))
-            Text(email).font(DS.font(15)).foregroundStyle(DS.muted)
+        case .signIn:
+            EmailField(text: $email) { focus = .password }
+                .focused($focus, equals: .email)
             PasswordField(label: L("login_password"), text: $password) { signIn() }
-            ErrorText(error)
+                .focused($focus, equals: .password)
+            ErrorText(error ?? auth.linkError)
+            // Sign-in doesn't say whether an email has an account (that would reveal who uses a
+            // Parkinson's app), so after a failed attempt offer both ways forward.
+            if error == .invalidCredentials { NoAccountHint { go(.create) } }
             Button(L("login_forgot")) {
+                guard looksLikeEmail else { error = .invalidEmail; return }
                 run { try await auth.sendPasswordReset(email: email); checkEmailKey = "login_check_reset"; go(.checkEmail) }
             }
             .font(DS.font(15, .semibold)).foregroundStyle(DS.sageDeep).disabled(busy)
+            .frame(minHeight: 44)
             Spacer(minLength: 24)
             Button(L("login_sign_in")) { signIn() }
-                .buttonStyle(PillButtonStyle()).disabled(password.isEmpty || busy)
+                .buttonStyle(PillButtonStyle()).disabled(!looksLikeEmail || password.isEmpty || busy)
 
         case .create:
             Headline(title: L("login_create_title"), subtitle: L("login_create_subtitle"))
@@ -76,14 +77,14 @@ struct LoginFlow: View {
             Headline(title: L("login_check_title"))
             Text(L(checkEmailKey, email)).font(DS.font(16)).foregroundStyle(DS.muted)
             Spacer(minLength: 24)
-            Button(L("login_back_to_login")) { go(.email) }.buttonStyle(PillButtonStyle())
+            Button(L("login_back_to_login")) { go(.signIn) }.buttonStyle(PillButtonStyle())
         }
     }
 
     private func go(_ to: Step) { withAnimation(.easeInOut(duration: 0.2)) { step = to }; error = nil; password = "" }
 
     private func signIn() {
-        guard !password.isEmpty else { return }
+        guard looksLikeEmail, !password.isEmpty else { return }
         run { try await auth.signIn(email: email, password: password) }
     }
 
@@ -93,6 +94,20 @@ struct LoginFlow: View {
             do { try await block() } catch { self.error = error as? AuthFailure ?? .unknown }
             busy = false
         }
+    }
+}
+
+/// After a failed sign-in: check the email, or create an account with it.
+private struct NoAccountHint: View {
+    let onCreate: () -> Void
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(L("login_no_account_hint")).font(DS.font(14)).foregroundStyle(DS.ink).fixedSize(horizontal: false, vertical: true)
+            Button(L("login_create_account_button"), action: onCreate)
+                .buttonStyle(OutlinePillButtonStyle(border: DS.sageDeep, height: 48))
+        }
+        .padding(16)
+        .background(DS.sageTint, in: RoundedRectangle(cornerRadius: 16))
     }
 }
 

@@ -233,6 +233,8 @@
     <string name="login_reset_save">Enregistrer le mot de passe</string>
     <string name="login_err_not_configured">La connexion n’est pas encore configurée dans cette version.</string>
     <string name="login_err_credentials">Courriel ou mot de passe incorrect.</string>
+    <string name="login_no_account_hint">Vérifiez que votre courriel est bien écrit. Nouveau sur Daedalus ? Créez un compte avec ce courriel.</string>
+    <string name="login_create_account_button">Créer un compte</string>
     <string name="login_err_not_confirmed">Confirmez d’abord votre adresse courriel, puis connectez-vous.</string>
     <string name="login_err_exists">Un compte existe déjà avec ce courriel. Connectez-vous plutôt.</string>
     <string name="login_err_weak">Choisissez un mot de passe plus robuste (au moins 8 caractères).</string>

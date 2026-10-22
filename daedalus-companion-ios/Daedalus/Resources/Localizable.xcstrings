@@ -2217,7 +2217,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Back to log in"
+            "value": "Back to sign in"
           }
         },
         "fr": {
@@ -2313,6 +2313,23 @@
         }
       }
     },
+    "login_create_account_button": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create an account"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Créer un compte"
+          }
+        }
+      }
+    },
     "login_create_subtitle": {
       "extractionState": "manual",
       "localizations": {
@@ -2404,7 +2421,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "An account with this email already exists. Log in instead."
+            "value": "An account with this email already exists. Sign in instead."
           }
         },
         "fr": {
@@ -2472,7 +2489,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm your email address first, then log in."
+            "value": "Confirm your email address first, then sign in."
           }
         },
         "fr": {
@@ -2585,6 +2602,23 @@
         }
       }
     },
+    "login_no_account_hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check that your email is typed correctly. New to Daedalus? Create an account with this email."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérifiez que votre courriel est bien écrit. Nouveau sur Daedalus ? Créez un compte avec ce courriel."
+          }
+        }
+      }
+    },
     "login_not_configured": {
       "extractionState": "manual",
       "localizations": {
@@ -2676,7 +2710,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You’ll use it next time you log in with email."
+            "value": "You’ll use it next time you sign in with email."
           }
         },
         "fr": {
@@ -2727,7 +2761,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Log in"
+            "value": "Sign in"
           }
         },
         "fr": {
