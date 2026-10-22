@@ -17,11 +17,17 @@ final class WatchAppDelegate: NSObject, WKApplicationDelegate {
     }
 
     /// The iPhone's "Start cue on watch" launches this app with a workout configuration;
-    /// the cue to start was sent just before in the application context.
+    /// the cue to start was sent just before in the application context. That can arrive a
+    /// moment after the launch, so wait up to 3 seconds for it, then fall back to the mode the
+    /// workout type stands for.
     func handle(_ workoutConfiguration: HKWorkoutConfiguration) {
         Task { @MainActor in
-            let pending = PhoneLink.shared.takePendingMode()
-            let mode = pending?.mode ?? (workoutConfiguration.activityType == .walking ? "walking" : "stress")
+            var pending = PhoneLink.shared.takePendingMode()
+            for _ in 0..<12 where pending == nil {
+                try? await Task.sleep(for: .milliseconds(250))
+                pending = PhoneLink.shared.takePendingMode()
+            }
+            let mode = pending?.mode ?? CueDefaults.mode(launchedWith: workoutConfiguration.activityType)
             CueController.shared.start(mode: mode, rate: pending?.rate)
         }
     }

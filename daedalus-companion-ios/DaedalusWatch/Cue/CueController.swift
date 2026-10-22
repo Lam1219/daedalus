@@ -48,6 +48,8 @@ final class CueController: NSObject {
     // MARK: Start / stop
 
     func start(mode: String, rate: Int? = nil) {
+        // The same start can arrive twice (message and launch); keep the cue that's running.
+        if self.mode == mode { PhoneLink.shared.sendStatus(); return }
         if isRunning { stop() }
         self.mode = mode
         self.rate = rate ?? savedRate(mode)
