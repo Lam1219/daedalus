@@ -19,7 +19,6 @@
     <string name="mode_calm">Calm</string>
 
     <!-- Walking cue -->
-    <string name="walk_label">Walking cue</string>
     <string name="unit_steps_min">steps per minute</string>
     <string name="hint_step">Step with each pulse</string>
     <string name="stop">Stop</string>

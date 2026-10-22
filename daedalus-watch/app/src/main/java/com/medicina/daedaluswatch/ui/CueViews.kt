@@ -33,7 +33,7 @@ class RingView @JvmOverloads constructor(context: Context, attrs: AttributeSet? 
     override fun onDraw(canvas: Canvas) {
         val cx = width / 2f
         val cy = height / 2f
-        val r = min(width, height) / 2f - 27f * density
+        val r = min(width, height) / 2f - resources.getDimension(R.dimen.ring_inset)
         oval.set(cx - r, cy - r, cx + r, cy + r)
         canvas.drawCircle(cx, cy, r, track)
         canvas.drawArc(oval, -90f, 360f * progress, false, arc)

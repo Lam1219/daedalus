@@ -19,9 +19,8 @@
     <string name="mode_calm">Calme</string>
 
     <!-- Walking cue -->
-    <string name="walk_label">Repère de marche</string>
     <string name="unit_steps_min">pas par minute</string>
-    <string name="hint_step">Un pas à chaque vibration</string>
+    <string name="hint_step">Un pas par vibration</string>
     <string name="stop">Arrêter</string>
 
     <!-- Breathing cue -->

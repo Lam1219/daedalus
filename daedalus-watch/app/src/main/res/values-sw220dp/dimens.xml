@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="walk_rate_text">42sp</dimen>
+    <dimen name="stuck_size">104dp</dimen>
+    <bool name="show_walk_hint">true</bool>
+</resources>

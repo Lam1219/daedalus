@@ -98,6 +98,8 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         tvCueSub = findViewById(R.id.tv_cue_sub)
         tvCueTimer = findViewById(R.id.tv_cue_timer)
         btnCuePause = findViewById(R.id.btn_cue_pause)
+        findViewById<View>(R.id.tv_walk_hint).visibility =
+            if (resources.getBoolean(R.bool.show_walk_hint)) View.VISIBLE else View.GONE
 
         // "I'm stuck" starts the walking cue at the rate set on the phone.
         findViewById<View>(R.id.btn_stuck).setOnClickListener { startWalkingCue() }
