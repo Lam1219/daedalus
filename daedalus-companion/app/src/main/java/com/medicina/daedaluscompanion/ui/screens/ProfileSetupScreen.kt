@@ -434,7 +434,7 @@ private fun ChoiceCard(@StringRes label: Int, @StringRes sub: Int?, selected: Bo
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(if (selected) DesignTokens.SageTint else DesignTokens.Surface)
-            .border(if (selected) 1.5.dp else 1.dp, if (selected) DesignTokens.SageDeep else DesignTokens.SwitchOff, RoundedCornerShape(16.dp))
+            .border(if (selected) 1.5.dp else 1.dp, if (selected) DesignTokens.SageDeep else DesignTokens.Outline, RoundedCornerShape(16.dp))
             .clickable(role = Role.RadioButton, onClick = onClick)
             .padding(horizontal = 18.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -448,7 +448,7 @@ private fun ChoiceCard(@StringRes label: Int, @StringRes sub: Int?, selected: Bo
                 .size(22.dp)
                 .clip(CircleShape)
                 .background(if (selected) DesignTokens.SageDeep else DesignTokens.Surface)
-                .border(1.5.dp, if (selected) DesignTokens.SageDeep else DesignTokens.SageLine, CircleShape),
+                .border(1.5.dp, if (selected) DesignTokens.SageDeep else DesignTokens.Outline, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
             if (selected) Icon(Icons.Outlined.Check, null, tint = DesignTokens.Surface, modifier = Modifier.size(14.dp))
@@ -469,7 +469,7 @@ private fun CheckRow(@StringRes label: Int, checked: Boolean, onToggle: () -> Un
         Checkbox(
             checked = checked,
             onCheckedChange = null,
-            colors = CheckboxDefaults.colors(checkedColor = DesignTokens.SageDeep, uncheckedColor = DesignTokens.SageLine),
+            colors = CheckboxDefaults.colors(checkedColor = DesignTokens.SageDeep, uncheckedColor = DesignTokens.Outline),
             modifier = Modifier.padding(12.dp),
         )
         Text(stringResource(label), fontSize = 15.sp, color = DesignTokens.Ink)

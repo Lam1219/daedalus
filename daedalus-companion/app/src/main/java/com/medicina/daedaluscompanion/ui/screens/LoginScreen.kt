@@ -353,7 +353,7 @@ internal fun Headline(@StringRes title: Int, @StringRes subtitle: Int?) {
 @Composable
 internal fun fieldColors() = OutlinedTextFieldDefaults.colors(
     focusedBorderColor = DesignTokens.SageDeep,
-    unfocusedBorderColor = DesignTokens.SwitchOff,
+    unfocusedBorderColor = DesignTokens.Outline,
     focusedLabelColor = DesignTokens.SageDeep,
     cursorColor = DesignTokens.SageDeep,
     focusedContainerColor = DesignTokens.Surface,
