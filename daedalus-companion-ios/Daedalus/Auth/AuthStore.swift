@@ -62,6 +62,8 @@ final class AuthStore {
             )
         } else {
             client = nil
+            // Developer detail stays in the log; people see "Sign-in isn't available in this version".
+            print("Supabase isn't configured: add the project URL and anon key to supabase.properties")
         }
         if let session = client?.auth.currentSession {
             state = .signedIn(email: session.user.email)

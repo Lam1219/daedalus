@@ -13,9 +13,18 @@ final class WatchLink: NSObject {
     private(set) var isPaired = false
     private(set) var isAppInstalled = false
     private(set) var isReachable = false
-    /// The cue running on the watch, if any.
+    /// The cue running on the watch, if any (only ever set from what the watch reports).
     private(set) var runningMode: String?
     private(set) var heartRate: Int?
+    /// A start was sent and the watch hasn't confirmed it yet ("Starting…").
+    private(set) var startingMode: String?
+    /// A stop was sent and the watch hasn't confirmed it yet ("Stopping…").
+    private(set) var stopping = false
+    /// The watch didn't confirm the last start or stop in time.
+    private(set) var noReply = false
+
+    @ObservationIgnored private var pendingRate = 0
+    @ObservationIgnored private var replyTimeout: Task<Void, Never>?
 
     @ObservationIgnored private let health = HKHealthStore()
 
@@ -37,12 +46,16 @@ final class WatchLink: NSObject {
     }
 
     /// Starts a cue on the watch: directly if the watch app is open, otherwise by launching it.
+    /// The screen shows "Starting…" until the watch reports the cue running.
     func start(mode: CueMode) {
         let rate = LocalStore.shared.cueRate(mode)
         let session = WCSession.default
         guard session.activationState == .activated else { return }
+        startingMode = mode.id
+        pendingRate = rate
+        noReply = false
         if session.isReachable {
-            session.sendMessage([WatchKey.command: WatchKey.start, WatchKey.mode: mode.id, WatchKey.rate: rate], replyHandler: nil)
+            sendStart()
         } else {
             var context = session.applicationContext
             context[WatchKey.pendingMode] = mode.id
@@ -50,20 +63,45 @@ final class WatchLink: NSObject {
             context[WatchKey.pendingAt] = Date.now
             try? session.updateApplicationContext(context)
             let config = HKWorkoutConfiguration()
-            config.activityType = mode.id == "walking" ? .walking : .mindAndBody
+            config.activityType = CueDefaults.launchActivity[mode.id] ?? .walking
             config.locationType = mode.id == "walking" ? .outdoor : .indoor
             health.startWatchApp(with: config) { _, error in
                 if let error { print("Couldn't start the watch app: \(error)") }
             }
         }
-        runningMode = mode.id
+        waitForReply()
     }
 
     func stop() {
         let session = WCSession.default
         guard session.activationState == .activated else { return }
-        session.sendMessage([WatchKey.command: WatchKey.stop], replyHandler: nil)
-        runningMode = nil
+        stopping = true
+        noReply = false
+        session.sendMessage([WatchKey.command: WatchKey.stop], replyHandler: nil) { error in print("Stop not sent: \(error)") }
+        // Clear any start still waiting in the application context, so a late launch can't restart it.
+        var context = session.applicationContext
+        context[WatchKey.pendingMode] = ""
+        try? session.updateApplicationContext(context)
+        waitForReply()
+    }
+
+    private func sendStart() {
+        guard let mode = startingMode else { return }
+        WCSession.default.sendMessage([WatchKey.command: WatchKey.start, WatchKey.mode: mode, WatchKey.rate: pendingRate], replyHandler: nil) { error in
+            print("Start not sent: \(error)")
+        }
+    }
+
+    /// Gives up on "Starting…" / "Stopping…" if the watch doesn't answer in 15 seconds.
+    private func waitForReply() {
+        replyTimeout?.cancel()
+        replyTimeout = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(15))
+            guard let self, !Task.isCancelled, self.startingMode != nil || self.stopping else { return }
+            self.startingMode = nil
+            self.stopping = false
+            self.noReply = true
+        }
     }
 
     private func update(from session: WCSession) {
@@ -73,7 +111,12 @@ final class WatchLink: NSObject {
     }
 
     private func apply(status: [String: Any]) {
-        if let running = status[WatchKey.running] as? String { runningMode = running.isEmpty ? nil : running }
+        if let running = status[WatchKey.running] as? String {
+            runningMode = running.isEmpty ? nil : running
+            // The watch confirmed the start or stop.
+            if let starting = startingMode, runningMode == starting { startingMode = nil; replyTimeout?.cancel() }
+            if stopping, runningMode == nil { stopping = false; replyTimeout?.cancel() }
+        }
         if let hr = status[WatchKey.heartRate] as? Int { heartRate = hr > 0 ? hr : nil }
     }
 }
@@ -93,7 +136,11 @@ extension WatchLink: WCSessionDelegate {
     }
 
     nonisolated func sessionReachabilityDidChange(_ session: WCSession) {
-        Task { @MainActor in self.update(from: session) }
+        Task { @MainActor in
+            self.update(from: session)
+            // The launched watch app is open now: send the start directly too (the watch ignores a repeat).
+            if session.isReachable, self.startingMode != nil { self.sendStart() }
+        }
     }
 
     nonisolated func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {

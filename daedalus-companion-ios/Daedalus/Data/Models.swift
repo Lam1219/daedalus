@@ -29,6 +29,23 @@ struct ScheduledDose: Codable, Hashable, Identifiable {
     }
 }
 
+/// A scheduled dose's state today: "Due now" from its time until an hour after, then "Missed".
+/// Same rule as the Android app.
+enum DoseState: Equatable {
+    case taken, upcoming, due, missed
+
+    static let dueFor: TimeInterval = 60 * 60
+    /// Take can be tapped from this long before a dose's time (and late, if it was missed).
+    static let takeEarly: TimeInterval = 30 * 60
+
+    init(now: Date, at: Date, taken: Bool) {
+        if taken { self = .taken }
+        else if now < at { self = .upcoming }
+        else if now < at.addingTimeInterval(Self.dueFor) { self = .due }
+        else { self = .missed }
+    }
+}
+
 enum Feeling: String, Codable, CaseIterable {
     case good = "GOOD", wearingOff = "WEARING_OFF", unsure = "UNSURE"
 

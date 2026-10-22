@@ -41,11 +41,14 @@ enum MedReminders {
     }
 
     /// Logs a scheduled dose as taken today (from the Meds checklist or the notification button).
-    @MainActor
-    static func markTaken(doseId: String) {
+    /// Returns the new log, if one was added.
+    @MainActor @discardableResult
+    static func markTaken(doseId: String) -> MedicationLog? {
         let store = LocalStore.shared
-        guard let dose = store.schedule.first(where: { $0.id == doseId }), store.takenLog(dose, on: .now) == nil else { return }
-        store.addMedication(MedicationLog(name: dose.name, dosage: dose.dosage, timestamp: .now, slotId: dose.id))
+        guard let dose = store.schedule.first(where: { $0.id == doseId }), store.takenLog(dose, on: .now) == nil else { return nil }
+        let log = MedicationLog(name: dose.name, dosage: dose.dosage, timestamp: .now, slotId: dose.id)
+        store.addMedication(log)
+        return log
     }
 }
 

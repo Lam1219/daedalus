@@ -1,4 +1,14 @@
 {
-  "phone_needed": {"en": "Start cues from the Daedalus app on your iPhone.", "fr": "Lancez les signaux depuis l’app Daedalus sur votre iPhone."},
-  "mode_other": {"en": "Cue", "fr": "Signal"}
+  "phone_needed": {
+    "en": "Start cues from the Daedalus app on your iPhone.",
+    "fr": "Lancez les signaux depuis l’app Daedalus sur votre iPhone."
+  },
+  "mode_other": {
+    "en": "Cue",
+    "fr": "Signal"
+  },
+  "workout_needed": {
+    "en": "Allow Daedalus in Health so cues keep going with your wrist down.",
+    "fr": "Autorisez Daedalus dans Santé pour que les repères continuent poignet baissé."
+  }
 }

@@ -268,7 +268,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Un pas à chaque vibration"
+            "value": "Un pas par vibration"
           }
         }
       }
@@ -562,19 +562,36 @@
         }
       }
     },
-    "status_cues_on": {
+    "status_phone_missing": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cues on"
+            "value": "Phone not connected"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Repères activés"
+            "value": "Téléphone non connecté"
+          }
+        }
+      }
+    },
+    "status_ready": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prêt·e"
           }
         }
       }
@@ -698,19 +715,19 @@
         }
       }
     },
-    "walk_label": {
+    "workout_needed": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Walking cue"
+            "value": "Allow Daedalus in Health so cues keep going with your wrist down."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Repère de marche"
+            "value": "Autorisez Daedalus dans Santé pour que les repères continuent poignet baissé."
           }
         }
       }
