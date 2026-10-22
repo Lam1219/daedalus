@@ -187,7 +187,9 @@ final class SessionRecorder {
 
     func start(mode: String) {
         let url = Self.sessionsDir.appendingPathComponent(CueDefaults.sessionFileName(mode: mode, start: .now))
-        FileManager.default.createFile(atPath: url.path, contents: Data(CueDefaults.csvHeader.utf8))
+        // Encrypted until the watch is first unlocked; still writable with the wrist down.
+        FileManager.default.createFile(atPath: url.path, contents: Data(CueDefaults.csvHeader.utf8),
+                                       attributes: [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication])
         self.url = url
         handle = try? FileHandle(forWritingTo: url)
         handle?.seekToEndOfFile()

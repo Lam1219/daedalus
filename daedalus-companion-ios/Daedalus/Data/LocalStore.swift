@@ -229,15 +229,28 @@ final class LocalStore {
 
     // MARK: Session files (from the Apple Watch app)
 
-    /// Where session CSVs from the watch are kept.
-    static var sessionsDir: URL {
-        let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("sessions")
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+    /// Where session CSVs from the watch are kept: Application Support (never shown in Files or
+    /// over a cable), with data protection on the folder so every file in it is encrypted until
+    /// the phone is first unlocked. Files from earlier versions (Documents/sessions) move here once.
+    static let sessionsDir: URL = {
+        let fm = FileManager.default
+        let dir = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("sessions")
+        let protection: [FileAttributeKey: Any] = [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication]
+        try? fm.createDirectory(at: dir, withIntermediateDirectories: true, attributes: protection)
+        try? fm.setAttributes(protection, ofItemAtPath: dir.path)
+        let old = fm.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("sessions")
+        for file in (try? fm.contentsOfDirectory(at: old, includingPropertiesForKeys: nil)) ?? [] {
+            let target = dir.appendingPathComponent(file.lastPathComponent)
+            if fm.fileExists(atPath: target.path) { try? fm.removeItem(at: file); continue }
+            // Same volume: a rename, so a file is never half-moved.
+            if (try? fm.moveItem(at: file, to: target)) != nil { try? fm.setAttributes(protection, ofItemAtPath: target.path) }
+        }
+        if ((try? fm.contentsOfDirectory(atPath: old.path)) ?? []).isEmpty { try? fm.removeItem(at: old) }
         return dir
-    }
+    }()
 
     static func sessionFiles() -> [URL] {
-        let files = (try? FileManager.default.contentsOfDirectory(at: sessionsDir, includingPropertiesForKeys: [.fileSizeKey, .contentModificationDateKey])) ?? []
+        let files = (try? FileManager.default.contentsOfDirectory(at: sessionsDir, includingPropertiesForKeys: [.fileSizeKey])) ?? []
         return files.filter { $0.pathExtension == "csv" }
     }
 }
