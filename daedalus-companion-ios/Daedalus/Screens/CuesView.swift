@@ -1,12 +1,10 @@
 import SwiftUI
 
-/// Cue modes and their rates, set on the phone. The Apple Watch app (phase 2) plays them;
-/// until then choices are saved and the start button explains the watch app is coming.
+/// Cue modes and their rates, set on the phone and played by the Apple Watch app.
 struct CuesView: View {
     @State private var store = LocalStore.shared
     @State private var selected = CueMode.all[0]
     @State private var rates: [String: Int] = [:]
-    @State private var auto: [String: Bool] = [:]
     @State private var watch = WatchLink.shared
 
     var body: some View {
@@ -60,15 +58,19 @@ struct CuesView: View {
                 }
             }
 
-            // Automatic cues
-            Text(L("cue_auto_title")).font(DS.section).foregroundStyle(DS.ink).padding(.top, 4)
-            SageCard(padding: .card()) {
-                autoRow("cue_walking", "cue_walking_sub", "figure.walk", key: "cue_walking", divider: true)
-                autoRow("cue_tremor", "cue_tremor_sub", "hand.raised", key: "cue_tremor", divider: true)
-                autoRow("cue_breathing", "cue_breathing_sub", "wind", key: "cue_breathing", divider: true)
-                autoRow("cue_stand", "cue_stand_sub", "figure.stand", key: "cue_stand", divider: false)
+            // Automatic cues: detection isn't built yet, so they're shown as coming, never as on.
+            HStack(spacing: 8) {
+                Text(L("cue_auto_title")).font(DS.section).foregroundStyle(DS.ink)
+                Text(L("coming_soon")).font(DS.font(12, .semibold)).foregroundStyle(DS.sageDeep)
+                    .padding(.horizontal, 10).padding(.vertical, 4).background(DS.sageTint, in: Capsule())
             }
-            Text(L("cue_auto_note")).font(DS.caption).foregroundStyle(DS.muted)
+            .padding(.top, 4)
+            Text(L("cue_auto_note")).font(DS.font(13)).foregroundStyle(DS.muted)
+            SageCard(padding: .card()) {
+                ListRow(title: L("cue_walking"), subtitle: L("cue_walking_sub"), icon: "figure.walk", showDivider: true)
+                ListRow(title: L("cue_tremor"), subtitle: L("cue_tremor_sub"), icon: "hand.raised", showDivider: true)
+                ListRow(title: L("cue_breathing"), subtitle: L("cue_breathing_sub"), icon: "wind")
+            }
         }
         .toolbar(.hidden, for: .navigationBar)
     }
@@ -91,12 +93,4 @@ struct CuesView: View {
         .accessibilityLabel(label)
     }
 
-    private func autoRow(_ title: String, _ sub: String, _ icon: String, key: String, divider: Bool) -> some View {
-        ListRow(title: L(title), subtitle: L(sub), icon: icon, showDivider: divider) {
-            SageToggle(isOn: Binding(
-                get: { auto[key] ?? store.autoCue(key) },
-                set: { auto[key] = $0; store.setAutoCue(key, $0) }
-            ))
-        }
-    }
 }

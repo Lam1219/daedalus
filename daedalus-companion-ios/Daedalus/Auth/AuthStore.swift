@@ -56,7 +56,9 @@ final class AuthStore {
             client = SupabaseClient(
                 supabaseURL: url,
                 supabaseKey: key,
-                options: SupabaseClientOptions(auth: .init(redirectToURL: Self.redirect, flowType: .implicit))
+                // PKCE: an email link only completes on the phone that started the sign-up or
+                // reset (it holds the code verifier), so a link from anyone else can't sign in.
+                options: SupabaseClientOptions(auth: .init(redirectToURL: Self.redirect, flowType: .pkce))
             )
         } else {
             client = nil
@@ -89,13 +91,17 @@ final class AuthStore {
             )
             // With "Confirm email" on (the default) there is no session until the link is opened.
             if let session = response.session { signedIn(session.user.email); return .signedIn }
+            setPendingLink(.signUp)
             return .confirmEmail
         } catch { throw map(error) }
     }
 
     func sendPasswordReset(email: String) async throws {
         guard let client else { throw AuthFailure.notConfigured }
-        do { try await client.auth.resetPasswordForEmail(email, redirectTo: Self.redirect) } catch { throw map(error) }
+        do {
+            try await client.auth.resetPasswordForEmail(email, redirectTo: Self.redirect)
+            setPendingLink(.recovery)
+        } catch { throw map(error) }
     }
 
     func updatePassword(_ password: String) async throws {
@@ -106,15 +112,18 @@ final class AuthStore {
         } catch { throw map(error) }
     }
 
-    /// daedalus://auth-callback#access_token=…&type=signup|recovery (or #error=… when the link expired).
+    /// daedalus://auth-callback?code=… from a confirmation or password-reset email this phone asked
+    /// for (or ?error=… when the link expired). Any other link is ignored, and a signed-in account
+    /// is never replaced by one.
     func handle(url: URL) async {
-        guard let client, url.scheme == "daedalus", url.host == "auth-callback" else { return }
-        let params = Self.params(of: url)
-        if params["error"] != nil { linkError = .linkExpired; return }
+        guard let client, url.scheme == "daedalus", url.host == "auth-callback", let pending = pendingLink else { return }
+        if case .signedIn = state, pending != .recovery { return }
+        if Self.params(of: url)["error"] != nil { linkError = .linkExpired; return }
         do {
             let session = try await client.auth.session(from: url)
             linkError = nil
-            if params["type"] == "recovery" {
+            setPendingLink(nil)
+            if pending == .recovery {
                 state = .settingNewPassword
             } else {
                 signedIn(session.user.email)
@@ -122,6 +131,23 @@ final class AuthStore {
         } catch {
             linkError = .linkExpired
         }
+    }
+
+    // MARK: Email links this phone is waiting for
+
+    enum PendingLink: String { case signUp, recovery }
+
+    /// The email link this phone asked for in the last day (sign-up confirmation or password reset).
+    private var pendingLink: PendingLink? {
+        let d = UserDefaults.standard
+        guard let at = d.object(forKey: "pendingLinkAt") as? Date, Date.now.timeIntervalSince(at) < 24 * 3600 else { return nil }
+        return d.string(forKey: "pendingLink").flatMap(PendingLink.init(rawValue:))
+    }
+
+    private func setPendingLink(_ link: PendingLink?) {
+        let d = UserDefaults.standard
+        d.set(link?.rawValue, forKey: "pendingLink")
+        d.set(link == nil ? nil : Date.now, forKey: "pendingLinkAt")
     }
 
     func signOut() async {

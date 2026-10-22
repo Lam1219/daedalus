@@ -1,26 +1,41 @@
 import SwiftUI
 
-/// Shows `content` once the signed-in account has its personal information; otherwise runs the
-/// setup first. A profile already saved in Supabase (e.g. from another phone) is reused.
+/// After sign-in: makes sure the phone's data belongs to this account, restores the account's
+/// data, then shows `content` once the account has its personal information (otherwise runs the
+/// setup first). A profile already saved in Supabase (e.g. from another phone) is reused.
 struct ProfileSetupGate<Content: View>: View {
     let email: String?
     @ViewBuilder var content: Content
 
+    private enum Ownership { case checking, askGuest, askOtherAccount, ok }
+
+    @State private var ownership: Ownership = .checking
     @State private var ready = false
     @State private var checkedServer = false
 
     var body: some View {
         Group {
-            if ready {
-                content
-            } else if !checkedServer {
-                ProgressView().tint(DS.sage).frame(maxWidth: .infinity, maxHeight: .infinity).background(DS.ground)
-            } else {
-                ProfileSetupView(email: email) { ready = true }
+            switch ownership {
+            case .askGuest, .askOtherAccount:
+                PhoneDataChoice(fromOtherAccount: ownership == .askOtherAccount) { ownership = .ok }
+            case .checking:
+                loading
+            case .ok:
+                if ready {
+                    content
+                } else if !checkedServer {
+                    loading
+                } else {
+                    ProfileSetupView(email: email) { ready = true }
+                }
             }
         }
-        .task(id: email) {
+        .task(id: email) { checkOwnership() }
+        .task(id: ownership == .ok) {
+            guard ownership == .ok else { return }
             let store = LocalStore.shared
+            // Bring back this account's data (schedule, doses, check-ins, sessions) on a new phone.
+            await CloudBackup.shared.restoreIfNeeded()
             ready = store.personalProfile(owner: email) != nil
             if !ready, case let .found(profile) = await AuthStore.shared.fetchProfile() {
                 store.savePersonalProfile(profile, owner: email, uploaded: true)
@@ -30,6 +45,68 @@ struct ProfileSetupGate<Content: View>: View {
         }
         // Back up anything recorded before sign-in or while offline.
         .task(id: ready) { if ready { CloudBackup.shared.syncSoon() } }
+    }
+
+    private var loading: some View {
+        ProgressView().tint(DS.sage).frame(maxWidth: .infinity, maxHeight: .infinity).background(DS.ground)
+    }
+
+    /// Phone data belongs to one account. Guest data is only added to an account if the person
+    /// agrees; another account's data is never mixed in.
+    private func checkOwnership() {
+        let store = LocalStore.shared
+        let userId = AuthStore.shared.userId
+        if store.owner == userId {
+            ownership = .ok
+        } else if store.owner == nil {
+            if store.hasHealthData {
+                ownership = .askGuest
+            } else {
+                store.setOwner(userId)
+                ownership = .ok
+            }
+        } else {
+            ownership = .askOtherAccount
+        }
+    }
+}
+
+/// Asks what to do with data already on this phone: guest data can be added to the account;
+/// another account's data can only be deleted from the phone (or the person signs out).
+private struct PhoneDataChoice: View {
+    let fromOtherAccount: Bool
+    let onDone: () -> Void
+    @State private var confirmDelete = false
+
+    var body: some View {
+        AuthFrame(onBack: nil) {
+            Image(systemName: "iphone").font(.system(size: 34)).foregroundStyle(DS.sage)
+            Headline(title: L("keep_data_title"), subtitle: L(fromOtherAccount ? "keep_data_other" : "keep_data_guest"))
+            Spacer(minLength: 24)
+            if fromOtherAccount {
+                Button(L("keep_data_delete")) { confirmDelete = true }.buttonStyle(PillButtonStyle())
+                Button(L("account_sign_out")) { Task { await AuthStore.shared.signOut() } }
+                    .buttonStyle(OutlinePillButtonStyle())
+            } else {
+                Button(L("keep_data_add")) {
+                    LocalStore.shared.setOwner(AuthStore.shared.userId)
+                    onDone()
+                }
+                .buttonStyle(PillButtonStyle())
+                Button(L("keep_data_delete")) { confirmDelete = true }.buttonStyle(OutlinePillButtonStyle())
+            }
+        }
+        .alert(L("keep_data_delete"), isPresented: $confirmDelete) {
+            Button(L("data_delete_button"), role: .destructive) {
+                LocalStore.shared.clearHealthData()
+                LocalStore.shared.setOwner(AuthStore.shared.userId)
+                Task { await MedReminders.reschedule() }
+                onDone()
+            }
+            Button(L("cancel"), role: .cancel) {}
+        } message: {
+            Text(L("keep_data_delete_confirm"))
+        }
     }
 }
 

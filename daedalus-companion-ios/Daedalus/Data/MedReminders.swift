@@ -2,13 +2,14 @@ import Foundation
 import UserNotifications
 
 /// Daily dose reminders for the medication schedule, with a "Mark taken" button on the
-/// notification (works from the lock screen without opening the app).
+/// notification (usable from the lock screen once the phone is unlocked, without opening the app).
 enum MedReminders {
     static let category = "DOSE_REMINDER"
     static let markTakenAction = "MARK_TAKEN"
 
     static func registerCategory() {
-        let markTaken = UNNotificationAction(identifier: markTakenAction, title: L("reminder_taken"), options: [])
+        // Unlock first: the dose history can't be read while the phone is locked after a restart.
+        let markTaken = UNNotificationAction(identifier: markTakenAction, title: L("reminder_taken"), options: [.authenticationRequired])
         let category = UNNotificationCategory(identifier: category, actions: [markTaken], intentIdentifiers: [])
         UNUserNotificationCenter.current().setNotificationCategories([category])
     }
@@ -22,8 +23,10 @@ enum MedReminders {
     @MainActor
     static func reschedule() async {
         let center = UNUserNotificationCenter.current()
-        center.removeAllPendingNotificationRequests()
         let store = LocalStore.shared
+        // Never cancel reminders because the schedule couldn't be read yet.
+        guard store.isAvailable else { return }
+        center.removeAllPendingNotificationRequests()
         guard store.medReminders else { return }
         for dose in store.schedule {
             let content = UNMutableNotificationContent()

@@ -106,11 +106,15 @@ extension WatchLink: WCSessionDelegate {
 
     /// A finished session from the watch. The file must be moved before this method returns.
     nonisolated func session(_ session: WCSession, didReceive file: WCSessionFile) {
-        let name = (file.metadata?[WatchKey.fileName] as? String) ?? file.fileURL.lastPathComponent
+        // Only a plain file name, so nothing can be written outside the sessions folder.
+        let name = URL(fileURLWithPath: (file.metadata?[WatchKey.fileName] as? String) ?? file.fileURL.lastPathComponent).lastPathComponent
         let destination = LocalStore.sessionsDir.appendingPathComponent(name)
         try? FileManager.default.removeItem(at: destination)
         do {
             try FileManager.default.moveItem(at: file.fileURL, to: destination)
+            try? FileManager.default.setAttributes(
+                [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication], ofItemAtPath: destination.path
+            )
             Task { @MainActor in CloudBackup.shared.syncSoon() }
         } catch {
             print("Couldn't save session file \(name): \(error)")

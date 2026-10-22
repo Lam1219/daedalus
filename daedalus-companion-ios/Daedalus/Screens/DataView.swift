@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Profile → Your data: account backup, and the three ways to delete data.
 struct DataView: View {
-    private enum Action: Identifiable { case freeUp, uploaded, everything; var id: Self { self } }
+    private enum Action: Identifiable { case freeUp, uploaded, everything, account; var id: Self { self } }
 
     @State private var auth = AuthStore.shared
     @State private var store = LocalStore.shared
@@ -50,7 +50,11 @@ struct DataView: View {
                             showDivider: true, action: busy ? nil : { confirm = .uploaded })
                 }
                 ListRow(title: L("data_delete_all_title"), subtitle: L(signedIn ? "data_delete_all_sub" : "data_delete_all_guest_sub"),
-                        icon: "trash", action: busy ? nil : { confirm = .everything })
+                        icon: "trash", showDivider: signedIn, action: busy ? nil : { confirm = .everything })
+                if signedIn {
+                    ListRow(title: L("data_delete_account_title"), subtitle: L("data_delete_account_sub"),
+                            icon: "person.crop.circle.badge.xmark", action: busy ? nil : { confirm = .account })
+                }
             }
 
             if busy { ProgressView().progressViewStyle(.linear).tint(DS.sage) }
@@ -62,6 +66,7 @@ struct DataView: View {
             case .freeUp: ("data_free_up_title", "data_free_up_confirm", "data_free_up_button")
             case .uploaded: ("data_delete_uploaded_title", "data_delete_uploaded_confirm", "data_delete_button")
             case .everything: ("data_delete_all_title", signedIn ? "data_delete_all_confirm" : "data_delete_all_guest_confirm", "data_delete_button")
+            case .account: ("data_delete_account_title", "data_delete_account_confirm", "data_delete_account_button")
             }
             return Alert(
                 title: Text(L(title)), message: Text(L(body)),
@@ -81,6 +86,9 @@ struct DataView: View {
             case .everything:
                 // Signed-in accounts are signed out afterwards, which leaves this screen.
                 await CloudBackup.shared.deleteEverything() ? "data_delete_all_done" : "data_delete_failed"
+            case .account:
+                // Signs out afterwards, which leaves this screen.
+                await CloudBackup.shared.deleteAccount() ? "data_delete_all_done" : "data_delete_failed"
             }
         }
     }

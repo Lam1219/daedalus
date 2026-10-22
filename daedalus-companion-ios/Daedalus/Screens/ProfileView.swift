@@ -6,6 +6,9 @@ struct ProfileView: View {
     /// nil while loading or when the choice couldn't be read (offline).
     @State private var allowResearch: Bool?
     @State private var researchSaveFailed = false
+    /// Sign-out confirmation: nil = hidden, true = everything is backed up, false = some isn't.
+    @State private var signOutBackedUp: Bool?
+    @State private var checkingBackup = false
 
     private var signedIn: Bool { auth.email != nil }
 
@@ -20,12 +23,28 @@ struct ProfileView: View {
                     subtitle: L(signedIn ? "account_via_email" : "account_guest_sub"),
                     icon: "person.crop.circle"
                 ) {
-                    Button(L(signedIn ? "account_sign_out" : "account_sign_in")) { Task { await auth.signOut() } }
+                    if signedIn {
+                        // Back up first, then confirm: signing out clears this phone's health data.
+                        Button(L("account_sign_out")) {
+                            checkingBackup = true
+                            Task {
+                                signOutBackedUp = await CloudBackup.shared.isFullyBackedUp()
+                                checkingBackup = false
+                            }
+                        }
                         .font(DS.font(15, .semibold)).foregroundStyle(DS.sageDeep)
+                        .disabled(checkingBackup)
+                        .frame(minHeight: 44)
+                    } else {
+                        // Guest data stays on the phone; the person chooses what to do with it after signing in.
+                        Button(L("account_sign_in")) { Task { await auth.signOut() } }
+                            .font(DS.font(15, .semibold)).foregroundStyle(DS.sageDeep)
+                            .frame(minHeight: 44)
+                    }
                 }
             }
 
-            // Research opt-out (signed-in accounts only; guest data never leaves the phone)
+            // Research opt-out (signed-in accounts only)
             if signedIn {
                 SageCard(padding: .card()) {
                     ListRow(
@@ -80,6 +99,14 @@ struct ProfileView: View {
                 .font(DS.caption).foregroundStyle(DS.muted).multilineTextAlignment(.center).frame(maxWidth: .infinity)
         }
         .toolbar(.hidden, for: .navigationBar)
+        .alert(L("account_sign_out_title"), isPresented: Binding(get: { signOutBackedUp != nil }, set: { if !$0 { signOutBackedUp = nil } })) {
+            Button(L("account_sign_out"), role: signOutBackedUp == true ? nil : .destructive) {
+                Task { await CloudBackup.shared.signOutAndClear(force: true) }
+            }
+            Button(L("cancel"), role: .cancel) {}
+        } message: {
+            Text(L(signOutBackedUp == true ? "account_sign_out_backed_up" : "account_sign_out_not_backed_up"))
+        }
     }
 
     private var chevron: some View {

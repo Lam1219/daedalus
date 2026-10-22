@@ -12,8 +12,8 @@ struct LoginFlow: View {
     @State private var busy = false
     @State private var error: AuthFailure?
     @State private var checkEmailKey = "login_check_reset"
-    // Research analysis is on unless the person opts out here (or later in Profile).
-    @State private var allowResearch = true
+    // Research use is off unless the person chooses it (privacy by default; changeable in Profile).
+    @State private var allowResearch = false
 
     private var looksLikeEmail: Bool { email.range(of: #"^[^@\s]+@[^@\s]+\.[^@\s]+$"#, options: .regularExpression) != nil }
 

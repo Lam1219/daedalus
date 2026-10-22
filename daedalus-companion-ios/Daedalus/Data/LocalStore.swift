@@ -1,9 +1,10 @@
 import Foundation
 import Observation
+import UIKit
 
 /// On-device store. Health records live in one JSON file protected by iOS data protection
-/// (unreadable while the phone is locked); settings live in UserDefaults.
-/// The personal profile is also kept in Supabase for signed-in accounts (see CloudBackup).
+/// (readable once the phone has been unlocked after a restart); settings live in UserDefaults.
+/// The records belong to one account (`owner`, its user ID) or to a guest (nil); see CloudBackup.
 @Observable
 final class LocalStore {
     static let shared = LocalStore()
@@ -15,6 +16,10 @@ final class LocalStore {
         var profile: PersonalProfile?
         var profileOwner: String?
         var profileUploadPending = false
+        /// The account these records belong to (Supabase user ID), or nil for guest use.
+        var owner: String?
+        /// Dose times removed on this phone that still have to be removed from the account.
+        var deletedScheduleIds: [String] = []
     }
 
     private var records = Records()
@@ -24,18 +29,40 @@ final class LocalStore {
     /// Called after every change to health records (CloudBackup sends it to the account).
     @ObservationIgnored var onChange: (() -> Void)?
 
+    /// False while the records file exists but can't be read (the app was woken before the phone
+    /// was first unlocked after a restart). Nothing is saved or backed up until it's readable,
+    /// so an empty in-memory copy can never overwrite or delete real data.
+    private(set) var isAvailable = true
+
     private init() {
         let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         fileURL = dir.appendingPathComponent("records.json")
-        if let data = try? Data(contentsOf: fileURL), let saved = try? JSONDecoder().decode(Records.self, from: data) {
-            records = saved
+        load()
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.protectedDataDidBecomeAvailableNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            guard let self, !self.isAvailable else { return }
+            self.load()
+            if self.isAvailable { self.onChange?() }
         }
     }
 
+    private func load() {
+        guard FileManager.default.fileExists(atPath: fileURL.path) else { isAvailable = true; return }
+        guard let data = try? Data(contentsOf: fileURL) else { isAvailable = false; return }
+        records = (try? JSONDecoder().decode(Records.self, from: data)) ?? Records()
+        isAvailable = true
+    }
+
     private func save(notify: Bool = true) {
-        guard let data = try? JSONEncoder().encode(records) else { return }
-        try? data.write(to: fileURL, options: [.atomic, .completeFileProtection])
+        guard isAvailable, let data = try? JSONEncoder().encode(records) else { return }
+        do {
+            try data.write(to: fileURL, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
+        } catch {
+            print("Couldn't save records: \(error)")
+            return
+        }
         if notify { onChange?() }
     }
 
@@ -44,12 +71,14 @@ final class LocalStore {
     var medications: [MedicationLog] { records.medications.sorted { $0.timestamp > $1.timestamp } }
 
     func addMedication(_ log: MedicationLog) {
+        guard isAvailable else { return }
         records.medications.append(log); save()
     }
 
     var checkIns: [FeelingCheckIn] { records.checkIns.sorted { $0.timestamp > $1.timestamp } }
 
     func addCheckIn(_ checkIn: FeelingCheckIn) {
+        guard isAvailable else { return }
         records.checkIns.append(checkIn); save()
     }
 
@@ -60,12 +89,23 @@ final class LocalStore {
     @discardableResult
     func addScheduledDose(name: String, dosage: String, hour: Int, minute: Int) -> ScheduledDose {
         let dose = ScheduledDose(name: name, dosage: dosage, hour: hour, minute: minute)
+        guard isAvailable else { return dose }
         records.schedule.append(dose); save()
         return dose
     }
 
     func removeScheduledDose(id: String) {
-        records.schedule.removeAll { $0.id == id }; save()
+        guard isAvailable else { return }
+        records.schedule.removeAll { $0.id == id }
+        records.deletedScheduleIds.append(id)
+        save()
+    }
+
+    /// Dose times removed here that the account still has.
+    var deletedScheduleIds: [String] { records.deletedScheduleIds }
+
+    func clearDeletedScheduleIds(_ ids: [String]) {
+        records.deletedScheduleIds.removeAll { ids.contains($0) }; save(notify: false)
     }
 
     /// The log that marks `dose` as taken on `day`, if any.
@@ -92,9 +132,38 @@ final class LocalStore {
         set { records.profileUploadPending = newValue; save(notify: false) }
     }
 
-    /// Deletes the health history on this phone: doses, check-ins, schedule and profile. Settings stay.
+    /// Deletes the health history on this phone: doses, check-ins, schedule, profile and session
+    /// files. Settings stay.
     func clearHealthData() {
+        guard isAvailable else { return }
         records = Records(); save(notify: false)
+        for file in Self.sessionFiles() { try? FileManager.default.removeItem(at: file) }
+    }
+
+    // MARK: Account ownership
+
+    /// The account these records belong to (Supabase user ID), or nil for guest use.
+    var owner: String? { records.owner }
+
+    func setOwner(_ owner: String?) {
+        records.owner = owner; save(notify: false)
+    }
+
+    /// Whether there's any health data on this phone (records or session files).
+    var hasHealthData: Bool {
+        !records.medications.isEmpty || !records.checkIns.isEmpty || !records.schedule.isEmpty || !Self.sessionFiles().isEmpty
+    }
+
+    /// Adds records restored from the account, skipping any already on this phone.
+    func mergeFromAccount(schedule: [ScheduledDose], medications: [MedicationLog], checkIns: [FeelingCheckIn]) {
+        guard isAvailable else { return }
+        let scheduleIds = Set(records.schedule.map(\.id)).union(records.deletedScheduleIds)
+        records.schedule += schedule.filter { !scheduleIds.contains($0.id) }
+        let doseIds = Set(records.medications.map(\.id))
+        records.medications += medications.filter { !doseIds.contains($0.id) }
+        let checkInIds = Set(records.checkIns.map(\.id))
+        records.checkIns += checkIns.filter { !checkInIds.contains($0.id) }
+        save(notify: false)
     }
 
     // MARK: Settings

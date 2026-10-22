@@ -73,7 +73,7 @@
 /* Begin PBXFileReference section */
 		0F5401E8E6F4E13365D53753 /* PhoneLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneLink.swift; sourceTree = "<group>"; };
 		10A7CD730672C40D09C58F0D /* LoginFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginFlow.swift; sourceTree = "<group>"; };
-		1710CA52690E77273A6925F1 /* Daedalus.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Daedalus.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1710CA52690E77273A6925F1 /* Daedalus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Daedalus.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		25F06693D2BF6B4001975D85 /* DataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataView.swift; sourceTree = "<group>"; };
 		267DD789F692A1D3E17C0687 /* ProfileSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSetup.swift; sourceTree = "<group>"; };
 		2B8C0E85CA17A183E43C3D4B /* SupabaseConfig.generated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.generated.swift; sourceTree = "<group>"; };
@@ -542,6 +542,7 @@
 				CODE_SIGN_ENTITLEMENTS = Daedalus/Resources/Daedalus.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = SFQ29D84T9;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Daedalus/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -563,6 +564,7 @@
 				CODE_SIGN_ENTITLEMENTS = Daedalus/Resources/Daedalus.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = SFQ29D84T9;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Daedalus/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -583,6 +585,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = DaedalusWatch/Resources/DaedalusWatch.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = SFQ29D84T9;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = DaedalusWatch/Resources/Info.plist;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
@@ -599,6 +602,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = DaedalusWatch/Resources/DaedalusWatch.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = SFQ29D84T9;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = DaedalusWatch/Resources/Info.plist;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
