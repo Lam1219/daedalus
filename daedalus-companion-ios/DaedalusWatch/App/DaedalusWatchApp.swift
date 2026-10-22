@@ -16,6 +16,14 @@ final class WatchAppDelegate: NSObject, WKApplicationDelegate {
         Task { @MainActor in PhoneLink.shared.activate() }
     }
 
+    /// The app was relaunched (e.g. after a crash) while a cue's workout was running.
+    func handleActiveWorkoutRecovery() {
+        HKHealthStore().recoverActiveWorkoutSession { session, error in
+            guard let session else { print("Workout recovery failed: \(String(describing: error))"); return }
+            Task { @MainActor in CueController.shared.recover(session) }
+        }
+    }
+
     /// The iPhone's "Start cue on watch" launches this app with a workout configuration;
     /// the cue to start was sent just before in the application context. That can arrive a
     /// moment after the launch, so wait up to 3 seconds for it, then fall back to the mode the
@@ -53,13 +61,17 @@ struct WatchRootView: View {
     @State private var cue = CueController.shared
 
     var body: some View {
-        Group {
-            switch cue.mode {
-            case "walking": WalkView()
-            case "rest": BreatheView()
-            case let mode?: PulseView(mode: mode)
-            case nil: HomeView()
+        NavigationStack {
+            Group {
+                switch cue.mode {
+                case "walking": WalkView()
+                case "rest": BreatheView()
+                case let mode?: PulseView(mode: mode)
+                case nil: HomeView()
+                }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(WS.ground.ignoresSafeArea())
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(WS.ground.ignoresSafeArea())

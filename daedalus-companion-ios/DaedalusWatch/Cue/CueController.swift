@@ -6,7 +6,9 @@ import WatchKit
 
 /// Runs one cue at a time:
 /// - a workout session, so the cue keeps going with the wrist down and heart rate is live
-///   (the workout is discarded at the end: nothing is saved to Apple Health);
+///   (the workout is discarded at the end: nothing is saved to Apple Health). Permission is
+///   asked before the first one; if watchOS ends the session, a new one is started; after a
+///   crash the running cue is recovered (WatchAppDelegate.handleActiveWorkoutRecovery);
 /// - taps at the chosen rate (Breathe: a tap to breathe in and one to breathe out);
 /// - a session CSV with heart rate and wrist motion, sent to the iPhone when the cue stops.
 @MainActor
@@ -23,12 +25,19 @@ final class CueController: NSObject {
     private(set) var breathPhase: BreathPhase = .inhale
     /// Increments on every pulse (drives the walking ring animation).
     private(set) var beat = 0
+    /// True when no workout could be started (permission not given): the cue then stops when
+    /// the wrist goes down, and the cue screens say so.
+    private(set) var workoutUnavailable = false
 
     @ObservationIgnored private let health = HKHealthStore()
     @ObservationIgnored private var session: HKWorkoutSession?
     @ObservationIgnored private var builder: HKLiveWorkoutBuilder?
     @ObservationIgnored private var cueTask: Task<Void, Never>?
     @ObservationIgnored private let recorder = SessionRecorder()
+    /// Workouts restarted after watchOS ended one during this cue (capped, so it can't loop).
+    @ObservationIgnored private var workoutRestarts = 0
+    /// The running cue, kept so it can be picked up again after a crash.
+    private static let activeCueKey = "active_cue"
 
     var isRunning: Bool { mode != nil }
 
@@ -55,8 +64,27 @@ final class CueController: NSObject {
         self.rate = rate ?? savedRate(mode)
         paused = false
         heartRate = nil
+        workoutUnavailable = false
+        workoutRestarts = 0
+        UserDefaults.standard.set(["mode": mode, "rate": self.rate], forKey: Self.activeCueKey)
         recorder.start(mode: mode)
         startWorkout(walking: mode == "walking")
+        startCue()
+        PhoneLink.shared.sendStatus()
+    }
+
+    /// After a crash or relaunch during a cue: carries on with the recovered workout session.
+    func recover(_ session: HKWorkoutSession) {
+        guard !isRunning,
+              let saved = UserDefaults.standard.dictionary(forKey: Self.activeCueKey),
+              let mode = saved["mode"] as? String
+        else { session.end(); return }
+        self.mode = mode
+        rate = saved["rate"] as? Int ?? savedRate(mode)
+        paused = false
+        workoutRestarts = 0
+        recorder.start(mode: mode)
+        attach(session)
         startCue()
         PhoneLink.shared.sendStatus()
     }
@@ -66,6 +94,7 @@ final class CueController: NSObject {
         cueTask?.cancel(); cueTask = nil
         endWorkout()
         if let file = recorder.stop() { PhoneLink.shared.send(file: file) }
+        UserDefaults.standard.removeObject(forKey: Self.activeCueKey)
         self.mode = nil
         paused = false
         _ = mode
@@ -107,8 +136,10 @@ final class CueController: NSObject {
                 while !Task.isCancelled {
                     device.play(haptic)
                     self?.beat += 1
-                    // Schedule from the start time so the rhythm doesn't drift.
+                    // Schedule from the start time so the rhythm doesn't drift. After a stall (the
+                    // app was suspended), carry on from now instead of playing the missed taps.
                     next = next.advanced(by: .seconds(interval))
+                    if next < ContinuousClock.now { next = ContinuousClock.now }
                     try? await Task.sleep(until: next, clock: .continuous)
                 }
             }
@@ -123,23 +154,52 @@ final class CueController: NSObject {
     // MARK: Workout session
 
     private func startWorkout(walking: Bool) {
-        let config = HKWorkoutConfiguration()
-        config.activityType = walking ? .walking : .mindAndBody
-        config.locationType = walking ? .outdoor : .indoor
-        do {
-            let session = try HKWorkoutSession(healthStore: health, configuration: config)
-            let builder = session.associatedWorkoutBuilder()
-            builder.dataSource = HKLiveWorkoutDataSource(healthStore: health, workoutConfiguration: config)
-            builder.delegate = self
-            self.session = session
-            self.builder = builder
-            let start = Date.now
-            session.startActivity(with: start)
-            builder.beginCollection(withStart: start) { _, _ in }
-        } catch {
-            // Without a workout the cue still plays while the screen is on.
-            print("Workout session failed: \(error)")
+        let mode = self.mode
+        Task {
+            // Ask first (once): without permission there's no workout, and the cue would stop
+            // when the wrist goes down.
+            if health.authorizationStatus(for: .workoutType()) == .notDetermined { await requestAuthorization() }
+            guard self.mode == mode, session == nil else { return }
+            guard health.authorizationStatus(for: .workoutType()) == .sharingAuthorized else {
+                workoutUnavailable = true
+                return
+            }
+            let config = HKWorkoutConfiguration()
+            config.activityType = walking ? .walking : .mindAndBody
+            config.locationType = walking ? .outdoor : .indoor
+            do {
+                let session = try HKWorkoutSession(healthStore: health, configuration: config)
+                attach(session)
+                let start = Date.now
+                session.startActivity(with: start)
+                try await builder?.beginCollection(at: start)
+            } catch {
+                // Without a workout the cue still plays while the screen is on.
+                print("Workout session failed: \(error)")
+                workoutUnavailable = true
+            }
         }
+    }
+
+    private func attach(_ session: HKWorkoutSession) {
+        let builder = session.associatedWorkoutBuilder()
+        builder.dataSource = HKLiveWorkoutDataSource(healthStore: health, workoutConfiguration: session.workoutConfiguration)
+        builder.delegate = self
+        session.delegate = self
+        self.session = session
+        self.builder = builder
+        workoutUnavailable = false
+    }
+
+    /// watchOS ended or failed our workout while the cue was still on: start a new one.
+    fileprivate func workoutEnded(_ ended: HKWorkoutSession) {
+        guard ended === session, let mode else { return }
+        builder?.discardWorkout()
+        session = nil
+        builder = nil
+        guard workoutRestarts < 3 else { workoutUnavailable = true; return }
+        workoutRestarts += 1
+        startWorkout(walking: mode == "walking")
     }
 
     private func endWorkout() {
@@ -171,12 +231,38 @@ extension CueController: HKLiveWorkoutBuilderDelegate {
     nonisolated func workoutBuilderDidCollectEvent(_ workoutBuilder: HKLiveWorkoutBuilder) {}
 }
 
+extension CueController: HKWorkoutSessionDelegate {
+    nonisolated func workoutSession(_ workoutSession: HKWorkoutSession, didChangeTo toState: HKWorkoutSessionState,
+                                    from fromState: HKWorkoutSessionState, date: Date) {
+        guard toState == .ended || toState == .stopped else { return }
+        Task { @MainActor in CueController.shared.workoutEnded(workoutSession) }
+    }
+
+    nonisolated func workoutSession(_ workoutSession: HKWorkoutSession, didFailWithError error: Error) {
+        print("Workout session failed: \(error)")
+        Task { @MainActor in CueController.shared.workoutEnded(workoutSession) }
+    }
+}
+
 /// Writes the session CSV: ~10 rows a second with the latest heart rate and wrist motion
 /// (acceleration in m/s² including gravity, rotation in rad/s — the Android watch's units).
-final class SessionRecorder {
-    var heartRate: Int?
+/// Motion arrives on one serial queue, so rows are never interleaved; heart rate is set from
+/// the main actor, so it's behind a lock. A failed write (disk full) stops writing rows
+/// instead of crashing.
+final class SessionRecorder: @unchecked Sendable {
+    private let lock = NSLock()
+    private var _heartRate: Int?
+    var heartRate: Int? {
+        get { lock.withLock { _heartRate } }
+        set { lock.withLock { _heartRate = newValue } }
+    }
     private let motion = CMMotionManager()
-    private let queue = OperationQueue()
+    private let queue: OperationQueue = {
+        let q = OperationQueue()
+        q.maxConcurrentOperationCount = 1
+        q.name = "SessionRecorder"
+        return q
+    }()
     private var handle: FileHandle?
     private var url: URL?
     private var lastWrite = Date.distantPast
@@ -194,7 +280,7 @@ final class SessionRecorder {
                                        attributes: [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication])
         self.url = url
         handle = try? FileHandle(forWritingTo: url)
-        handle?.seekToEndOfFile()
+        _ = try? handle?.seekToEnd()
         heartRate = nil
         lastWrite = .distantPast
 
@@ -212,7 +298,13 @@ final class SessionRecorder {
                 Int64(now.timeIntervalSince1970 * 1000), self.heartRate ?? 0,
                 (a.x + gr.x) * g, (a.y + gr.y) * g, (a.z + gr.z) * g, r.x, r.y, r.z
             )
-            self.handle?.write(Data(row.utf8))
+            do {
+                try self.handle?.write(contentsOf: Data(row.utf8))
+            } catch {
+                print("Session file write failed, recording stops: \(error)")
+                try? self.handle?.close()
+                self.handle = nil
+            }
         }
     }
 
