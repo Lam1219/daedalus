@@ -28,6 +28,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -44,25 +46,26 @@ import com.medicina.daedaluscompanion.auth.AuthRepository
 import com.medicina.daedaluscompanion.auth.AuthResult
 import kotlinx.coroutines.launch
 
-private enum class Step { WELCOME, EMAIL, PASSWORD, CREATE, CHECK_EMAIL }
+private enum class Step { WELCOME, SIGN_IN, CREATE, CHECK_EMAIL }
 
 private fun looksLikeEmail(s: String) = Regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$").matches(s)
 
 /**
- * Sign-in in small steps, one question per screen (Wealthsimple-style):
- * welcome (Sign in / Sign up) → email → password, plus create account and password reset.
+ * Sign-in, Wealthsimple-style: welcome (Sign in / Sign up) → email and password on one screen,
+ * plus create account and password reset.
  */
 @Composable
 fun LoginScreen(auth: AuthRepository, linkError: AuthError?) {
     val scope = rememberCoroutineScope()
+    val focusManager = LocalFocusManager.current
     var step by rememberSaveable { mutableStateOf(Step.WELCOME) }
     var email by rememberSaveable { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
     var error by remember(linkError) { mutableStateOf(linkError) }
     var checkEmailBody by rememberSaveable { mutableStateOf(R.string.login_check_reset) }
-    // Research analysis is on unless the person opts out here (or later in Profile).
-    var allowResearch by rememberSaveable { mutableStateOf(true) }
+    // Research use is off unless the person chooses it (privacy by default; changeable in Profile).
+    var allowResearch by rememberSaveable { mutableStateOf(false) }
 
     fun go(to: Step) { step = to; error = null; password = "" }
     fun run(block: suspend () -> AuthResult, onDone: (AuthResult) -> Unit = {}) {
@@ -74,15 +77,11 @@ fun LoginScreen(auth: AuthRepository, linkError: AuthError?) {
         }
     }
 
-    val backTo = when (step) {
-        Step.WELCOME -> null
-        Step.PASSWORD -> Step.EMAIL
-        else -> Step.WELCOME
-    }
+    val backTo = if (step == Step.WELCOME) null else Step.WELCOME
     BackHandler(enabled = backTo != null) { backTo?.let(::go) }
 
     if (step == Step.WELCOME) {
-        WelcomeScreen(onSignIn = { go(Step.EMAIL) }, onSignUp = { go(Step.CREATE) }, onGuest = auth::continueAsGuest)
+        WelcomeScreen(onSignIn = { go(Step.SIGN_IN) }, onSignUp = { go(Step.CREATE) }, onGuest = auth::continueAsGuest)
         return
     }
 
@@ -93,31 +92,31 @@ fun LoginScreen(auth: AuthRepository, linkError: AuthError?) {
     ) {
         when (step) {
             Step.WELCOME -> Unit
-            Step.EMAIL -> {
-                EmailField(email, onChange = { email = it; error = null }, onDone = { if (looksLikeEmail(email)) go(Step.PASSWORD) })
-                ErrorText(error)
-                Spacer(Modifier.weight(1f))
-                PrimaryButton(R.string.login_continue, enabled = looksLikeEmail(email) && !busy) { go(Step.PASSWORD) }
-            }
-
-            Step.PASSWORD -> {
-                Headline(R.string.login_password_title, null)
-                Text(email, fontSize = 15.sp, color = DesignTokens.Muted)
+            Step.SIGN_IN -> {
+                val canSignIn = looksLikeEmail(email) && password.isNotEmpty() && !busy
+                EmailField(email, onChange = { email = it; error = null }, onDone = { focusManager.moveFocus(FocusDirection.Down) })
                 PasswordField(password, R.string.login_password, onChange = { password = it; error = null }, onDone = {
-                    if (password.isNotEmpty()) run({ auth.signInWithEmail(email, password) })
+                    if (canSignIn) run({ auth.signInWithEmail(email, password) })
                 })
                 ErrorText(error)
+                // Sign-in doesn't say whether an email has an account (that would reveal who uses a
+                // Parkinson's app), so after a failed attempt offer both ways forward.
+                if (error == AuthError.INVALID_CREDENTIALS) NoAccountHint { go(Step.CREATE) }
                 TextButton(
                     enabled = !busy,
                     modifier = Modifier.align(Alignment.Start).offset(x = (-12).dp),
                     onClick = {
-                        run({ auth.sendPasswordReset(email) }) {
-                            checkEmailBody = R.string.login_check_reset; go(Step.CHECK_EMAIL)
+                        if (!looksLikeEmail(email)) {
+                            error = AuthError.INVALID_EMAIL
+                        } else {
+                            run({ auth.sendPasswordReset(email) }) {
+                                checkEmailBody = R.string.login_check_reset; go(Step.CHECK_EMAIL)
+                            }
                         }
                     },
                 ) { Text(stringResource(R.string.login_forgot), color = DesignTokens.SageDeep, fontWeight = FontWeight.SemiBold) }
                 Spacer(Modifier.weight(1f))
-                PrimaryButton(R.string.login_sign_in, enabled = password.isNotEmpty() && !busy) {
+                PrimaryButton(R.string.login_sign_in, enabled = canSignIn) {
                     run({ auth.signInWithEmail(email, password) })
                 }
             }
@@ -144,7 +143,7 @@ fun LoginScreen(auth: AuthRepository, linkError: AuthError?) {
                 Headline(R.string.login_check_title, null)
                 Text(stringResource(checkEmailBody, email), fontSize = 16.sp, color = DesignTokens.Muted, lineHeight = 22.sp)
                 Spacer(Modifier.weight(1f))
-                PrimaryButton(R.string.login_back_to_login, enabled = true) { go(Step.EMAIL) }
+                PrimaryButton(R.string.login_back_to_login, enabled = true) { go(Step.SIGN_IN) }
             }
         }
     }
@@ -173,6 +172,24 @@ fun NewPasswordScreen(auth: AuthRepository) {
                 if (r is AuthResult.Failure) error = r.error
             }
         }
+    }
+}
+
+/** After a failed sign-in: check the email, or create an account with it. */
+@Composable
+private fun NoAccountHint(onCreate: () -> Unit) {
+    Column(
+        Modifier.fillMaxWidth().background(DesignTokens.SageTint, RoundedCornerShape(16.dp)).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Text(stringResource(R.string.login_no_account_hint), fontSize = 14.sp, lineHeight = 19.sp, color = DesignTokens.Ink)
+        OutlinedButton(
+            onClick = onCreate,
+            modifier = Modifier.fillMaxWidth().height(48.dp),
+            shape = RoundedCornerShape(24.dp),
+            border = BorderStroke(1.dp, DesignTokens.SageDeep),
+            colors = ButtonDefaults.outlinedButtonColors(containerColor = DesignTokens.Surface, contentColor = DesignTokens.SageDeep),
+        ) { Text(stringResource(R.string.login_create_account_button), fontSize = 15.sp, fontWeight = FontWeight.SemiBold) }
     }
 }
 

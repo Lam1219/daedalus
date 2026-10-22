@@ -9,8 +9,11 @@ import java.io.File
 import kotlin.coroutines.resume
 
 /**
- * Manages session synchronization between watch and phone via Wear OS ChannelClient API.
- * Uses direct file streaming which is more reliable than message-based transfer.
+ * Sends finished session files from the watch to the phone, one file at a time: a ChannelClient
+ * stream (any size), then a single message for small files if the phone hasn't confirmed. A file
+ * is deleted from the watch only once the phone acknowledges that it saved it (/session/ack);
+ * otherwise it stays for the next sync. Data Layer items are not used (they kept full copies of
+ * the CSV on both devices forever); old ones are deleted.
  */
 class SessionSyncManager(private val context: Context) {
 
@@ -27,6 +30,19 @@ class SessionSyncManager(private val context: Context) {
     companion object {
         const val CHANNEL_PATH = "/session/file"
         const val CONTROL_PATH = "/session/control"
+        /** Files being sent right now, shared by every instance, so no file is sent twice at once. */
+        private val inFlight: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet()
+        /** Message payloads above this go by channel only. */
+        private const val MESSAGE_LIMIT = 90_000
+        const val ACK_PATH = "/session/ack"
+        /** How long to wait for the phone to confirm each attempt. */
+        private const val ACK_TIMEOUT_MS = 15_000L
+        private val acks = java.util.concurrent.ConcurrentHashMap<String, CompletableDeferred<Unit>>()
+
+        /** Called by WatchMessageListener when the phone confirms it saved [fileName]. */
+        fun onAck(fileName: String) {
+            acks[fileName]?.complete(Unit)
+        }
     }
 
     /** Notify phone that a session has started */
@@ -49,6 +65,7 @@ class SessionSyncManager(private val context: Context) {
     /** Sync all pending session files in local sessions directory to phone */
     fun syncAllPendingFiles() {
         scope.launch {
+            deleteOldDataItems()
             val sessionsDir = File(context.filesDir, "sessions")
             if (!sessionsDir.exists()) return@launch
 
@@ -83,60 +100,40 @@ class SessionSyncManager(private val context: Context) {
             Log.e("SessionSync", "File does not exist: ${csvFile.name}")
             return
         }
+        // Another sender (app screen, service, retry) already has this file.
+        if (!inFlight.add(csvFile.name)) return
 
         try {
             val fileBytes = csvFile.readBytes()
             var transferSuccess = false
-
-            // 1. Primary: DataClient PutDataMapRequest (synchronizes via Wear OS DataLayer)
-            try {
-                val putDataMapReq = PutDataMapRequest.create("/session/${csvFile.name}").apply {
-                    dataMap.putString("mode", mode)
-                    dataMap.putString("fileName", csvFile.name)
-                    dataMap.putByteArray("fileData", fileBytes)
-                    dataMap.putLong("timestamp", System.currentTimeMillis())
-                }
-                val putDataReq = putDataMapReq.asPutDataRequest().setUrgent()
-                dataClient.putDataItem(putDataReq).await()
-                Log.i("SessionSync", "DataClient transfer succeeded for ${csvFile.name}")
-                transferSuccess = true
-            } catch (e: Exception) {
-                Log.w("SessionSync", "DataClient transfer failed for ${csvFile.name}: ${e.message}")
+            val phoneNode = nodeClient.connectedNodes.await().firstOrNull()
+            if (phoneNode == null) {
+                Log.w("SessionSync", "No phone connected — keeping ${csvFile.name} for later")
+                return
             }
 
-            // 2. MessageClient API (Direct payload message)
-            try {
-                val nodes = nodeClient.connectedNodes.await()
-                if (nodes.isNotEmpty()) {
-                    val phoneNode = nodes.first()
-                    val header = "$mode|${csvFile.name}|${fileBytes.size}|".toByteArray(Charsets.UTF_8)
-                    val payload = header + fileBytes
-                    messageClient.sendMessage(phoneNode.id, "/session/file", payload).await()
-                    Log.i("SessionSync", "MessageClient transfer succeeded for ${csvFile.name}")
-                    transferSuccess = true
-                }
-            } catch (e: Exception) {
-                Log.w("SessionSync", "MessageClient transfer failed for ${csvFile.name}: ${e.message}")
-            }
+            val ack = CompletableDeferred<Unit>().also { acks[csvFile.name] = it }
 
-            // 3. ChannelClient API Stream Fallback
-            if (!transferSuccess) {
+            // 1. ChannelClient stream: works for any size.
+            try {
+                val channel = channelClient.openChannel(phoneNode.id, "$CHANNEL_PATH/${csvFile.name}").await()
+                channelClient.getOutputStream(channel).await().use { it.write(fileBytes); it.flush() }
+                channelClient.close(channel).await()
+                Log.i("SessionSync", "ChannelClient sent ${csvFile.name}, waiting for the phone")
+            } catch (e: Exception) {
+                Log.w("SessionSync", "ChannelClient transfer failed for ${csvFile.name}: ${e.message}")
+            }
+            transferSuccess = withTimeoutOrNull(ACK_TIMEOUT_MS) { ack.await() } != null
+
+            // 2. Small files only: one message, if the phone hasn't confirmed the channel copy.
+            if (!transferSuccess && fileBytes.size <= MESSAGE_LIMIT) {
                 try {
-                    val nodes = nodeClient.connectedNodes.await()
-                    if (nodes.isNotEmpty()) {
-                        val phoneNode = nodes.first()
-                        val channelPath = "$CHANNEL_PATH/${csvFile.name}"
-                        val channel = channelClient.openChannel(phoneNode.id, channelPath).await()
-                        val outputStream = channelClient.getOutputStream(channel).await()
-                        outputStream.write(fileBytes)
-                        outputStream.flush()
-                        outputStream.close()
-                        channelClient.close(channel).await()
-                        Log.i("SessionSync", "ChannelClient transfer succeeded for ${csvFile.name}")
-                        transferSuccess = true
-                    }
+                    val header = "$mode|${csvFile.name}|${fileBytes.size}|".toByteArray(Charsets.UTF_8)
+                    messageClient.sendMessage(phoneNode.id, "/session/file", header + fileBytes).await()
+                    Log.i("SessionSync", "MessageClient sent ${csvFile.name}, waiting for the phone")
+                    transferSuccess = withTimeoutOrNull(ACK_TIMEOUT_MS) { ack.await() } != null
                 } catch (e: Exception) {
-                    Log.w("SessionSync", "ChannelClient transfer failed for ${csvFile.name}: ${e.message}")
+                    Log.w("SessionSync", "MessageClient transfer failed for ${csvFile.name}: ${e.message}")
                 }
             }
 
@@ -152,11 +149,23 @@ class SessionSyncManager(private val context: Context) {
                     messageClient.sendMessage(node.id, CONTROL_PATH, message)
                 }
             } else {
-                Log.e("SessionSync", "All transfer methods failed for ${csvFile.name} — keeping file for retry")
+                Log.e("SessionSync", "Phone didn't confirm ${csvFile.name} — keeping it on the watch for the next sync")
             }
 
         } catch (e: Exception) {
             Log.e("SessionSync", "File transfer error for ${csvFile.name}: ${e.message}", e)
+        } finally {
+            acks.remove(csvFile.name)
+            inFlight.remove(csvFile.name)
+        }
+    }
+
+    /** Removes session copies left in the Data Layer by earlier versions (they held the full CSV). */
+    private suspend fun deleteOldDataItems() {
+        try {
+            dataClient.deleteDataItems(android.net.Uri.parse("wear://*/session/"), DataClient.FILTER_PREFIX).await()
+        } catch (e: Exception) {
+            Log.w("SessionSync", "Couldn't delete old Data Layer items: ${e.message}")
         }
     }
 }

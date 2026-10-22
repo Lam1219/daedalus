@@ -65,7 +65,8 @@ targets:
         CODE_SIGN_STYLE: Automatic
         GENERATE_INFOPLIST_FILE: NO
         LOCALIZATION_PREFERS_STRING_CATALOGS: YES
-        SWIFT_EMIT_LOC_STRINGS: YES
+        # Keys are managed by tools/make_strings.py; stop Xcode adding extracted entries.
+        SWIFT_EMIT_LOC_STRINGS: NO
     preBuildScripts:
       - name: Supabase settings
         basedOnDependencyAnalysis: false
@@ -110,4 +111,5 @@ targets:
         CODE_SIGN_STYLE: Automatic
         GENERATE_INFOPLIST_FILE: NO
         LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+        SWIFT_EMIT_LOC_STRINGS: NO
         SKIP_INSTALL: YES

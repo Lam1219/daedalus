@@ -220,7 +220,7 @@
     <string name="data_promise_owned">Vos données vous appartiennent.</string>
     <string name="data_promise_short">Vos données vous appartiennent et ne sont jamais vendues à des tiers.</string>
     <string name="data_research_title">Utiliser mes données pour la recherche</string>
-    <string name="data_research_signup_sub">Sans votre nom ni votre courriel, pour étudier le Parkinson et améliorer Daedalus. Désactivez pour refuser, maintenant ou plus tard dans Profil.</string>
+    <string name="data_research_signup_sub">Aidez la recherche sur le Parkinson : partagez vos données sans votre nom ni votre courriel. Vous pouvez changer d’avis à tout moment dans Profil.</string>
     <string name="data_research_profile_sub">Sans votre nom ni votre courriel, pour étudier le Parkinson et améliorer Daedalus. Désactivez pour refuser.</string>
     <string name="data_research_unavailable">Connectez-vous à Internet pour voir ou modifier ce choix.</string>
     <string name="data_research_failed">Impossible d’enregistrer votre choix. Vérifiez votre connexion et réessayez.</string>
@@ -233,6 +233,8 @@
     <string name="login_reset_save">Enregistrer le mot de passe</string>
     <string name="login_err_not_configured">La connexion n’est pas encore configurée dans cette version.</string>
     <string name="login_err_credentials">Courriel ou mot de passe incorrect.</string>
+    <string name="login_no_account_hint">Vérifiez que votre courriel est bien écrit. Nouveau sur Daedalus ? Créez un compte avec ce courriel.</string>
+    <string name="login_create_account_button">Créer un compte</string>
     <string name="login_err_not_confirmed">Confirmez d’abord votre adresse courriel, puis connectez-vous.</string>
     <string name="login_err_exists">Un compte existe déjà avec ce courriel. Connectez-vous plutôt.</string>
     <string name="login_err_weak">Choisissez un mot de passe plus robuste (au moins 8 caractères).</string>
@@ -334,4 +336,19 @@
     <string name="data_delete_all_done">Vos données ont été supprimées.</string>
     <string name="data_delete_button">Supprimer</string>
     <string name="data_delete_failed">Rien n’a été supprimé : le compte est inaccessible. Vérifiez votre connexion et réessayez.</string>
+
+    <!-- Account ownership, sign-out and account deletion -->
+    <string name="keep_data_title">Données sur ce téléphone</string>
+    <string name="keep_data_guest">Ce téléphone contient des données enregistrées sans compte. Voulez-vous les ajouter à votre compte ou les supprimer de ce téléphone ?</string>
+    <string name="keep_data_other">Ce téléphone contient des données d’un autre compte. Pour les garder, déconnectez-vous et connectez-vous à ce compte. Sinon, supprimez-les de ce téléphone pour continuer.</string>
+    <string name="keep_data_add">Ajouter à mon compte</string>
+    <string name="keep_data_delete">Supprimer de ce téléphone</string>
+    <string name="keep_data_delete_confirm">Les prises, bilans, heures de prise et enregistrements de séance de ce téléphone seront supprimés définitivement.</string>
+    <string name="account_sign_out_title">Se déconnecter ?</string>
+    <string name="account_sign_out_backed_up">Tout est enregistré dans votre compte. Vos données seront retirées de ce téléphone et reviendront à votre prochaine connexion.</string>
+    <string name="account_sign_out_not_backed_up">Certaines de vos données ne sont pas enregistrées dans votre compte (sauvegarde désactivée ou pas de connexion). Si vous vous déconnectez maintenant, elles seront supprimées de ce téléphone.</string>
+    <string name="data_delete_account_title">Supprimer mon compte</string>
+    <string name="data_delete_account_sub">Supprime votre compte, tout ce qui y est enregistré et vos données sur ce téléphone.</string>
+    <string name="data_delete_account_confirm">Votre compte et toutes vos données, sur ce téléphone et dans votre compte, seront supprimés définitivement. Vous devrez créer un nouveau compte pour utiliser Daedalus avec un compte. Cette action est irréversible.</string>
+    <string name="data_delete_account_button">Supprimer le compte</string>
 </resources>

@@ -204,7 +204,8 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     }
 
     private fun stopCue() {
-        if (HapticService.isServiceRunning) stopService(Intent(this, HapticService::class.java))
+        // ACTION_STOP (not stopService): the service stays in the foreground until the file is sent.
+        if (HapticService.isServiceRunning) startService(Intent(this, HapticService::class.java).setAction(HapticService.ACTION_STOP))
     }
 
     private fun checkAndRequestPermissions() {

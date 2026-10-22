@@ -62,13 +62,14 @@ class MainActivity : AppCompatActivity() {
         handleAuthCallback(intent)
     }
 
-    /** daedalus://auth-callback#… from a confirmation or password-reset email. */
+    /** daedalus://auth-callback?code=… from a confirmation or password-reset email. */
     private fun handleAuthCallback(intent: Intent?) {
         val uri = intent?.data ?: return
         if (uri.scheme != "daedalus" || uri.host != "auth-callback") return
         val auth = (application as DaedalusApplication).auth
         lifecycleScope.launch {
-            val result = auth.handleCallback(uri)
+            // Links this phone didn't ask for return null and are ignored.
+            val result = auth.handleCallback(uri) ?: return@launch
             callbackError = (result as? AuthResult.Failure)?.error
         }
     }

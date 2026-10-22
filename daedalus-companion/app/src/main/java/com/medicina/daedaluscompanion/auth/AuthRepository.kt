@@ -1,6 +1,7 @@
 package com.medicina.daedaluscompanion.auth
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.net.Uri
 import android.util.Base64
 import android.util.Log
@@ -16,6 +17,8 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
+import java.security.MessageDigest
+import java.security.SecureRandom
 
 private const val TAG = "Auth"
 
@@ -48,19 +51,37 @@ sealed interface AuthResult {
  * plus the user's research-analysis consent (`consents` table).
  *
  * The session is kept in encrypted preferences and refreshed when it expires. The app only holds the project URL and anon key.
+ * Email links use PKCE: they only complete on the phone that asked for them (it holds the code
+ * verifier), so a link from anyone else can't sign this phone in.
  */
 class AuthRepository(context: Context) {
     private val baseUrl = BuildConfig.SUPABASE_URL.trimEnd('/')
     private val anonKey = BuildConfig.SUPABASE_ANON_KEY
     val isConfigured = baseUrl.isNotBlank() && anonKey.isNotBlank()
 
-    private val prefs = EncryptedSharedPreferences.create(
-        "daedalus_auth",
-        MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC),
-        context.applicationContext,
-        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
-    )
+    private val prefs = openPrefs(context.applicationContext)
+
+    /**
+     * The encrypted session store. If it can't be opened (e.g. the file came from another device
+     * without its Keystore key), it's deleted and recreated: the person signs in again instead of
+     * the app crashing at every launch.
+     */
+    private fun openPrefs(context: Context): SharedPreferences {
+        fun open() = EncryptedSharedPreferences.create(
+            PREFS_FILE,
+            MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC),
+            context,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+        )
+        return try {
+            open()
+        } catch (e: Exception) {
+            Log.w(TAG, "Session store unreadable, starting fresh: ${e.javaClass.simpleName}")
+            context.deleteSharedPreferences(PREFS_FILE)
+            open()
+        }
+    }
 
     private val _state = MutableStateFlow<AuthState>(AuthState.Loading)
     val state: StateFlow<AuthState> = _state.asStateFlow()
@@ -88,24 +109,33 @@ class AuthRepository(context: Context) {
     /** [analysisOptOut] is the sign-up screen's research choice; the server stores it in `consents`. */
     suspend fun signUpWithEmail(email: String, password: String, analysisOptOut: Boolean): AuthResult {
         if (!isConfigured) return AuthResult.Failure(AuthError.NOT_CONFIGURED)
+        val verifier = newCodeVerifier()
         val (code, body) = post(
             "/auth/v1/signup?redirect_to=${enc(REDIRECT)}",
-            JSONObject().put("email", email).put("password", password)
-                .put("data", JSONObject().put("analysis_opt_out", analysisOptOut)),
+            withChallenge(
+                JSONObject().put("email", email).put("password", password)
+                    .put("data", JSONObject().put("analysis_opt_out", analysisOptOut)),
+                verifier,
+            ),
         )
             ?: return AuthResult.Failure(AuthError.NETWORK)
         if (code !in 200..299) return AuthResult.Failure(mapError(body))
         // With "Confirm email" on (the default), sign-up returns the user but no session.
         return if (body.has("access_token")) {
             saveSession(body, METHOD_EMAIL); AuthResult.Success
-        } else AuthResult.ConfirmEmail
+        } else {
+            setPendingLink(LINK_SIGNUP, verifier); AuthResult.ConfirmEmail
+        }
     }
 
     suspend fun sendPasswordReset(email: String): AuthResult {
         if (!isConfigured) return AuthResult.Failure(AuthError.NOT_CONFIGURED)
-        val (code, body) = post("/auth/v1/recover?redirect_to=${enc(REDIRECT)}", JSONObject().put("email", email))
+        val verifier = newCodeVerifier()
+        val (code, body) = post("/auth/v1/recover?redirect_to=${enc(REDIRECT)}", withChallenge(JSONObject().put("email", email), verifier))
             ?: return AuthResult.Failure(AuthError.NETWORK)
-        return if (code in 200..299) AuthResult.Success else AuthResult.Failure(mapError(body))
+        if (code !in 200..299) return AuthResult.Failure(mapError(body))
+        setPendingLink(LINK_RECOVERY, verifier)
+        return AuthResult.Success
     }
 
     /** Sets a new password for the signed-in user (after opening a reset link). */
@@ -119,25 +149,56 @@ class AuthRepository(context: Context) {
     }
 
     /**
-     * Handles daedalus://auth-callback#access_token=…&refresh_token=…&type=signup|recovery
-     * from a confirmation or password-reset email (or #error=… when the link expired).
+     * Handles daedalus://auth-callback?code=… from a confirmation or password-reset email that this
+     * phone asked for (or ?error=… when the link expired). Returns null for any other link, which
+     * is ignored; a signed-in account is never replaced by a link.
      */
-    suspend fun handleCallback(uri: Uri): AuthResult {
-        val params = Uri.parse("x://x?" + (uri.encodedFragment ?: uri.encodedQuery ?: ""))
+    suspend fun handleCallback(uri: Uri): AuthResult? {
+        val pending = pendingLink() ?: return null
+        val (type, verifier) = pending
+        if (_state.value is AuthState.SignedIn && type != LINK_RECOVERY) return null
+        val params = Uri.parse("x://x?" + (uri.encodedQuery ?: uri.encodedFragment ?: ""))
         if (params.getQueryParameter("error") != null) {
             Log.w(TAG, "Email link error: ${params.getQueryParameter("error_description")}")
             return AuthResult.Failure(AuthError.LINK_EXPIRED)
         }
-        val access = params.getQueryParameter("access_token") ?: return AuthResult.Failure(AuthError.UNKNOWN)
-        val refresh = params.getQueryParameter("refresh_token") ?: return AuthResult.Failure(AuthError.UNKNOWN)
-        val expiresIn = params.getQueryParameter("expires_in")?.toLongOrNull() ?: 3600
-        val user = request("GET", "/auth/v1/user", null, bearer = access)?.second
-        saveSession(
-            JSONObject().put("access_token", access).put("refresh_token", refresh).put("expires_in", expiresIn).put("user", user ?: JSONObject()),
-            METHOD_EMAIL,
-        )
-        if (params.getQueryParameter("type") == "recovery") _state.value = AuthState.SettingNewPassword
+        val authCode = params.getQueryParameter("code") ?: return null
+        val (code, body) = post("/auth/v1/token?grant_type=pkce", JSONObject().put("auth_code", authCode).put("code_verifier", verifier))
+            ?: return AuthResult.Failure(AuthError.NETWORK)
+        if (code !in 200..299) return AuthResult.Failure(AuthError.LINK_EXPIRED)
+        setPendingLink(null, null)
+        saveSession(body, METHOD_EMAIL)
+        if (type == LINK_RECOVERY) _state.value = AuthState.SettingNewPassword
         return AuthResult.Success
+    }
+
+    // --- Email links this phone is waiting for (PKCE) ---
+
+    /** (type, code verifier) of the email link asked for in the last day, if any. */
+    private fun pendingLink(): Pair<String, String>? {
+        val at = prefs.getLong(KEY_PENDING_AT, 0)
+        if (System.currentTimeMillis() - at > 24 * 3600_000L) return null
+        val type = prefs.getString(KEY_PENDING_TYPE, null) ?: return null
+        val verifier = prefs.getString(KEY_PENDING_VERIFIER, null) ?: return null
+        return type to verifier
+    }
+
+    private fun setPendingLink(type: String?, verifier: String?) {
+        prefs.edit().apply {
+            if (type == null) remove(KEY_PENDING_TYPE).remove(KEY_PENDING_VERIFIER).remove(KEY_PENDING_AT)
+            else putString(KEY_PENDING_TYPE, type).putString(KEY_PENDING_VERIFIER, verifier).putLong(KEY_PENDING_AT, System.currentTimeMillis())
+        }.apply()
+    }
+
+    private fun newCodeVerifier(): String {
+        val bytes = ByteArray(32).also { SecureRandom().nextBytes(it) }
+        return Base64.encodeToString(bytes, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)
+    }
+
+    private fun withChallenge(body: JSONObject, verifier: String): JSONObject {
+        val hash = MessageDigest.getInstance("SHA-256").digest(verifier.toByteArray(Charsets.US_ASCII))
+        return body.put("code_challenge", Base64.encodeToString(hash, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP))
+            .put("code_challenge_method", "s256")
     }
 
     // --- Consent ---
@@ -216,6 +277,9 @@ class AuthRepository(context: Context) {
 
     /** The signed-in user's ID, or null when signed out / offline. */
     suspend fun userId(): String? = accessToken()?.let(::userIdFrom)
+
+    /** The signed-in user's ID from the saved session, without a network call. */
+    fun currentUserId(): String? = prefs.getString(KEY_ACCESS, null)?.let(::userIdFrom)
 
     /** The user's ID (the `sub` claim) from a Supabase access token. */
     private fun userIdFrom(token: String): String? = runCatching {
@@ -348,5 +412,11 @@ class AuthRepository(context: Context) {
         private const val KEY_EMAIL = "email"
         private const val KEY_METHOD = "method"
         private const val KEY_GUEST = "guest"
+        private const val KEY_PENDING_TYPE = "pending_link"
+        private const val KEY_PENDING_VERIFIER = "pending_verifier"
+        private const val KEY_PENDING_AT = "pending_at"
+        private const val LINK_SIGNUP = "signup"
+        private const val LINK_RECOVERY = "recovery"
+        private const val PREFS_FILE = "daedalus_auth"
     }
 }

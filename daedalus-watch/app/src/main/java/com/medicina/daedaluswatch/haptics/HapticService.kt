@@ -129,8 +129,8 @@ class HapticService : Service() {
             ACTION_START -> {
                 val mode = intent.getStringExtra(EXTRA_MODE) ?: "unknown"
                 var bpm = intent.getIntExtra(EXTRA_BPM, 80)
-                // Breathe mode is breaths per minute; an old pulse rate (e.g. 70) falls back to 6.
-                if (mode == "rest" && bpm !in 3..15) bpm = 6
+                // Breathe mode is breaths per minute (6–20, as on the phones); an old pulse rate (e.g. 70) falls back to 6.
+                if (mode == "rest" && bpm !in 6..20) bpm = 6
                 startForegroundService(bpm, mode)
             }
             ACTION_STOP -> {
@@ -149,6 +149,8 @@ class HapticService : Service() {
 
     private fun startForegroundService(bpm: Int, mode: String) {
         if (isRunning) return
+        // A stop that is still sending the previous file must not end this new cue.
+        stopGeneration++
         currentBpm = bpm
         currentMode = mode
         isRunning = true
@@ -173,7 +175,8 @@ class HapticService : Service() {
             }
         }
 
-        // Acquire wake lock (1 hour to prevent doze mode)
+        // Acquire wake lock (1 hour to prevent doze mode), releasing one left by the previous cue.
+        wakeLock?.let { if (it.isHeld) it.release() }
         wakeLock = (getSystemService(Context.POWER_SERVICE) as PowerManager)
             .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Daedalus:HapticWakeLock")
             .apply { acquire(60 * 60 * 1000L) }
@@ -404,11 +407,17 @@ class HapticService : Service() {
         }
     }
 
-    private val stopFinalized = java.util.concurrent.atomic.AtomicBoolean(false)
+    /**
+     * Incremented on every start and stop. A stop finishes (releases the wake lock, leaves the
+     * foreground, stops the service) only if nothing started or stopped since — so restarting a
+     * cue while the previous file is still being sent doesn't end the new cue.
+     */
+    @Volatile private var stopGeneration = 0
 
     private fun stopService() {
         Log.i("HapticService", "Stopping service. isRunning=$isRunning, sessionFile=${sessionFile?.name}")
         if (!isRunning && !isServiceRunning) return
+        val generation = ++stopGeneration
         isRunning = false
         isServiceRunning = false
         runningMode = null
@@ -438,19 +447,22 @@ class HapticService : Service() {
             val fileSize = file.length()
             Log.i("HapticService", "Session file exists: ${file.name}, size: $fileSize bytes")
             Log.i("HapticService", "Sending file to phone: ${file.name}")
-            sessionSyncManager?.transferAndPurgeFile(file, currentMode) { finishStopping() }
+            sessionSyncManager?.transferAndPurgeFile(file, currentMode) { finishStopping(generation) }
             Log.i("HapticService", "File transfer initiated")
-            // Safety net in case the transfer hangs and never calls back.
-            android.os.Handler(mainLooper).postDelayed({ finishStopping() }, 15_000L)
+            // Safety net in case the transfer hangs and never calls back (two attempts of 15 s each).
+            android.os.Handler(mainLooper).postDelayed({ finishStopping(generation) }, 40_000L)
         } else {
             Log.e("HapticService", "sessionFile is null or does not exist: ${file?.absolutePath}")
-            finishStopping()
+            finishStopping(generation)
         }
     }
 
-    private fun finishStopping() {
-        if (!stopFinalized.compareAndSet(false, true)) return
-        wakeLock?.release()
+    @Synchronized
+    private fun finishStopping(generation: Int) {
+        // Stale (a new cue started, or this stop already finished): leave the service alone.
+        if (generation != stopGeneration || isRunning) return
+        stopGeneration++
+        wakeLock?.let { if (it.isHeld) it.release() }
         wakeLock = null
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()

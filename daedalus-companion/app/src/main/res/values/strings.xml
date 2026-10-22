@@ -204,7 +204,7 @@
     <string name="login_show_password">Show password</string>
     <string name="login_hide_password">Hide password</string>
     <string name="login_forgot">Forgot password?</string>
-    <string name="login_sign_in">Log in</string>
+    <string name="login_sign_in">Sign in</string>
     <string name="login_create_title">Create your account</string>
     <string name="login_create_subtitle">Use your email to create your account.</string>
     <string name="login_new_password">New password</string>
@@ -216,21 +216,23 @@
     <string name="data_promise_owned">Your data belongs to you.</string>
     <string name="data_promise_short">Your data belongs to you and is never sold to third parties.</string>
     <string name="data_research_title">Use my data for research</string>
-    <string name="data_research_signup_sub">Without your name or email, to study Parkinson’s and improve Daedalus. Turn off to opt out, now or later in Profile.</string>
+    <string name="data_research_signup_sub">Help research on Parkinson’s: share your data without your name or email. You can change this anytime in Profile.</string>
     <string name="data_research_profile_sub">Without your name or email, to study Parkinson’s and improve Daedalus. Turn off to opt out.</string>
     <string name="data_research_unavailable">Connect to the internet to see or change this choice.</string>
     <string name="data_research_failed">Couldn’t save your choice. Check your connection and try again.</string>
     <string name="login_check_title">Check your email</string>
     <string name="login_check_reset">We sent a link to %1$s. Open it on this phone to choose a new password.</string>
     <string name="login_check_confirm">We sent a link to %1$s. Open it on this phone to confirm your account.</string>
-    <string name="login_back_to_login">Back to log in</string>
+    <string name="login_back_to_login">Back to sign in</string>
     <string name="login_reset_title">Choose a new password</string>
-    <string name="login_reset_subtitle">You’ll use it next time you log in with email.</string>
+    <string name="login_reset_subtitle">You’ll use it next time you sign in with email.</string>
     <string name="login_reset_save">Save password</string>
     <string name="login_err_not_configured">Sign-in isn’t set up in this build yet.</string>
     <string name="login_err_credentials">Email or password is incorrect.</string>
-    <string name="login_err_not_confirmed">Confirm your email address first, then log in.</string>
-    <string name="login_err_exists">An account with this email already exists. Log in instead.</string>
+    <string name="login_no_account_hint">Check that your email is typed correctly. New to Daedalus? Create an account with this email.</string>
+    <string name="login_create_account_button">Create an account</string>
+    <string name="login_err_not_confirmed">Confirm your email address first, then sign in.</string>
+    <string name="login_err_exists">An account with this email already exists. Sign in instead.</string>
     <string name="login_err_weak">Choose a stronger password (at least 8 characters).</string>
     <string name="login_err_email">Enter a valid email address.</string>
     <string name="login_err_link_expired">That link has expired. Request a new one.</string>
@@ -330,4 +332,19 @@
     <string name="data_delete_all_done">Your data was deleted.</string>
     <string name="data_delete_button">Delete</string>
     <string name="data_delete_failed">Nothing was deleted: the account couldn’t be reached. Check your connection and try again.</string>
+
+    <!-- Account ownership, sign-out and account deletion -->
+    <string name="keep_data_title">Data on this phone</string>
+    <string name="keep_data_guest">This phone has data you recorded without an account. Add it to your account, or delete it from this phone?</string>
+    <string name="keep_data_other">This phone has data from another account. To keep it, sign out and sign in to that account. Otherwise, delete it from this phone to continue.</string>
+    <string name="keep_data_add">Add to my account</string>
+    <string name="keep_data_delete">Delete from this phone</string>
+    <string name="keep_data_delete_confirm">Doses, check-ins, dose times and session recordings on this phone will be permanently deleted.</string>
+    <string name="account_sign_out_title">Sign out?</string>
+    <string name="account_sign_out_backed_up">Everything is saved in your account. Your data will be removed from this phone and comes back when you sign in again.</string>
+    <string name="account_sign_out_not_backed_up">Some of your data isn’t saved in your account (backup is off or you’re offline). If you sign out now, it will be deleted from this phone.</string>
+    <string name="data_delete_account_title">Delete my account</string>
+    <string name="data_delete_account_sub">Deletes your account, everything saved in it and your data on this phone.</string>
+    <string name="data_delete_account_confirm">Your account and all your data, on this phone and in your account, will be permanently deleted. You’ll need to create a new account to use Daedalus with an account again. This can’t be undone.</string>
+    <string name="data_delete_account_button">Delete account</string>
 </resources>

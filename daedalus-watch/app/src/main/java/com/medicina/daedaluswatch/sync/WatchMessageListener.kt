@@ -22,6 +22,11 @@ class WatchMessageListener : WearableListenerService() {
     override fun onMessageReceived(messageEvent: MessageEvent) {
         Log.i(TAG, "Message received from phone: path=${messageEvent.path}, size=${messageEvent.data.size}")
 
+        if (messageEvent.path == SessionSyncManager.ACK_PATH) {
+            // The phone saved this session file; the watch can delete its copy.
+            SessionSyncManager.onAck(String(messageEvent.data, Charsets.UTF_8))
+            return
+        }
         if (messageEvent.path == "/session/control") {
             val dataStr = String(messageEvent.data, Charsets.UTF_8)
             Log.i(TAG, "Received CONTROL command from phone: $dataStr")
