@@ -75,7 +75,7 @@
 /* Begin PBXFileReference section */
 		0F5401E8E6F4E13365D53753 /* PhoneLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneLink.swift; sourceTree = "<group>"; };
 		10A7CD730672C40D09C58F0D /* LoginFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginFlow.swift; sourceTree = "<group>"; };
-		1710CA52690E77273A6925F1 /* Daedalus.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Daedalus.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1710CA52690E77273A6925F1 /* Daedalus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Daedalus.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		25F06693D2BF6B4001975D85 /* DataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataView.swift; sourceTree = "<group>"; };
 		267DD789F692A1D3E17C0687 /* ProfileSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSetup.swift; sourceTree = "<group>"; };
 		2B8C0E85CA17A183E43C3D4B /* SupabaseConfig.generated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.generated.swift; sourceTree = "<group>"; };
@@ -105,7 +105,7 @@
 		A0C5976F2BE265F97C2454DD /* AuthStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthStore.swift; sourceTree = "<group>"; };
 		A63F4925B0072B7FDF98E883 /* CuesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CuesView.swift; sourceTree = "<group>"; };
 		B0F91B77F0B357FB846209A9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		B3E37B717F3BC2446F43FC72 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		B3E37B717F3BC2446F43FC72 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		BE84C1953F000FC5BE1558CF /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
 		C7733875C0BFF73204F9F8B8 /* CueScreens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CueScreens.swift; sourceTree = "<group>"; };
 		C777DC18C33DC287833A4911 /* HealthData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthData.swift; sourceTree = "<group>"; };
@@ -114,7 +114,7 @@
 		DDFBE00D91B272086D0E0E14 /* Design.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Design.swift; sourceTree = "<group>"; };
 		EE98915962602BDAFA647BC6 /* MedScheduleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedScheduleView.swift; sourceTree = "<group>"; };
 		F557102433200564ED36EE3C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		F6991CEFC4079337D956D00F /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		F6991CEFC4079337D956D00F /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -550,6 +550,7 @@
 				CODE_SIGN_ENTITLEMENTS = Daedalus/Resources/Daedalus.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = SFQ29D84T9;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Daedalus/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -571,6 +572,7 @@
 				CODE_SIGN_ENTITLEMENTS = Daedalus/Resources/Daedalus.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = SFQ29D84T9;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Daedalus/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -591,6 +593,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = DaedalusWatch/Resources/DaedalusWatch.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = SFQ29D84T9;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = DaedalusWatch/Resources/Info.plist;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
@@ -608,6 +611,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = DaedalusWatch/Resources/DaedalusWatch.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = SFQ29D84T9;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = DaedalusWatch/Resources/Info.plist;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
