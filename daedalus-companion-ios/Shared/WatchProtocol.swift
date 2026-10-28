@@ -27,7 +27,7 @@ enum WatchKey {
 
 /// Cue modes and their default rates (same ids as the Android apps and Supabase).
 enum CueDefaults {
-    static let rates: [String: Int] = ["walking": 80, "rest": 6, "writing": 90, "stress": 60]
+    static let rates: [String: Int] = ["walking": 40, "rest": 6, "writing": 90, "stress": 60]
 
     /// The workout type the iPhone launches the watch app with for each mode. It doubles as a
     /// backup way to tell the watch the mode, in case the application context arrives late.

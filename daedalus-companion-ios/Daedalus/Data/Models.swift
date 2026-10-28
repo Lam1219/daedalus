@@ -120,7 +120,7 @@ struct CueMode: Identifiable, Hashable {
     var step: Int { isBreathing ? 1 : 10 }
 
     static let all = [
-        CueMode(id: "walking", labelKey: "mode_walk", descKey: "mode_walk_desc", icon: "figure.walk", defaultRate: 80),
+        CueMode(id: "walking", labelKey: "mode_walk", descKey: "mode_walk_desc", icon: "figure.walk", defaultRate: 40),
         CueMode(id: "rest", labelKey: "mode_rest", descKey: "mode_rest_desc", icon: "wind", defaultRate: 6),
         CueMode(id: "writing", labelKey: "mode_fine", descKey: "mode_fine_desc", icon: "pencil", defaultRate: 90),
         CueMode(id: "stress", labelKey: "mode_calm", descKey: "mode_calm_desc", icon: "water.waves", defaultRate: 60),

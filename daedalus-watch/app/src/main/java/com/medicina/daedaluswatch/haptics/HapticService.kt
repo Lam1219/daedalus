@@ -129,7 +129,7 @@ class HapticService : Service() {
         when (intent?.action) {
             ACTION_START -> {
                 val mode = intent.getStringExtra(EXTRA_MODE) ?: "unknown"
-                var bpm = intent.getIntExtra(EXTRA_BPM, 80)
+                var bpm = intent.getIntExtra(EXTRA_BPM, CueRates.get(this, mode))
                 // Breathe mode is breaths per minute (6–20, as on the phones); an old pulse rate (e.g. 70) falls back to 6.
                 if (mode == "rest" && bpm !in 6..20) bpm = 6
                 startForegroundService(bpm, mode)
