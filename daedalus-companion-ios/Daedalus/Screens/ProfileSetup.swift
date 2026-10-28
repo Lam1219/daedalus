@@ -292,14 +292,14 @@ struct ChoiceCard: View {
                 Spacer()
                 ZStack {
                     Circle().fill(selected ? DS.sageDeep : DS.surface)
-                    Circle().stroke(selected ? DS.sageDeep : DS.sageLine, lineWidth: 1.5)
+                    Circle().stroke(selected ? DS.sageDeep : DS.outline, lineWidth: 1.5)
                     if selected { Image(systemName: "checkmark").font(.system(size: 11, weight: .bold)).foregroundStyle(.white) }
                 }
                 .frame(width: 22, height: 22)
             }
             .padding(.horizontal, 18).padding(.vertical, 16)
             .background(selected ? DS.sageTint : DS.surface, in: RoundedRectangle(cornerRadius: 16))
-            .overlay(RoundedRectangle(cornerRadius: 16).stroke(selected ? DS.sageDeep : DS.switchOff, lineWidth: selected ? 1.5 : 1))
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(selected ? DS.sageDeep : DS.outline, lineWidth: selected ? 1.5 : 1))
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(selected ? .isSelected : [])
@@ -314,7 +314,7 @@ struct CheckRow: View {
         Button(action: action) {
             HStack(spacing: 12) {
                 Image(systemName: checked ? "checkmark.square.fill" : "square")
-                    .font(.system(size: 22)).foregroundStyle(checked ? DS.sageDeep : DS.sageLine)
+                    .font(.system(size: 22)).foregroundStyle(checked ? DS.sageDeep : DS.outline)
                 Text(title).font(DS.font(15)).foregroundStyle(DS.ink).multilineTextAlignment(.leading)
                 Spacer()
             }

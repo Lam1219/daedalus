@@ -4,6 +4,7 @@ import SwiftUI
 struct MedsView: View {
     @State private var store = LocalStore.shared
     @State private var showAdd = false
+    @State private var undo: UndoItem?
 
     private var lastCheckInToday: FeelingCheckIn? { store.checkIns.first.flatMap { Calendar.current.isDateInToday($0.timestamp) ? $0 : nil } }
     private var dosesToday: [MedicationLog] { store.medications.filter { Calendar.current.isDateInToday($0.timestamp) } }
@@ -28,7 +29,7 @@ struct MedsView: View {
                 scheduledDoses
                 SageCard(padding: .card()) {
                     ListRow(title: L("meds_reminders"), subtitle: L("meds_reminders_sub"), icon: "bell") {
-                        SageToggle(isOn: Binding(get: { store.medReminders }, set: { on in
+                        SageToggle(label: L("meds_reminders"), isOn: Binding(get: { store.medReminders }, set: { on in
                             store.medReminders = on
                             Task { if on { await MedReminders.requestPermission() }; await MedReminders.reschedule() }
                         }))
@@ -38,7 +39,36 @@ struct MedsView: View {
             }
         }
         .toolbar(.hidden, for: .navigationBar)
-        .sheet(isPresented: $showAdd) { LogDoseSheet() }
+        .undoBar($undo)
+        .sheet(isPresented: $showAdd) {
+            LogDoseSheet { log in
+                LocalStore.shared.addMedication(log)
+                undo = UndoItem(message: L("meds_logged")) { LocalStore.shared.removeMedication(log) }
+            }
+        }
+    }
+
+    private func subtitle(_ state: DoseState, taken: MedicationLog?, at: Date) -> String {
+        switch state {
+        case .taken: L("meds_taken_at", Fmt.time(taken?.timestamp ?? at))
+        case .due: L("meds_due_now")
+        case .missed: L("meds_missed", Fmt.time(at))
+        case .upcoming: L("meds_upcoming")
+        }
+    }
+
+    private func delete(_ log: MedicationLog) {
+        store.removeMedication(log)
+        undo = UndoItem(message: L("meds_deleted")) { LocalStore.shared.addMedication(log) }
+    }
+
+    /// Trash button for a logged dose (taken by mistake).
+    private func deleteButton(_ log: MedicationLog, title: String) -> some View {
+        Button { delete(log) } label: {
+            Image(systemName: "trash").font(.system(size: 17)).foregroundStyle(DS.muted).frame(width: 44, height: 44)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(L("meds_delete_cd", title))
     }
 
     private var feelingCard: some View {
@@ -47,7 +77,11 @@ struct MedsView: View {
             HStack(spacing: 8) {
                 ForEach(Feeling.allCases, id: \.self) { feeling in
                     let on = lastCheckInToday?.feeling == feeling
-                    Button { store.addCheckIn(FeelingCheckIn(feeling: feeling, timestamp: .now)) } label: {
+                    Button {
+                        let checkIn = FeelingCheckIn(feeling: feeling, timestamp: .now)
+                        store.addCheckIn(checkIn)
+                        undo = UndoItem(message: L("feel_saved_short")) { LocalStore.shared.removeCheckIn(checkIn) }
+                    } label: {
                         Text(L(feeling.labelKey)).font(DS.font(13, .semibold)).multilineTextAlignment(.center)
                             .foregroundStyle(on ? .white : DS.sageDeep)
                             .frame(maxWidth: .infinity, minHeight: 44).padding(.horizontal, 4)
@@ -71,8 +105,11 @@ struct MedsView: View {
                 Text(L("meds_none")).font(DS.font(14)).foregroundStyle(DS.muted).padding(.vertical, 14)
             }
             ForEach(Array(dosesToday.enumerated()), id: \.offset) { i, log in
-                ListRow(title: log.dosage.isEmpty ? log.name : "\(log.name) · \(log.dosage)", subtitle: L("meds_taken_at", Fmt.time(log.timestamp)),
-                        icon: "checkmark.circle", showDivider: i < dosesToday.count - 1)
+                let title = log.dosage.isEmpty ? log.name : "\(log.name) · \(log.dosage)"
+                ListRow(title: title, subtitle: L("meds_taken_at", Fmt.time(log.timestamp)),
+                        icon: "checkmark.circle", showDivider: i < dosesToday.count - 1) {
+                    deleteButton(log, title: title)
+                }
             }
         }
     }
@@ -83,22 +120,34 @@ struct MedsView: View {
             let now = Date.now
             ForEach(Array(store.schedule.enumerated()), id: \.element.id) { i, dose in
                 let taken = store.takenLog(dose, on: now)
-                let due = taken == nil && dose.time(on: now) <= now
+                let at = dose.time(on: now)
+                let state = DoseState(now: now, at: at, taken: taken != nil)
+                let title = "\(Fmt.time(at)) · \(dose.name)"
                 ListRow(
-                    title: "\(Fmt.time(dose.time(on: now))) · \(dose.name)",
-                    subtitle: taken.map { L("meds_taken_at", Fmt.time($0.timestamp)) } ?? (due ? L("meds_due_now") : L("meds_upcoming")),
-                    icon: taken != nil ? "checkmark.circle.fill" : "circle",
-                    showDivider: i < store.schedule.count - 1
+                    title: title,
+                    subtitle: subtitle(state, taken: taken, at: at),
+                    icon: state == .taken ? "checkmark.circle.fill" : state == .missed ? "exclamationmark.circle" : "circle",
+                    showDivider: i < store.schedule.count - 1,
+                    subtitleColor: state == .due ? DS.sage : state == .missed ? DS.alert : DS.muted
                 ) {
-                    if taken == nil {
-                        Button(L("meds_take")) { MedReminders.markTaken(doseId: dose.id) }
-                            .buttonStyle(PillButtonStyle(dark: due, height: 36)).fixedSize()
+                    if let taken {
+                        deleteButton(taken, title: title)
+                    } else if now >= at.addingTimeInterval(-DoseState.takeEarly) {
+                        // From 30 minutes early, and late for a missed dose.
+                        Button(L("meds_take")) {
+                            if let log = MedReminders.markTaken(doseId: dose.id) {
+                                undo = UndoItem(message: L("meds_logged")) { LocalStore.shared.removeMedication(log) }
+                            }
+                        }
+                        .buttonStyle(PillButtonStyle(height: 44)).fixedSize()
                     }
                 }
             }
             // Extra doses not tied to a dose time.
             ForEach(Array(dosesToday.filter { $0.slotId == nil }.enumerated()), id: \.offset) { _, log in
-                ListRow(title: log.name, subtitle: L("meds_extra_at", Fmt.time(log.timestamp)), icon: "plus.circle")
+                ListRow(title: log.name, subtitle: L("meds_extra_at", Fmt.time(log.timestamp)), icon: "plus.circle") {
+                    deleteButton(log, title: log.name)
+                }
             }
         }
     }
@@ -121,6 +170,7 @@ struct MedsView: View {
 
 /// Logs a dose now (any medication, not tied to the schedule).
 private struct LogDoseSheet: View {
+    let onSave: (MedicationLog) -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var name = LocalStore.shared.medications.first?.name ?? LocalStore.shared.schedule.first?.name ?? ""
     @State private var dosage = LocalStore.shared.medications.first?.dosage ?? LocalStore.shared.schedule.first?.dosage ?? ""
@@ -132,7 +182,7 @@ private struct LogDoseSheet: View {
                 FieldBox { TextField(L("meds_dosage"), text: $dosage) }
                 Spacer()
                 Button(L("meds_save")) {
-                    LocalStore.shared.addMedication(MedicationLog(name: name.trimmingCharacters(in: .whitespaces), dosage: dosage.trimmingCharacters(in: .whitespaces), timestamp: .now))
+                    onSave(MedicationLog(name: name.trimmingCharacters(in: .whitespaces), dosage: dosage.trimmingCharacters(in: .whitespaces), timestamp: .now))
                     dismiss()
                 }
                 .buttonStyle(PillButtonStyle()).disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)

@@ -13,6 +13,7 @@
 		0D966510097EADF44C99762D /* WatchLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83C3B53C70907B4943E83703 /* WatchLink.swift */; };
 		12E4A0E7FBDDF6C6D42131D4 /* DaedalusApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C23B60DB03E8595B2184402 /* DaedalusApp.swift */; };
 		145E717F3AFCD8FD946660D8 /* CuesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A63F4925B0072B7FDF98E883 /* CuesView.swift */; };
+		1467926BA34814EAD2B17CEC /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F6991CEFC4079337D956D00F /* PrivacyInfo.xcprivacy */; };
 		1862AE7F018FD71D3B2EB8C4 /* CloudBackup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0DB3DE9769F7837F7FA71D /* CloudBackup.swift */; };
 		1F6C119D28201826F66E10DE /* LoginFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10A7CD730672C40D09C58F0D /* LoginFlow.swift */; };
 		2CD36334978480D045CBAC1B /* WatchProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6485044222FB7804202F8BD9 /* WatchProtocol.swift */; };
@@ -20,6 +21,7 @@
 		3956FE6BDA0DBBD5F7D0C1F9 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 7386EEDFDB9894B5761CEF7C /* Localizable.xcstrings */; };
 		3E6046F6EC69CDD52B2465A9 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE84C1953F000FC5BE1558CF /* TodayView.swift */; };
 		5387B7EB7E1D10FDBB5203C2 /* manrope_semibold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 48CC127CC7FB9AD883E5409D /* manrope_semibold.ttf */; };
+		5EF967510F353B7579B9D9FB /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B3E37B717F3BC2446F43FC72 /* PrivacyInfo.xcprivacy */; };
 		61F09CF93724F2E102C32EAC /* MedScheduleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE98915962602BDAFA647BC6 /* MedScheduleView.swift */; };
 		69E34C15252127C85449C270 /* CueController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC53BFD500D6DD6922476C1E /* CueController.swift */; };
 		76DDC0599BBB0FA5805D68D1 /* SupabaseConfig.generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8C0E85CA17A183E43C3D4B /* SupabaseConfig.generated.swift */; };
@@ -73,7 +75,7 @@
 /* Begin PBXFileReference section */
 		0F5401E8E6F4E13365D53753 /* PhoneLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneLink.swift; sourceTree = "<group>"; };
 		10A7CD730672C40D09C58F0D /* LoginFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginFlow.swift; sourceTree = "<group>"; };
-		1710CA52690E77273A6925F1 /* Daedalus.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Daedalus.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1710CA52690E77273A6925F1 /* Daedalus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Daedalus.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		25F06693D2BF6B4001975D85 /* DataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataView.swift; sourceTree = "<group>"; };
 		267DD789F692A1D3E17C0687 /* ProfileSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSetup.swift; sourceTree = "<group>"; };
 		2B8C0E85CA17A183E43C3D4B /* SupabaseConfig.generated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.generated.swift; sourceTree = "<group>"; };
@@ -103,6 +105,7 @@
 		A0C5976F2BE265F97C2454DD /* AuthStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthStore.swift; sourceTree = "<group>"; };
 		A63F4925B0072B7FDF98E883 /* CuesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CuesView.swift; sourceTree = "<group>"; };
 		B0F91B77F0B357FB846209A9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B3E37B717F3BC2446F43FC72 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		BE84C1953F000FC5BE1558CF /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
 		C7733875C0BFF73204F9F8B8 /* CueScreens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CueScreens.swift; sourceTree = "<group>"; };
 		C777DC18C33DC287833A4911 /* HealthData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthData.swift; sourceTree = "<group>"; };
@@ -111,6 +114,7 @@
 		DDFBE00D91B272086D0E0E14 /* Design.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Design.swift; sourceTree = "<group>"; };
 		EE98915962602BDAFA647BC6 /* MedScheduleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedScheduleView.swift; sourceTree = "<group>"; };
 		F557102433200564ED36EE3C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		F6991CEFC4079337D956D00F /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -248,6 +252,7 @@
 				69FAD5B8C178EB8A12CDA0FC /* DaedalusWatch.entitlements */,
 				4183DA03665BBD2AD94DDC8A /* Info.plist */,
 				7386EEDFDB9894B5761CEF7C /* Localizable.xcstrings */,
+				F6991CEFC4079337D956D00F /* PrivacyInfo.xcprivacy */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -267,6 +272,7 @@
 				4E30DD3AE97D04D9F87B29D9 /* Daedalus.entitlements */,
 				F557102433200564ED36EE3C /* Info.plist */,
 				675D7D8586FCD11DA1D47627 /* Localizable.xcstrings */,
+				B3E37B717F3BC2446F43FC72 /* PrivacyInfo.xcprivacy */,
 				F6017AD1AE3C884F1617547E /* Fonts */,
 			);
 			path = Resources;
@@ -383,6 +389,7 @@
 			files = (
 				C535FBC585C00487C5184002 /* Assets.xcassets in Resources */,
 				32C04F0CA5489AA6C4C1427A /* Localizable.xcstrings in Resources */,
+				5EF967510F353B7579B9D9FB /* PrivacyInfo.xcprivacy in Resources */,
 				7FB24DB39E27298BB6692D9C /* manrope_bold.ttf in Resources */,
 				9221ACE197FE8A0FA6FFAA7E /* manrope_medium.ttf in Resources */,
 				D23BD99F1083C915C8CEE9D0 /* manrope_regular.ttf in Resources */,
@@ -396,6 +403,7 @@
 			files = (
 				0CDD4718802CE5F770B9F6C5 /* Assets.xcassets in Resources */,
 				3956FE6BDA0DBBD5F7D0C1F9 /* Localizable.xcstrings in Resources */,
+				1467926BA34814EAD2B17CEC /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -542,6 +550,7 @@
 				CODE_SIGN_ENTITLEMENTS = Daedalus/Resources/Daedalus.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = SFQ29D84T9;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Daedalus/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -563,6 +572,7 @@
 				CODE_SIGN_ENTITLEMENTS = Daedalus/Resources/Daedalus.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = SFQ29D84T9;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Daedalus/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -583,6 +593,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = DaedalusWatch/Resources/DaedalusWatch.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = SFQ29D84T9;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = DaedalusWatch/Resources/Info.plist;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
@@ -600,6 +611,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = DaedalusWatch/Resources/DaedalusWatch.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = SFQ29D84T9;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = DaedalusWatch/Resources/Info.plist;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;

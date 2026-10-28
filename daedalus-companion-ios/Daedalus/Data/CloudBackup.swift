@@ -216,7 +216,21 @@ final class CloudBackup {
                 store.clearDeletedScheduleIds(deleted)
             }
 
-            // Dose logs and check-ins are only ever added, so just send the new ones.
+            // Doses and check-ins removed on this phone (undo or delete) are removed from the account.
+            let deletedDoses = store.deletedDoseIds
+            if !deletedDoses.isEmpty {
+                try await client.from("dose_logs").delete().in("id", values: deletedDoses).execute()
+                store.clearDeletedDoseIds(deletedDoses)
+                unmarkUploaded(owner, .doses, deletedDoses)
+            }
+            let deletedCheckIns = store.deletedCheckInIds
+            if !deletedCheckIns.isEmpty {
+                try await client.from("checkins").delete().in("id", values: deletedCheckIns).execute()
+                store.clearDeletedCheckInIds(deletedCheckIns)
+                unmarkUploaded(owner, .checkIns, deletedCheckIns)
+            }
+
+            // Otherwise dose logs and check-ins are only added, so just send the new ones.
             let scheduleIds = Set(schedule.map(\.id))
             let newDoses = store.medications.filter { !uploadedSet(owner, .doses).contains($0.id) }
             if !newDoses.isEmpty {
@@ -267,6 +281,10 @@ final class CloudBackup {
 
     private func markUploaded(_ owner: String, _ kind: Kind, _ ids: [String]) {
         defaults.set(Array(uploadedSet(owner, kind).union(ids)), forKey: "\(kind.rawValue):\(owner)")
+    }
+
+    private func unmarkUploaded(_ owner: String, _ kind: Kind, _ ids: [String]) {
+        defaults.set(Array(uploadedSet(owner, kind).subtracting(ids)), forKey: "\(kind.rawValue):\(owner)")
     }
 }
 

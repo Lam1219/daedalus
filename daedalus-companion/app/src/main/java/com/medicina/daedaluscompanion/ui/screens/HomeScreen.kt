@@ -42,7 +42,7 @@ data class HapticMode(
 )
 
 val HAPTIC_MODES = listOf(
-    HapticMode("walking", R.string.mode_walk, R.string.mode_walk_desc, Icons.AutoMirrored.Outlined.DirectionsWalk, 80),
+    HapticMode("walking", R.string.mode_walk, R.string.mode_walk_desc, Icons.AutoMirrored.Outlined.DirectionsWalk, 40),
     HapticMode("rest", R.string.mode_rest, R.string.mode_rest_desc, Icons.Outlined.Air, 6), // breaths per minute (pacer)
     HapticMode("writing", R.string.mode_fine, R.string.mode_fine_desc, Icons.Outlined.Edit, 90),
     HapticMode("stress", R.string.mode_calm, R.string.mode_calm_desc, Icons.Outlined.Waves, 60),

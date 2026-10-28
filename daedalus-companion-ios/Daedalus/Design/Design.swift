@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// Sage palette and type from the Daedalus App Design canvas (same values as the Android app).
 enum DS {
@@ -15,6 +16,8 @@ enum DS {
     static let navInactive = Color(hex: 0x66726A)
     static let divider = Color(hex: 0xECEFE9)
     static let switchOff = Color(hex: 0xD5DCD1)
+    /// Borders of fields, unselected choices, checkboxes and off switches: 3.1:1 on white (WCAG 1.4.11).
+    static let outline = Color(hex: 0x869681)
     static let alert = Color(hex: 0xA15C2E)
 
     static let radiusSmall: CGFloat = 12
@@ -122,6 +125,7 @@ struct ListRow<Trailing: View>: View {
     var subtitle: String? = nil
     var icon: String? = nil
     var showDivider = false
+    var subtitleColor: Color = DS.muted
     var action: (() -> Void)? = nil
     @ViewBuilder var trailing: Trailing
 
@@ -131,7 +135,7 @@ struct ListRow<Trailing: View>: View {
                 if let icon { Image(systemName: icon).font(.system(size: 18)).foregroundStyle(DS.sage).frame(width: 22) }
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title).font(DS.rowTitle).foregroundStyle(DS.ink)
-                    if let subtitle { Text(subtitle).font(DS.font(13)).foregroundStyle(DS.muted).fixedSize(horizontal: false, vertical: true) }
+                    if let subtitle { Text(subtitle).font(DS.font(13)).foregroundStyle(subtitleColor).fixedSize(horizontal: false, vertical: true) }
                 }
                 Spacer(minLength: 8)
                 trailing
@@ -153,6 +157,41 @@ extension ListRow where Trailing == EmptyView {
     }
 }
 
+/// Something that can be undone for a few seconds (a logged dose, a deletion, a check-in).
+struct UndoItem: Equatable {
+    let id = UUID()
+    let message: String
+    let undo: () -> Void
+    static func == (a: UndoItem, b: UndoItem) -> Bool { a.id == b.id }
+}
+
+extension View {
+    /// Shows `item` at the bottom with an Undo button for about 8 seconds, then clears it.
+    func undoBar(_ item: Binding<UndoItem?>) -> some View {
+        overlay(alignment: .bottom) {
+            if let current = item.wrappedValue {
+                HStack(spacing: 12) {
+                    Text(current.message).font(DS.font(15)).foregroundStyle(.white)
+                    Spacer(minLength: 8)
+                    Button(L("undo")) { current.undo(); item.wrappedValue = nil }
+                        .font(DS.font(15, .semibold)).foregroundStyle(DS.sageTint)
+                        .frame(minWidth: 44, minHeight: 44)
+                }
+                .padding(.leading, 18).padding(.trailing, 8).padding(.vertical, 4)
+                .background(DS.ink, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .padding(.horizontal, 16).padding(.bottom, 12)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .task(id: current.id) {
+                    UIAccessibility.post(notification: .announcement, argument: current.message)
+                    try? await Task.sleep(for: .seconds(8))
+                    if item.wrappedValue?.id == current.id { withAnimation { item.wrappedValue = nil } }
+                }
+            }
+        }
+        .animation(.easeOut(duration: 0.2), value: item.wrappedValue)
+    }
+}
+
 /// Round icon on a sage tint.
 struct IconBadge: View {
     let systemName: String
@@ -166,10 +205,31 @@ struct IconBadge: View {
     }
 }
 
-/// Sage switch.
+/// Sage switch. `label` is what VoiceOver reads (the row's title); it isn't shown.
 struct SageToggle: View {
+    let label: String
     @Binding var isOn: Bool
-    var body: some View { Toggle("", isOn: $isOn).labelsHidden().tint(DS.sage) }
+    var body: some View { Toggle(label, isOn: $isOn).labelsHidden().toggleStyle(SageSwitchStyle()) }
+}
+
+/// Like the system switch, but the off state has an outline that stands out on white (S16).
+private struct SageSwitchStyle: ToggleStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        Button { configuration.isOn.toggle() } label: {
+            Capsule()
+                .fill(configuration.isOn ? DS.sage : DS.switchOff)
+                .overlay(Capsule().strokeBorder(configuration.isOn ? DS.sage : DS.outline, lineWidth: 1.5))
+                .frame(width: 51, height: 31)
+                .overlay(alignment: configuration.isOn ? .trailing : .leading) {
+                    Circle().fill(.white).shadow(color: .black.opacity(0.15), radius: 1, y: 1).padding(3)
+                }
+                .animation(.easeOut(duration: 0.15), value: configuration.isOn)
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityRepresentation { Toggle(isOn: configuration.$isOn) { configuration.label } }
+    }
 }
 
 /// Header with a back arrow, for sub-screens.

@@ -10,7 +10,7 @@ object CueRates {
     private const val PREFS = "cue_rates"
 
     // "rest" is the breathing pacer: breaths per minute (6 = In 4 s · Out 6 s).
-    private val defaults = mapOf("walking" to 80, "rest" to 6, "writing" to 90, "stress" to 60)
+    private val defaults = mapOf("walking" to 40, "rest" to 6, "writing" to 90, "stress" to 60)
 
     fun get(context: Context, mode: String): Int =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getInt(mode, defaults[mode] ?: 80)

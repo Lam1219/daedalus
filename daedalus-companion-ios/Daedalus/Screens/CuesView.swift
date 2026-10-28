@@ -46,16 +46,30 @@ struct CuesView: View {
                 .padding(.top, 14)
             }
 
-            if watch.runningMode == selected.id {
+            if watch.startingMode == selected.id || watch.stopping {
+                // Waiting for the watch to confirm.
+                Button {} label: {
+                    HStack(spacing: 10) {
+                        ProgressView().tint(DS.sageDeep)
+                        Text(L(watch.stopping ? "cue_stopping" : "cue_starting"))
+                    }
+                }
+                .buttonStyle(PillButtonStyle(dark: false)).allowsHitTesting(false)
+                .accessibilityElement(children: .combine)
+            } else if watch.runningMode == selected.id {
                 Text(L("cue_running")).font(DS.font(13, .semibold)).foregroundStyle(DS.sageDeep)
                 Button { watch.stop() } label: { Label(L("cue_stop"), systemImage: "stop.fill") }
                     .buttonStyle(PillButtonStyle(dark: false))
             } else {
                 Button { watch.start(mode: selected) } label: { Label(L("cue_start"), systemImage: "play.fill") }
-                    .buttonStyle(PillButtonStyle()).disabled(!watch.isReady)
+                    .buttonStyle(PillButtonStyle()).disabled(!watch.isReady || watch.startingMode != nil)
                 if !watch.isReady {
                     Text(L("cue_watch_missing")).font(DS.font(13)).foregroundStyle(DS.muted)
                 }
+            }
+            if watch.noReply {
+                Text(L("cue_no_reply")).font(DS.font(13)).foregroundStyle(DS.alert)
+                    .onAppear { UIAccessibility.post(notification: .announcement, argument: L("cue_no_reply")) }
             }
 
             // Automatic cues: detection isn't built yet, so they're shown as coming, never as on.
