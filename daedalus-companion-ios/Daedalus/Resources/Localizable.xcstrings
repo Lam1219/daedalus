@@ -517,13 +517,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pulse rate"
+            "value": "Pace"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rythme des pulsations"
+            "value": "Rythme"
           }
         }
       }
@@ -3284,13 +3284,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Slow grounding pulses"
+            "value": "Slow, grounding pace"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pulsations lentes d’ancrage"
+            "value": "Rythme lent d’ancrage"
           }
         }
       }
@@ -3318,13 +3318,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Steady pulses for writing and tasks"
+            "value": "Steady pace for writing and tasks"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pulsations régulières pour écrire et les tâches"
+            "value": "Rythme régulier pour écrire et les tâches"
           }
         }
       }
@@ -5125,13 +5125,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "pulses per minute"
+            "value": "taps per minute"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "pulsations par minute"
+            "value": "vibrations par minute"
           }
         }
       }

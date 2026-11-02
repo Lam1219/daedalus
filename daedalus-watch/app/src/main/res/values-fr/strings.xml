@@ -33,9 +33,9 @@
     <string name="done">Terminé</string>
 
     <!-- Fine motor / calm cue -->
-    <string name="cue_fine_sub">Pulsations régulières</string>
-    <string name="cue_calm_sub">Pulsations d’ancrage</string>
-    <string name="unit_pulses_min">%1$d pulsations par minute</string>
+    <string name="cue_fine_sub">Rythme régulier</string>
+    <string name="cue_calm_sub">Rythme d’ancrage</string>
+    <string name="unit_pulses_min">%1$d vibrations par minute</string>
     <string name="paused">En pause</string>
     <string name="cd_pause">Mettre en pause</string>
     <string name="cd_resume">Reprendre</string>

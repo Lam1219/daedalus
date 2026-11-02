@@ -20,7 +20,7 @@
 
     <!-- Walking cue -->
     <string name="unit_steps_min">steps per minute</string>
-    <string name="hint_step">Step with each pulse</string>
+    <string name="hint_step">Step with each tap</string>
     <string name="stop">Stop</string>
 
     <!-- Breathing cue -->
@@ -33,9 +33,9 @@
     <string name="done">Done</string>
 
     <!-- Fine motor / calm cue -->
-    <string name="cue_fine_sub">Steady pulses on</string>
-    <string name="cue_calm_sub">Grounding pulses on</string>
-    <string name="unit_pulses_min">%1$d pulses per minute</string>
+    <string name="cue_fine_sub">Steady pace on</string>
+    <string name="cue_calm_sub">Grounding pace on</string>
+    <string name="unit_pulses_min">%1$d taps per minute</string>
     <string name="paused">Paused</string>
     <string name="cd_pause">Pause cue</string>
     <string name="cd_resume">Resume cue</string>

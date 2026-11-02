@@ -6,6 +6,6 @@
     <dimen name="ring_inset">8dp</dimen>
     <dimen name="walk_rate_text">38sp</dimen>
     <dimen name="stuck_size">90dp</dimen>
-    <!-- "Step with each pulse" only fits inside the ring on larger watches. -->
+    <!-- "Step with each tap" only fits inside the ring on larger watches. -->
     <bool name="show_walk_hint">false</bool>
 </resources>

@@ -50,20 +50,20 @@
     <string name="mode_other">Other</string>
     <string name="mode_walk_desc">Walking rhythm</string>
     <string name="mode_rest_desc">Calm breathing pace</string>
-    <string name="mode_fine_desc">Steady pulses for writing and tasks</string>
-    <string name="mode_calm_desc">Slow grounding pulses</string>
+    <string name="mode_fine_desc">Steady pace for writing and tasks</string>
+    <string name="mode_calm_desc">Slow, grounding pace</string>
 
     <!-- Cues -->
     <string name="cues_title">Cues</string>
     <string name="cues_lead">Vibrations on your watch, tuned to you.</string>
     <string name="unit_steps_min">steps per minute</string>
     <string name="unit_breaths_min">breaths per minute</string>
-    <string name="unit_pulses_min">pulses per minute</string>
+    <string name="unit_pulses_min">taps per minute</string>
     <string name="cue_start">Start cue on watch</string>
     <string name="cue_stop">Stop cue</string>
     <string name="cue_running">Running on your watch</string>
     <string name="cue_watch_missing">Watch not connected. Pair it in the Wear OS app.</string>
-    <string name="cue_rate">Pulse rate</string>
+    <string name="cue_rate">Pace</string>
     <string name="cue_rate_sub">%1$s · changes by %2$d per minute</string>
     <string name="cue_rate_down">Slower by %1$d</string>
     <string name="cue_rate_up">Faster by %1$d</string>
