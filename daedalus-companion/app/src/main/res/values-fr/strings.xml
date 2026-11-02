@@ -50,20 +50,20 @@
     <string name="mode_other">Autre</string>
     <string name="mode_walk_desc">Rythme de marche</string>
     <string name="mode_rest_desc">Rythme de respiration calme</string>
-    <string name="mode_fine_desc">Pulsations régulières pour écrire et les tâches</string>
-    <string name="mode_calm_desc">Pulsations lentes d’ancrage</string>
+    <string name="mode_fine_desc">Rythme régulier pour écrire et les tâches</string>
+    <string name="mode_calm_desc">Rythme lent d’ancrage</string>
 
     <!-- Cues -->
     <string name="cues_title">Repères</string>
     <string name="cues_lead">Des vibrations sur votre montre, adaptées à vous.</string>
     <string name="unit_steps_min">pas par minute</string>
     <string name="unit_breaths_min">respirations par minute</string>
-    <string name="unit_pulses_min">pulsations par minute</string>
+    <string name="unit_pulses_min">vibrations par minute</string>
     <string name="cue_start">Démarrer sur la montre</string>
     <string name="cue_stop">Arrêter le repère</string>
     <string name="cue_running">En cours sur votre montre</string>
     <string name="cue_watch_missing">Montre non connectée. Jumelez-la dans l’application Wear OS.</string>
-    <string name="cue_rate">Rythme des pulsations</string>
+    <string name="cue_rate">Rythme</string>
     <string name="cue_rate_sub">%1$s · se règle par %2$d par minute</string>
     <string name="cue_rate_down">Ralentir de %1$d</string>
     <string name="cue_rate_up">Accélérer de %1$d</string>

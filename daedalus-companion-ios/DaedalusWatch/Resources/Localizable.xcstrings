@@ -211,13 +211,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Grounding pulses on"
+            "value": "Grounding pace on"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pulsations d’ancrage"
+            "value": "Rythme d’ancrage"
           }
         }
       }
@@ -228,13 +228,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Steady pulses on"
+            "value": "Steady pace on"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pulsations régulières"
+            "value": "Rythme régulier"
           }
         }
       }
@@ -262,7 +262,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Step with each pulse"
+            "value": "Step with each tap"
           }
         },
         "fr": {
@@ -687,13 +687,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld pulses per minute"
+            "value": "%1$lld taps per minute"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld pulsations par minute"
+            "value": "%1$lld vibrations par minute"
           }
         }
       }
