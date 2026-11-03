@@ -494,6 +494,23 @@
         }
       }
     },
+    "cue_no_reply": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your watch didn’t answer. Check that it’s nearby and awake, then try again."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre montre n’a pas répondu. Vérifiez qu’elle est à proximité et allumée, puis réessayez."
+          }
+        }
+      }
+    },
     "cue_rate": {
       "extractionState": "manual",
       "localizations": {
@@ -647,6 +664,23 @@
         }
       }
     },
+    "cue_starting": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starting…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Démarrage…"
+          }
+        }
+      }
+    },
     "cue_stop": {
       "extractionState": "manual",
       "localizations": {
@@ -660,6 +694,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Arrêter le repère"
+          }
+        }
+      }
+    },
+    "cue_stopping": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stopping…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrêt…"
           }
         }
       }
@@ -1684,6 +1735,23 @@
         }
       }
     },
+    "feel_saved_short": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check-in saved"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ressenti enregistré"
+          }
+        }
+      }
+    },
     "feel_title": {
       "extractionState": "manual",
       "localizations": {
@@ -2472,13 +2540,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign-in isn’t set up in this build yet."
+            "value": "Sign-in isn’t available in this version."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "La connexion n’est pas encore configurée dans cette version."
+            "value": "La connexion n’est pas disponible dans cette version."
           }
         }
       }
@@ -2823,6 +2891,40 @@
         }
       }
     },
+    "meds_delete_cd": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer %1$@"
+          }
+        }
+      }
+    },
+    "meds_deleted": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dose deleted"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dose supprimée"
+          }
+        }
+      }
+    },
     "meds_dosage": {
       "extractionState": "manual",
       "localizations": {
@@ -2870,6 +2972,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dose supplémentaire à %1$@"
+          }
+        }
+      }
+    },
+    "meds_logged": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dose logged"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dose notée"
+          }
+        }
+      }
+    },
+    "meds_missed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Missed · %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manquée · %1$@"
           }
         }
       }
@@ -4877,6 +5013,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Aujourd’hui"
+          }
+        }
+      }
+    },
+    "undo": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuler"
           }
         }
       }
