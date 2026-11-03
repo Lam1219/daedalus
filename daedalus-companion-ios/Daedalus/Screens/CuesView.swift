@@ -18,11 +18,13 @@ struct CuesView: View {
                     let on = mode == selected
                     Button { selected = mode } label: {
                         VStack(alignment: .leading, spacing: 8) {
+                            // Fixed slot: SF Symbols differ in height (figure.walk is taller than wind), which made cards uneven.
                             Image(systemName: mode.icon).font(.system(size: 20)).foregroundStyle(on ? .white : DS.sageDeep)
+                                .frame(height: 24)
                             Text(L(mode.labelKey)).font(DS.font(16, .semibold)).foregroundStyle(on ? .white : DS.ink)
                             Text(L(mode.descKey)).font(DS.font(12)).foregroundStyle(on ? DS.onSageDeep : DS.muted).lineLimit(2, reservesSpace: true)
                         }
-                        .padding(16).frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(16).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                         .background(on ? DS.sageDeep : DS.surface, in: RoundedRectangle(cornerRadius: DS.radiusMedium))
                     }
                     .buttonStyle(.plain)
