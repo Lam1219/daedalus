@@ -28,6 +28,10 @@ final class CueController: NSObject {
     @ObservationIgnored private var session: HKWorkoutSession?
     @ObservationIgnored private var builder: HKLiveWorkoutBuilder?
     @ObservationIgnored private var cueTask: Task<Void, Never>?
+    @ObservationIgnored private var timeoutTask: Task<Void, Never>?
+
+    /// A session the person forgets to stop ends on its own after this long.
+    static let maxSessionDuration: Duration = .seconds(60 * 60)
     @ObservationIgnored private let recorder = SessionRecorder()
 
     var isRunning: Bool { mode != nil }
@@ -56,11 +60,13 @@ final class CueController: NSObject {
         recorder.start(mode: mode)
         startWorkout(walking: mode == "walking")
         startCue()
+        startTimeout()
         PhoneLink.shared.sendStatus()
     }
 
     func stop() {
         guard let mode else { return }
+        timeoutTask?.cancel(); timeoutTask = nil
         cueTask?.cancel(); cueTask = nil
         endWorkout()
         if let file = recorder.stop() { PhoneLink.shared.send(file: file) }
@@ -74,6 +80,16 @@ final class CueController: NSObject {
     func togglePause() {
         paused.toggle()
         if paused { cueTask?.cancel(); cueTask = nil } else { startCue() }
+    }
+
+    /// Stops the session after `maxSessionDuration` (the workout keeps the app running meanwhile).
+    private func startTimeout() {
+        timeoutTask?.cancel()
+        timeoutTask = Task { [weak self] in
+            try? await Task.sleep(for: Self.maxSessionDuration)
+            guard !Task.isCancelled else { return }
+            self?.stop()
+        }
     }
 
     // MARK: Cue rhythm

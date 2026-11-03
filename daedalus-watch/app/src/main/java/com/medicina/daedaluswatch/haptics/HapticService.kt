@@ -61,6 +61,12 @@ class HapticService : Service() {
     private var sensorListener: SensorEventListener? = null
     private var sessionSyncManager: SessionSyncManager? = null
 
+    private val mainHandler by lazy { android.os.Handler(mainLooper) }
+    private val sessionTimeout = Runnable {
+        Log.i("HapticService", "Session reached ${MAX_SESSION_MS / 60_000} min: stopping it")
+        stopService()
+    }
+
     companion object {
         const val EXTRA_BPM = "extra_bpm"
         const val EXTRA_MODE = "extra_mode"
@@ -74,6 +80,8 @@ class HapticService : Service() {
 
         /** Breathing pacer: inhale share of each breath (In 4 s · Out 6 s at 6 breaths/min). */
         const val INHALE_SHARE = 0.4f
+        /** A session the person forgets to stop ends on its own after this long. */
+        const val MAX_SESSION_MS = 60 * 60 * 1000L
         private const val NOTIFICATION_ID = 1
         private const val CHANNEL_ID = "daedalus_haptic_channel"
 
@@ -176,12 +184,17 @@ class HapticService : Service() {
             }
         }
 
-        // Acquire wake lock (1 hour to prevent doze mode), releasing one left by the previous cue.
+        // Acquire wake lock, releasing one left by the previous cue. It outlasts the session
+        // limit so the automatic stop and the file transfer that follows still run.
         wakeLock?.let { if (it.isHeld) it.release() }
         wakeLock = (getSystemService(Context.POWER_SERVICE) as PowerManager)
             .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Daedalus:HapticWakeLock")
-            .apply { acquire(60 * 60 * 1000L) }
-        Log.i("HapticService", "Wake lock acquired (1 hour)")
+            .apply { acquire(MAX_SESSION_MS + 5 * 60 * 1000L) }
+        Log.i("HapticService", "Wake lock acquired")
+
+        // End the session on its own if the person forgets to stop it.
+        mainHandler.removeCallbacks(sessionTimeout)
+        mainHandler.postDelayed(sessionTimeout, MAX_SESSION_MS)
 
         // Start foreground notification
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
@@ -417,6 +430,7 @@ class HapticService : Service() {
         Log.i("HapticService", "Stopping service. isRunning=$isRunning, sessionFile=${sessionFile?.name}")
         if (!isRunning && !isServiceRunning) return
         val generation = ++stopGeneration
+        mainHandler.removeCallbacks(sessionTimeout)
         isRunning = false
         isServiceRunning = false
         runningMode = null
@@ -449,7 +463,7 @@ class HapticService : Service() {
             sessionSyncManager?.transferAndPurgeFile(file, currentMode) { finishStopping(generation) }
             Log.i("HapticService", "File transfer initiated")
             // Safety net in case the transfer hangs and never calls back (two attempts of 15 s each).
-            android.os.Handler(mainLooper).postDelayed({ finishStopping(generation) }, 40_000L)
+            mainHandler.postDelayed({ finishStopping(generation) }, 40_000L)
         } else {
             Log.e("HapticService", "sessionFile is null or does not exist: ${file?.absolutePath}")
             finishStopping(generation)
