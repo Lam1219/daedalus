@@ -388,7 +388,7 @@ fun SessionsScreen(onBack: () -> Unit) {
         }
 
         groupSessionsByMode(sessions).forEach { (mode, items) ->
-            Text("${mode?.let { stringResource(it.labelRes) } ?: stringResource(R.string.mode_other)} (${items.size})", style = SectionStyle)
+            Text("${stringResource(sessionModeLabelRes(mode, items.first().mode))} (${items.size})", style = SectionStyle)
             SageCard(padding = PaddingValues(horizontal = 20.dp, vertical = 4.dp)) {
                 items.forEachIndexed { i, session ->
                     ListRow(

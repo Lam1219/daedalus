@@ -155,6 +155,74 @@ struct PulseView: View {
     }
 }
 
+/// Tremor check: the hand rests while the watch records; a countdown and Stop.
+struct TremorCheckView: View {
+    @State private var cue = CueController.shared
+
+    var body: some View {
+        VStack(spacing: 4) {
+            Label(L("tremor_check_title"), systemImage: "hand.raised").font(.footnote).foregroundStyle(WS.sage)
+            Text(L("tremor_rest_hand")).font(.headline).foregroundStyle(WS.ink)
+                .multilineTextAlignment(.center).minimumScaleFactor(0.7)
+            TimelineView(.periodic(from: .now, by: 0.5)) { context in
+                let left = max(0, Int((cue.tremorEndsAt?.timeIntervalSince(context.date) ?? 0).rounded(.up)))
+                Text("\(left)").font(.system(.largeTitle, design: .rounded).weight(.semibold)).foregroundStyle(WS.ink)
+                    .monospacedDigit().contentTransition(.numericText())
+            }
+            Spacer(minLength: 0)
+            StopButton()
+        }
+        .padding(4)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+/// The tremor check's result, until Done (or `CueController.resultDuration`).
+struct TremorResultView: View {
+    let result: TremorAnalyzer.Result
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 6) {
+                Text(L("tremor_check_title")).font(.footnote).foregroundStyle(WS.sage)
+                switch result.outcome {
+                case .tremor:
+                    let hz = (result.frequencyHz ?? 0).formatted(.number.precision(.fractionLength(1)))
+                    Text(L("tremor_hz", hz)).font(.system(.largeTitle, design: .rounded).weight(.semibold))
+                        .foregroundStyle(WS.ink).minimumScaleFactor(0.6).lineLimit(1)
+                    Text(L("tremor_rhythm_caption")).font(.footnote).foregroundStyle(WS.muted)
+                    if let strength = result.strength {
+                        Text(L("tremor_strength_\(strength.rawValue)")).font(.headline).foregroundStyle(WS.soft)
+                    }
+                case .none:
+                    message(L("tremor_none"), retry: false)
+                case .moved:
+                    message(L("tremor_moved"), retry: true)
+                case .incomplete:
+                    message(L("tremor_incomplete"), retry: true)
+                }
+                Button(L("done")) { CueController.shared.clearTremorResult() }
+                    .font(.headline).foregroundStyle(WS.ground)
+                    .buttonStyle(.plain).frame(maxWidth: .infinity, minHeight: 44).background(WS.sage, in: Capsule())
+                    .padding(.top, 6)
+                // "I'm stuck" always works, even while a result is showing (starting a cue clears it).
+                Button(L("im_stuck")) { CueController.shared.start(mode: "walking") }
+                    .font(.headline).foregroundStyle(WS.ink)
+                    .buttonStyle(.plain).frame(maxWidth: .infinity, minHeight: 44).background(WS.raised, in: Capsule())
+            }
+            .frame(maxWidth: .infinity)
+        }
+    }
+
+    @ViewBuilder
+    private func message(_ text: String, retry: Bool) -> some View {
+        Text(text).font(.title3.weight(.semibold)).foregroundStyle(WS.ink).multilineTextAlignment(.center)
+        if retry {
+            Text(L("tremor_retry")).font(.footnote).foregroundStyle(WS.muted).multilineTextAlignment(.center)
+        }
+    }
+}
+
 private struct StopButton: View {
     var body: some View {
         Button { CueController.shared.stop() } label: {

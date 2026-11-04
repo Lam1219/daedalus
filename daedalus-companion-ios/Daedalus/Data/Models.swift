@@ -109,6 +109,37 @@ struct CueMode: Identifiable, Hashable {
         CueMode(id: "stress", labelKey: "mode_calm", descKey: "mode_calm_desc", icon: "water.waves", defaultRate: 60),
     ]
     static func byId(_ id: String?) -> CueMode? { all.first { $0.id == id } }
+
+    /// The label for a session's mode: a cue mode, the tremor check, or "Cue".
+    static func sessionLabel(_ id: String?) -> String {
+        if id == TremorAnalyzer.mode { return L("tremor_check_title") }
+        return L(byId(id)?.labelKey ?? "mode_other")
+    }
+}
+
+// MARK: - Tremor check
+
+extension TremorAnalyzer.Result {
+    /// One line for the Cues card and the Journal, e.g. "Rhythm 5.2 Hz · Moderate".
+    var summary: String {
+        switch outcome {
+        case .tremor:
+            let hz = (frequencyHz ?? 0).formatted(.number.precision(.fractionLength(1)))
+            return L("tremor_summary_rhythm", hz, L("tremor_strength_\(strength?.rawValue ?? "light")"))
+        case .none: return L("tremor_none")
+        case .moved: return L("tremor_moved")
+        case .incomplete: return L("tremor_incomplete")
+        }
+    }
+}
+
+extension TremorAnalyzer {
+    /// Analyses a session file off the main actor (nil if it can't be read).
+    static func analyze(file: URL) async -> Result? {
+        await Task.detached(priority: .utility) {
+            (try? String(contentsOf: file, encoding: .utf8)).map { analyze(csv: $0) }
+        }.value
+    }
 }
 
 // MARK: - Helpers

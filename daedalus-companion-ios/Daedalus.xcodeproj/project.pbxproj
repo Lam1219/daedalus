@@ -22,6 +22,7 @@
 		5387B7EB7E1D10FDBB5203C2 /* manrope_semibold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 48CC127CC7FB9AD883E5409D /* manrope_semibold.ttf */; };
 		61F09CF93724F2E102C32EAC /* MedScheduleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE98915962602BDAFA647BC6 /* MedScheduleView.swift */; };
 		69E34C15252127C85449C270 /* CueController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC53BFD500D6DD6922476C1E /* CueController.swift */; };
+		6C4BC1096FEFE381E3D4AD6E /* TremorAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5163B22452A74F992C4097FB /* TremorAnalyzer.swift */; };
 		76DDC0599BBB0FA5805D68D1 /* SupabaseConfig.generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8C0E85CA17A183E43C3D4B /* SupabaseConfig.generated.swift */; };
 		7793AF2E9919EAAC84BD73AC /* JournalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC4F0BD0A6312FACE4F69A1 /* JournalView.swift */; };
 		7B91F7EEE151B2F1A3653FD3 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BDAC5D608121DFEFB934519 /* L10n.swift */; };
@@ -42,6 +43,7 @@
 		E2C8371ABC03A9B169B7C383 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB34ACE4A9297B33034FB71 /* MainTabView.swift */; };
 		E957ADC0D05BB75EE04FDBD9 /* WatchProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6485044222FB7804202F8BD9 /* WatchProtocol.swift */; };
 		F021738A49AC03BF597E0C44 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 33426E7B5ABB34E301994154 /* Supabase */; };
+		F45C31FD05EC9D9E84485BB4 /* TremorAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5163B22452A74F992C4097FB /* TremorAnalyzer.swift */; };
 		F70C1092E2E675D3664716F1 /* CueScreens.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7733875C0BFF73204F9F8B8 /* CueScreens.swift */; };
 		FE1F0DC5DEE1558CDD16A9AF /* PhoneLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F5401E8E6F4E13365D53753 /* PhoneLink.swift */; };
 /* End PBXBuildFile section */
@@ -83,6 +85,7 @@
 		48CC127CC7FB9AD883E5409D /* manrope_semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = manrope_semibold.ttf; sourceTree = "<group>"; };
 		4A0DB3DE9769F7837F7FA71D /* CloudBackup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudBackup.swift; sourceTree = "<group>"; };
 		4E30DD3AE97D04D9F87B29D9 /* Daedalus.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Daedalus.entitlements; sourceTree = "<group>"; };
+		5163B22452A74F992C4097FB /* TremorAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TremorAnalyzer.swift; sourceTree = "<group>"; };
 		5480976F7A695C8F734CBC8A /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		5EC4F0BD0A6312FACE4F69A1 /* JournalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalView.swift; sourceTree = "<group>"; };
 		6485044222FB7804202F8BD9 /* WatchProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchProtocol.swift; sourceTree = "<group>"; };
@@ -255,6 +258,7 @@
 		ED177B80FD9A76CC08CA8AB2 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				5163B22452A74F992C4097FB /* TremorAnalyzer.swift */,
 				6485044222FB7804202F8BD9 /* WatchProtocol.swift */,
 			);
 			path = Shared;
@@ -345,9 +349,11 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					8555330590FAE9F123DFDEEB = {
+						DevelopmentTeam = SFQ29D84T9;
 						ProvisioningStyle = Automatic;
 					};
 					F370E9202B1F91D4A6EE0B86 = {
+						DevelopmentTeam = SFQ29D84T9;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -433,6 +439,7 @@
 				F70C1092E2E675D3664716F1 /* CueScreens.swift in Sources */,
 				BB9CD4F8850972800F2FDB90 /* DaedalusWatchApp.swift in Sources */,
 				FE1F0DC5DEE1558CDD16A9AF /* PhoneLink.swift in Sources */,
+				6C4BC1096FEFE381E3D4AD6E /* TremorAnalyzer.swift in Sources */,
 				E957ADC0D05BB75EE04FDBD9 /* WatchProtocol.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -461,6 +468,7 @@
 				8CA92F99DE02DA4C422D5801 /* ProfileView.swift in Sources */,
 				76DDC0599BBB0FA5805D68D1 /* SupabaseConfig.generated.swift in Sources */,
 				3E6046F6EC69CDD52B2465A9 /* TodayView.swift in Sources */,
+				F45C31FD05EC9D9E84485BB4 /* TremorAnalyzer.swift in Sources */,
 				0D966510097EADF44C99762D /* WatchLink.swift in Sources */,
 				2CD36334978480D045CBAC1B /* WatchProtocol.swift in Sources */,
 			);
@@ -513,6 +521,7 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = SFQ29D84T9;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -647,6 +656,7 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = SFQ29D84T9;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;

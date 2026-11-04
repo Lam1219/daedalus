@@ -51,8 +51,10 @@ struct WatchRootView: View {
             switch cue.mode {
             case "walking": WalkView()
             case "rest": BreatheView()
+            case TremorAnalyzer.mode: TremorCheckView()
             case let mode?: PulseView(mode: mode)
-            case nil: HomeView()
+            case nil:
+                if let result = cue.lastTremorResult { TremorResultView(result: result) } else { HomeView() }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

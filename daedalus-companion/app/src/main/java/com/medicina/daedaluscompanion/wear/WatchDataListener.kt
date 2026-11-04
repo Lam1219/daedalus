@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.google.android.gms.wearable.*
 import com.medicina.daedaluscompanion.data.CloudBackup
+import com.medicina.daedaluscompanion.data.TremorAnalyzer
 import com.medicina.daedaluscompanion.ui.screens.sessionsDir
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -326,6 +327,20 @@ class WatchDataClient(context: Context) {
             }
         }
         Log.i(TAG, "Sent session start command ($mode @ $bpm) to ${nodes.size} watch node(s)")
+    }
+
+    /** Start a tremor check on the watch (`start|tremor`, no rate). */
+    suspend fun sendTremorCheckStart() {
+        val nodes = connectedNodes()
+        val bytes = "start|${TremorAnalyzer.MODE}".toByteArray(Charsets.UTF_8)
+        for (node in nodes) {
+            try {
+                messageClient.sendMessage(node.id, "/session/control", bytes)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed sending tremor check start to watch ${node.displayName}: ${e.message}")
+            }
+        }
+        Log.i(TAG, "Sent tremor check start to ${nodes.size} watch node(s)")
     }
 
     /**

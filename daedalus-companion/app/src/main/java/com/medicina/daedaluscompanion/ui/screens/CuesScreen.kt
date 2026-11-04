@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.DirectionsWalk
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Air
+import androidx.compose.material.icons.outlined.GraphicEq
 import androidx.compose.material.icons.outlined.PanTool
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Remove
@@ -32,11 +33,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.medicina.daedaluscompanion.R
 import com.medicina.daedaluscompanion.data.LocalStore
+import com.medicina.daedaluscompanion.data.TremorAnalyzer
+import com.medicina.daedaluscompanion.data.analyzeTremorFile
+import com.medicina.daedaluscompanion.data.tremorSummary
 import com.medicina.daedaluscompanion.wear.SessionState
 import com.medicina.daedaluscompanion.wear.WatchDataClient
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import java.io.File
+import java.text.DateFormat
+import java.util.Date
 
 @Composable
 fun CuesScreen() {
@@ -51,16 +60,37 @@ fun CuesScreen() {
     var isSending by remember { mutableStateOf(false) }
     // Shown under the Start button: the watch isn't connected, or didn't answer in time.
     var startProblem by remember { mutableStateOf<Int?>(null) }
+    var isStartingCheck by remember { mutableStateOf(false) }
+    var checkProblem by remember { mutableStateOf<Int?>(null) }
+    // Newest tremor check file and its summary ("Rhythm 5.2 Hz · Moderate").
+    var lastCheck by remember { mutableStateOf<Pair<SessionItem, String>?>(null) }
 
     LaunchedEffect(Unit) {
+        var seenCheck: Pair<String, Long>? = null
         while (true) {
             isSessionActive = SessionState.isSessionActive
             activeMode = SessionState.getActiveSessionMode()
+            // Re-analyse when a new tremor check file arrives from the watch.
+            val newest = withContext(Dispatchers.IO) {
+                loadSessions(context).firstOrNull { it.mode == TremorAnalyzer.MODE }
+            }
+            val key = newest?.let { it.fileName to it.size }
+            if (key != seenCheck) {
+                seenCheck = key
+                lastCheck = newest?.let { item ->
+                    val result = withContext(Dispatchers.IO) { analyzeTremorFile(File(sessionsDir(context), item.fileName)) }
+                    item to tremorSummary(context, result)
+                }
+            }
             kotlinx.coroutines.delay(2000)
         }
     }
 
-    val shownMode = if (isSessionActive) modeById(activeMode) ?: selectedMode else selectedMode
+    // A tremor check uses the watch's session too, but it isn't a cue.
+    val tremorActive = isSessionActive && activeMode == TremorAnalyzer.MODE
+    val cueActive = isSessionActive && !tremorActive
+
+    val shownMode = if (cueActive) modeById(activeMode) ?: selectedMode else selectedMode
     // Rate per mode, set with the slider in that mode's steps and saved on the phone.
     var rates by remember {
         mutableStateOf(HAPTIC_MODES.associate { m ->
@@ -81,6 +111,23 @@ fun CuesScreen() {
         // Keep the watch in sync so "I'm stuck" and a running cue use the new rate.
         scope.launch { runCatching { watchClient.sendCueRate(mode.id, snapped) } }
     }
+    /**
+     * Sends a start or stop to the watch and waits for it to confirm. Returns the problem to show
+     * (watch not connected, or no answer in time), or null.
+     */
+    suspend fun commandWatch(wasActive: Boolean, send: suspend () -> Unit): Int? {
+        if (!runCatching { watchClient.isConnected() }.getOrDefault(false)) return R.string.cue_watch_missing
+        // The UI reflects start/stop only once the watch acknowledges it
+        // over /session/control — see WatchDataListener.
+        runCatching { send() }
+        // Keep "Starting…" up until the watch answers, or give up after a while.
+        val answered = withTimeoutOrNull(WATCH_REPLY_TIMEOUT_MS) {
+            while (SessionState.isSessionActive == wasActive) delay(250)
+        } != null
+        isSessionActive = SessionState.isSessionActive
+        activeMode = SessionState.getActiveSessionMode()
+        return if (answered) null else R.string.cue_no_reply
+    }
     fun toggleSession() {
         if (isSending) return
         isSending = true
@@ -88,25 +135,24 @@ fun CuesScreen() {
         val wasActive = isSessionActive
         scope.launch {
             try {
-                if (!runCatching { watchClient.isConnected() }.getOrDefault(false)) {
-                    startProblem = R.string.cue_watch_missing
-                    return@launch
-                }
-                // The UI reflects start/stop only once the watch acknowledges it
-                // over /session/control — see WatchDataListener.
-                runCatching {
+                startProblem = commandWatch(wasActive) {
                     if (wasActive) watchClient.sendSessionStop()
                     else watchClient.sendSessionStart(selectedMode.id, rates[selectedMode.id] ?: selectedMode.bpm)
                 }
-                // Keep "Starting…" up until the watch answers, or give up after a while.
-                val answered = withTimeoutOrNull(WATCH_REPLY_TIMEOUT_MS) {
-                    while (SessionState.isSessionActive == wasActive) delay(250)
-                } != null
-                isSessionActive = SessionState.isSessionActive
-                activeMode = SessionState.getActiveSessionMode()
-                if (!answered) startProblem = R.string.cue_no_reply
             } finally {
                 isSending = false
+            }
+        }
+    }
+    fun startTremorCheck() {
+        if (isStartingCheck || isSessionActive) return
+        isStartingCheck = true
+        checkProblem = null
+        scope.launch {
+            try {
+                checkProblem = commandWatch(wasActive = false) { watchClient.sendTremorCheckStart() }
+            } finally {
+                isStartingCheck = false
             }
         }
     }
@@ -157,29 +203,29 @@ fun CuesScreen() {
                     fontSize = 15.sp, color = DesignTokens.OnSageDeep, modifier = Modifier.padding(bottom = 8.dp),
                 )
             }
-            if (isSessionActive) {
+            if (cueActive) {
                 Text(stringResource(R.string.cue_running), fontSize = 13.sp, color = DesignTokens.OnSageDeep)
             }
             Spacer(Modifier.height(14.dp))
             Button(
                 onClick = ::toggleSession,
-                enabled = !isSending,
+                enabled = !isSending && !tremorActive && !isStartingCheck,
                 modifier = Modifier.fillMaxWidth().height(48.dp),
                 shape = RoundedCornerShape(24.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.White, contentColor = DesignTokens.SageDeep,
                     disabledContainerColor = Color.White, disabledContentColor = DesignTokens.SageDeep,
                 ),
-                border = if (isSessionActive) BorderStroke(1.dp, DesignTokens.SageLine) else null,
+                border = if (cueActive) BorderStroke(1.dp, DesignTokens.SageLine) else null,
             ) {
                 if (isSending) {
                     CircularProgressIndicator(Modifier.size(18.dp), color = DesignTokens.SageDeep, strokeWidth = 2.dp)
                     Spacer(Modifier.width(10.dp))
-                    Text(stringResource(if (isSessionActive) R.string.cue_stopping else R.string.cue_starting), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(if (cueActive) R.string.cue_stopping else R.string.cue_starting), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                 } else {
-                    Icon(if (isSessionActive) Icons.Outlined.Stop else Icons.Outlined.PlayArrow, null, modifier = Modifier.size(20.dp))
+                    Icon(if (cueActive) Icons.Outlined.Stop else Icons.Outlined.PlayArrow, null, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text(stringResource(if (isSessionActive) R.string.cue_stop else R.string.cue_start), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(if (cueActive) R.string.cue_stop else R.string.cue_start), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
             startProblem?.let {
@@ -225,6 +271,61 @@ fun CuesScreen() {
                 Text(stringResource(R.string.cue_slower, range.min), style = CaptionStyle)
                 Text(stringResource(R.string.cue_faster, range.max), style = CaptionStyle)
             }
+        }
+
+        // Tremor check: not a cue mode. The watch records 20 s with the hand at rest.
+        SageCard {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Icon(Icons.Outlined.GraphicEq, null, tint = DesignTokens.Sage, modifier = Modifier.size(20.dp))
+                Text(stringResource(R.string.tremor_check_title), style = RowTitleStyle)
+            }
+            Spacer(Modifier.height(6.dp))
+            Text(stringResource(R.string.tremor_check_body), fontSize = 14.sp, color = DesignTokens.Ink, lineHeight = 20.sp)
+            if (tremorActive) {
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    stringResource(R.string.tremor_check_running), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = DesignTokens.SageDeep,
+                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                )
+            }
+            Spacer(Modifier.height(14.dp))
+            Button(
+                onClick = ::startTremorCheck,
+                enabled = !isStartingCheck && !isSessionActive && !isSending,
+                modifier = Modifier.fillMaxWidth().height(48.dp),
+                shape = RoundedCornerShape(24.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = DesignTokens.SageDeep, contentColor = Color.White,
+                    disabledContainerColor = DesignTokens.SageTrack, disabledContentColor = DesignTokens.SageDeep,
+                ),
+            ) {
+                if (isStartingCheck) {
+                    CircularProgressIndicator(Modifier.size(18.dp), color = DesignTokens.SageDeep, strokeWidth = 2.dp)
+                    Spacer(Modifier.width(10.dp))
+                    Text(stringResource(R.string.cue_starting), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                } else {
+                    Icon(Icons.Outlined.PlayArrow, null, modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.tremor_check_start), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                }
+            }
+            checkProblem?.let {
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    stringResource(it), fontSize = 13.sp, color = DesignTokens.Ink,
+                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                )
+            }
+            lastCheck?.let { (item, summary) ->
+                val time = if (isToday(item.date)) DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(item.date)) else item.dateTimeLabel
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    stringResource(R.string.tremor_check_last, summary, time), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = DesignTokens.Ink,
+                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+            Text(stringResource(R.string.tremor_check_note), style = CaptionStyle)
         }
 
         // Automatic cues: detection isn't built yet, so they're shown as coming, never as on.

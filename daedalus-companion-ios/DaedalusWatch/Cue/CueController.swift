@@ -9,6 +9,10 @@ import WatchKit
 ///   (the workout is discarded at the end: nothing is saved to Apple Health);
 /// - taps at the chosen rate (Breathe: a tap to breathe in and one to breathe out);
 /// - a session CSV with heart rate and wrist motion, sent to the iPhone when the cue stops.
+///
+/// The tremor check ("tremor") runs the same way but plays no rhythm: a tap at the start and
+/// one at the end, every motion sample recorded, and it stops on its own after
+/// `TremorAnalyzer.checkDuration`, then shows the result until Done.
 @MainActor
 @Observable
 final class CueController: NSObject {
@@ -23,18 +27,27 @@ final class CueController: NSObject {
     private(set) var breathPhase: BreathPhase = .inhale
     /// Increments on every pulse (drives the walking ring animation).
     private(set) var beat = 0
+    /// The latest tremor check's result (cleared by Done, a new cue, or after `resultDuration`).
+    private(set) var lastTremorResult: TremorAnalyzer.Result?
+    private(set) var lastTremorAt: Date?
+    /// When the running tremor check stops on its own.
+    private(set) var tremorEndsAt: Date?
 
     @ObservationIgnored private let health = HKHealthStore()
     @ObservationIgnored private var session: HKWorkoutSession?
     @ObservationIgnored private var builder: HKLiveWorkoutBuilder?
     @ObservationIgnored private var cueTask: Task<Void, Never>?
     @ObservationIgnored private var timeoutTask: Task<Void, Never>?
+    @ObservationIgnored private var resultTask: Task<Void, Never>?
 
     /// A session the person forgets to stop ends on its own after this long.
     static let maxSessionDuration: Duration = .seconds(60 * 60)
+    /// How long a tremor check's result stays on screen without Done.
+    static let resultDuration: Duration = .seconds(2 * 60)
     @ObservationIgnored private let recorder = SessionRecorder()
 
     var isRunning: Bool { mode != nil }
+    var isTremorCheck: Bool { mode == TremorAnalyzer.mode }
 
     /// Rates set on the iPhone (Cues screen); "I'm stuck" starts at the person's own rhythm.
     func savedRate(_ mode: String) -> Int {
@@ -57,8 +70,12 @@ final class CueController: NSObject {
         self.rate = rate ?? savedRate(mode)
         paused = false
         heartRate = nil
-        recorder.start(mode: mode)
+        clearTremorResult()
+        let tremor = mode == TremorAnalyzer.mode
+        tremorEndsAt = tremor ? Date.now.addingTimeInterval(TremorAnalyzer.checkDuration) : nil
+        recorder.start(mode: mode, everySample: tremor)
         startWorkout(walking: mode == "walking")
+        if tremor { WKInterfaceDevice.current().play(.start) }
         startCue()
         startTimeout()
         PhoneLink.shared.sendStatus()
@@ -69,12 +86,31 @@ final class CueController: NSObject {
         timeoutTask?.cancel(); timeoutTask = nil
         cueTask?.cancel(); cueTask = nil
         endWorkout()
-        if let file = recorder.stop() { PhoneLink.shared.send(file: file) }
+        let file = recorder.stop()
+        let tremor = mode == TremorAnalyzer.mode
+        if tremor {
+            let m = recorder.motion
+            lastTremorResult = TremorAnalyzer.analyze(timesMs: m.timesMs, gx: m.gx, gy: m.gy, gz: m.gz)
+            lastTremorAt = .now
+            tremorEndsAt = nil
+            resultTask = Task { [weak self] in
+                try? await Task.sleep(for: Self.resultDuration)
+                guard !Task.isCancelled else { return }
+                self?.clearTremorResult()
+            }
+        }
+        if let file { PhoneLink.shared.send(file: file) }
         self.mode = nil
         paused = false
-        _ = mode
-        WKInterfaceDevice.current().play(.stop)
+        WKInterfaceDevice.current().play(tremor ? .success : .stop)
         PhoneLink.shared.sendStatus()
+    }
+
+    /// Done on the result screen (also when a new cue starts).
+    func clearTremorResult() {
+        resultTask?.cancel(); resultTask = nil
+        lastTremorResult = nil
+        lastTremorAt = nil
     }
 
     func togglePause() {
@@ -82,11 +118,13 @@ final class CueController: NSObject {
         if paused { cueTask?.cancel(); cueTask = nil } else { startCue() }
     }
 
-    /// Stops the session after `maxSessionDuration` (the workout keeps the app running meanwhile).
+    /// Stops the session after `maxSessionDuration`, or a tremor check after `checkDuration`
+    /// (the workout keeps the app running meanwhile).
     private func startTimeout() {
         timeoutTask?.cancel()
+        let limit: Duration = isTremorCheck ? .seconds(TremorAnalyzer.checkDuration) : Self.maxSessionDuration
         timeoutTask = Task { [weak self] in
-            try? await Task.sleep(for: Self.maxSessionDuration)
+            try? await Task.sleep(for: limit)
             guard !Task.isCancelled else { return }
             self?.stop()
         }
@@ -96,7 +134,8 @@ final class CueController: NSObject {
 
     private func startCue() {
         cueTask?.cancel()
-        guard let mode else { return }
+        // The tremor check plays no rhythm: taps would shake the wrist it measures.
+        guard let mode, mode != TremorAnalyzer.mode else { return }
         let device = WKInterfaceDevice.current()
         if mode == "rest" {
             // Breathing pacer: breathe in for 40% of each breath, out for 60% (6/min = in 4 s · out 6 s).
@@ -187,10 +226,22 @@ extension CueController: HKLiveWorkoutBuilderDelegate {
 
 /// Writes the session CSV: ~10 rows a second with the latest heart rate and wrist motion
 /// (acceleration in m/s² including gravity, rotation in rad/s — the Android watch's units).
+/// For the tremor check it writes every sample (50 a second), stamped with the sample's own
+/// time, and keeps the rotation in memory for `TremorAnalyzer`.
 final class SessionRecorder {
+    /// Rotation samples kept for the tremor check (times in wall-clock ms, rad/s).
+    struct Motion { var timesMs: [Int64] = [], gx: [Double] = [], gy: [Double] = [], gz: [Double] = [] }
+
     var heartRate: Int?
-    private let motion = CMMotionManager()
-    private let queue = OperationQueue()
+    /// Filled while recording every sample; read after `stop()`.
+    private(set) var motion = Motion()
+    private let motionManager = CMMotionManager()
+    private let queue: OperationQueue = {
+        let q = OperationQueue()
+        // One sample at a time: the handler appends to `motion` and writes to the file.
+        q.maxConcurrentOperationCount = 1
+        return q
+    }()
     private var handle: FileHandle?
     private var url: URL?
     private var lastWrite = Date.distantPast
@@ -201,7 +252,7 @@ final class SessionRecorder {
         return dir
     }
 
-    func start(mode: String) {
+    func start(mode: String, everySample: Bool = false) {
         let url = Self.sessionsDir.appendingPathComponent(CueDefaults.sessionFileName(mode: mode, start: .now))
         FileManager.default.createFile(atPath: url.path, contents: Data(CueDefaults.csvHeader.utf8))
         self.url = url
@@ -209,19 +260,31 @@ final class SessionRecorder {
         handle?.seekToEndOfFile()
         heartRate = nil
         lastWrite = .distantPast
+        motion = Motion()
 
-        guard motion.isDeviceMotionAvailable else { return }
-        motion.deviceMotionUpdateInterval = 1.0 / 50
-        motion.startDeviceMotionUpdates(to: queue) { [weak self] data, _ in
+        guard motionManager.isDeviceMotionAvailable else { return }
+        motionManager.deviceMotionUpdateInterval = 1.0 / 50
+        motionManager.startDeviceMotionUpdates(to: queue) { [weak self] data, _ in
             guard let self, let data else { return }
-            let now = Date.now
-            guard now.timeIntervalSince(self.lastWrite) >= 0.1 else { return }
-            self.lastWrite = now
+            let r = data.rotationRate
+            let timeMs: Int64
+            if everySample {
+                // The sample's own time (seconds since boot) as wall-clock ms.
+                let at = Date.now.timeIntervalSince1970 - (ProcessInfo.processInfo.systemUptime - data.timestamp)
+                timeMs = Int64((at * 1000).rounded())
+                self.motion.timesMs.append(timeMs)
+                self.motion.gx.append(r.x); self.motion.gy.append(r.y); self.motion.gz.append(r.z)
+            } else {
+                let now = Date.now
+                guard now.timeIntervalSince(self.lastWrite) >= 0.1 else { return }
+                self.lastWrite = now
+                timeMs = Int64(now.timeIntervalSince1970 * 1000)
+            }
             let g = 9.80665
-            let a = data.userAcceleration, gr = data.gravity, r = data.rotationRate
+            let a = data.userAcceleration, gr = data.gravity
             let row = String(
                 format: "%lld,%d,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,,\n",
-                Int64(now.timeIntervalSince1970 * 1000), self.heartRate ?? 0,
+                timeMs, self.heartRate ?? 0,
                 (a.x + gr.x) * g, (a.y + gr.y) * g, (a.z + gr.z) * g, r.x, r.y, r.z
             )
             self.handle?.write(Data(row.utf8))
@@ -230,7 +293,7 @@ final class SessionRecorder {
 
     /// Stops recording; returns the finished file.
     func stop() -> URL? {
-        motion.stopDeviceMotionUpdates()
+        motionManager.stopDeviceMotionUpdates()
         queue.waitUntilAllOperationsAreFinished()
         try? handle?.close()
         handle = nil

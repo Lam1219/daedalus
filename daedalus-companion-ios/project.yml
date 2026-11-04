@@ -16,6 +16,8 @@ packages:
 settings:
   base:
     SWIFT_VERSION: "5.10"
+    # Apple Developer team used for signing both apps.
+    DEVELOPMENT_TEAM: SFQ29D84T9
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
 

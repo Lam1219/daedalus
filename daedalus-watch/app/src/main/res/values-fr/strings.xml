@@ -41,6 +41,19 @@
     <string name="cd_resume">Reprendre</string>
     <string name="cd_stop">Arrêter le repère</string>
 
+    <!-- Tremor check -->
+    <string name="tremor_check_title">Mesure du tremblement</string>
+    <string name="tremor_rest_hand">Posez la main sur vos genoux</string>
+    <string name="tremor_hz">%1$s Hz</string>
+    <string name="tremor_rhythm_caption">Rythme du tremblement</string>
+    <string name="tremor_strength_light">Léger</string>
+    <string name="tremor_strength_moderate">Modéré</string>
+    <string name="tremor_strength_strong">Fort</string>
+    <string name="tremor_none">Pas de rythme de tremblement net</string>
+    <string name="tremor_moved">Trop de mouvement</string>
+    <string name="tremor_incomplete">Mesure incomplète</string>
+    <string name="tremor_retry">Posez la main et réessayez.</string>
+
     <!-- Stand-up prompt -->
     <string name="stand_title">Une pause avant de marcher</string>
     <string name="stand_sub">Vous venez de vous lever. Respirez un instant.</string>

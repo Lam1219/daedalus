@@ -6,6 +6,8 @@ struct CuesView: View {
     @State private var selected = CueMode.all[0]
     @State private var rates: [String: Int] = [:]
     @State private var watch = WatchLink.shared
+    /// The newest tremor check on this phone (from its session file).
+    @State private var lastTremor: (result: TremorAnalyzer.Result, at: Date)?
 
     var body: some View {
         ScreenScroll {
@@ -60,6 +62,8 @@ struct CuesView: View {
                 }
             }
 
+            tremorCard
+
             // Automatic cues: detection isn't built yet, so they're shown as coming, never as on.
             HStack(spacing: 8) {
                 Text(L("cue_auto_title")).font(DS.section).foregroundStyle(DS.ink)
@@ -75,6 +79,42 @@ struct CuesView: View {
             }
         }
         .toolbar(.hidden, for: .navigationBar)
+        .task(id: watch.filesReceived) { await loadLastTremor() }
+    }
+
+    /// Tremor check: not a cue mode; the watch records 20 s of the hand at rest and measures its rhythm.
+    private var tremorCard: some View {
+        SageCard {
+            Label(L("tremor_check_title"), systemImage: "hand.raised").font(DS.section).foregroundStyle(DS.ink)
+            Text(L("tremor_check_body")).font(DS.font(13)).foregroundStyle(DS.muted).padding(.top, 2)
+            if let lastTremor {
+                Text(L("tremor_check_last", lastTremor.result.summary, Fmt.dayTime(lastTremor.at)))
+                    .font(DS.font(13, .semibold)).foregroundStyle(DS.ink).padding(.top, 10)
+            }
+            VStack(alignment: .leading, spacing: 8) {
+                if watch.runningMode == TremorAnalyzer.mode {
+                    Text(L("tremor_check_running")).font(DS.font(13, .semibold)).foregroundStyle(DS.sageDeep)
+                    // Light pills vanish on the white card, so Stop uses the tinted background.
+                    Button { watch.stop() } label: { Label(L("cue_stop"), systemImage: "stop.fill") }
+                        .buttonStyle(PillButtonStyle(dark: false)).background(DS.sageTint, in: Capsule())
+                } else {
+                    Button { watch.startTremorCheck() } label: { Label(L("tremor_check_start"), systemImage: "hand.raised") }
+                        .buttonStyle(PillButtonStyle()).disabled(!watch.isReady || watch.runningMode != nil)
+                }
+            }
+            .padding(.top, 12)
+            Text(L("tremor_check_note")).font(DS.font(12)).foregroundStyle(DS.muted).padding(.top, 8)
+        }
+    }
+
+    private func loadLastTremor() async {
+        let newest = LocalStore.sessionFiles()
+            .filter { $0.lastPathComponent.hasPrefix("session_\(TremorAnalyzer.mode)_") }
+            .max { $0.lastPathComponent < $1.lastPathComponent }
+        guard let newest, let at = SessionFileName(newest.deletingPathExtension().lastPathComponent).startedAt,
+              let result = await TremorAnalyzer.analyze(file: newest)
+        else { lastTremor = nil; return }
+        lastTremor = (result, at)
     }
 
     private func change(_ delta: Int) {

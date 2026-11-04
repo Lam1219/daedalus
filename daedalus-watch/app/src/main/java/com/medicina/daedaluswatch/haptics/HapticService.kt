@@ -17,10 +17,12 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.IBinder
 import android.os.PowerManager
+import android.os.SystemClock
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
 import com.medicina.daedaluswatch.R
+import com.medicina.daedaluswatch.sensor.TremorAnalyzer
 import com.medicina.daedaluswatch.sensor.VitalsTracker
 import com.medicina.daedaluswatch.sync.SessionSyncManager
 import java.io.BufferedWriter
@@ -33,6 +35,10 @@ import kotlin.math.sqrt
 /**
  * Foreground service that runs haptic cueing AND records sensor data (HR, accel, gyro) to CSV.
  * Uses WakeLock to prevent the CPU from sleeping.
+ *
+ * Mode "tremor" is the tremor check instead of a cue: no rhythm pulses, a row for every gyroscope
+ * event (about 50 Hz), and it ends on its own after [TremorAnalyzer.CHECK_DURATION_MS] with the
+ * result in [lastTremorResult].
  */
 class HapticService : Service() {
 
@@ -66,6 +72,18 @@ class HapticService : Service() {
         Log.i("HapticService", "Session reached ${MAX_SESSION_MS / 60_000} min: stopping it")
         stopService()
     }
+    private val tremorCheckEnd = Runnable {
+        Log.i("HapticService", "Tremor check finished")
+        stopService()
+    }
+
+    /** Gyroscope samples of the running tremor check (sensor time as wall clock, rad/s). */
+    private val tremorTimes = ArrayList<Long>()
+    private val tremorGx = ArrayList<Double>()
+    private val tremorGy = ArrayList<Double>()
+    private val tremorGz = ArrayList<Double>()
+
+    private val isTremorCheck get() = currentMode == TremorAnalyzer.MODE
 
     companion object {
         const val EXTRA_BPM = "extra_bpm"
@@ -120,6 +138,17 @@ class HapticService : Service() {
             private set
         @Volatile var breathPhaseMs: Long = 4000L
             private set
+
+        /** Result of the last tremor check, for the watch's result screen; cleared when any session starts. */
+        @Volatile var lastTremorResult: TremorAnalyzer.Result? = null
+            private set
+        @Volatile var lastTremorResultAtMs: Long = 0L
+            private set
+
+        /** The watch's result screen was closed (Done). */
+        fun clearTremorResult() {
+            lastTremorResult = null
+        }
     }
 
     override fun onCreate() {
@@ -150,7 +179,7 @@ class HapticService : Service() {
             ACTION_SET_BPM -> {
                 val bpm = intent.getIntExtra(EXTRA_BPM, currentBpm)
                 val mode = intent.getStringExtra(EXTRA_MODE)
-                if (isRunning && bpm > 0 && (mode == null || mode == currentMode)) updateBpm(bpm)
+                if (isRunning && !isTremorCheck && bpm > 0 && (mode == null || mode == currentMode)) updateBpm(bpm)
             }
         }
         return START_STICKY
@@ -168,6 +197,8 @@ class HapticService : Service() {
         runningBpm = bpm
         startedAtMs = System.currentTimeMillis()
         isUserPaused = false
+        // A new session replaces the result screen of an earlier tremor check.
+        lastTremorResult = null
 
         // Request battery optimization exemption
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -194,7 +225,9 @@ class HapticService : Service() {
 
         // End the session on its own if the person forgets to stop it.
         mainHandler.removeCallbacks(sessionTimeout)
-        mainHandler.postDelayed(sessionTimeout, MAX_SESSION_MS)
+        mainHandler.removeCallbacks(tremorCheckEnd)
+        if (mode == TremorAnalyzer.MODE) mainHandler.postDelayed(tremorCheckEnd, TremorAnalyzer.CHECK_DURATION_MS)
+        else mainHandler.postDelayed(sessionTimeout, MAX_SESSION_MS)
 
         // Start foreground notification
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
@@ -230,8 +263,9 @@ class HapticService : Service() {
             },
         ).also { it.start() }
 
-        // Start haptic thread
-        startHapticThread(bpm)
+        // Start haptic thread; the tremor check has no rhythm, only one short buzz to begin.
+        if (mode == TremorAnalyzer.MODE) vibrator?.let { vibrateOnce(it, 60) }
+        else startHapticThread(bpm)
 
         // Notify phone
         sessionSyncManager?.notifySessionStart(mode)
@@ -257,6 +291,7 @@ class HapticService : Service() {
     }
 
     private fun startSensorRecording() {
+        tremorTimes.clear(); tremorGx.clear(); tremorGy.clear(); tremorGz.clear()
         sensorListener = object : SensorEventListener {
             private var lastAccel = floatArrayOf(0f, 0f, 0f)
             private var lastGyro = floatArrayOf(0f, 0f, 0f)
@@ -283,6 +318,12 @@ class HapticService : Service() {
                     }
                 }
 
+                // Tremor check: one row per gyroscope event (~50 Hz), at the event's own time.
+                if (isTremorCheck) {
+                    if (event.sensor.type == Sensor.TYPE_GYROSCOPE) writeTremorRow(event)
+                    return
+                }
+
                 // Write to CSV at ~10Hz (every 100ms) to avoid excessive I/O
                 val now = System.currentTimeMillis()
                 if (now - lastWriteTime >= 100) {
@@ -294,6 +335,18 @@ class HapticService : Service() {
                     val line = "$now,$lastHr,${lastAccel[0]},${lastAccel[1]},${lastAccel[2]},${lastGyro[0]},${lastGyro[1]},${lastGyro[2]},$breathing,$spo2\n"
                     csvWriter?.write(line)
                 }
+            }
+
+            private fun writeTremorRow(event: SensorEvent) {
+                val time = System.currentTimeMillis() - (SystemClock.elapsedRealtimeNanos() - event.timestamp) / 1_000_000
+                tremorTimes.add(time)
+                tremorGx.add(lastGyro[0].toDouble())
+                tremorGy.add(lastGyro[1].toDouble())
+                tremorGz.add(lastGyro[2].toDouble())
+                val breathing = latestBreathingRate?.let { String.format(Locale.US, "%.1f", it) } ?: ""
+                val spo2 = latestSpo2?.toString() ?: ""
+                latestSpo2 = null
+                csvWriter?.write("$time,$lastHr,${lastAccel[0]},${lastAccel[1]},${lastAccel[2]},${lastGyro[0]},${lastGyro[1]},${lastGyro[2]},$breathing,$spo2\n")
             }
 
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
@@ -431,6 +484,7 @@ class HapticService : Service() {
         if (!isRunning && !isServiceRunning) return
         val generation = ++stopGeneration
         mainHandler.removeCallbacks(sessionTimeout)
+        mainHandler.removeCallbacks(tremorCheckEnd)
         isRunning = false
         isServiceRunning = false
         runningMode = null
@@ -450,6 +504,9 @@ class HapticService : Service() {
         sensorListener?.let { sensorManager?.unregisterListener(it) }
         csvWriter?.flush()
         csvWriter?.close()
+        csvWriter = null
+
+        if (isTremorCheck) finishTremorCheck()
 
         // Send file to phone. The wake lock and foreground status are kept alive
         // until the transfer finishes (or times out) — releasing them immediately
@@ -468,6 +525,25 @@ class HapticService : Service() {
             Log.e("HapticService", "sessionFile is null or does not exist: ${file?.absolutePath}")
             finishStopping(generation)
         }
+    }
+
+    /** Double buzz to say the check is over, then analyses its samples off the main thread. */
+    private fun finishTremorCheck() {
+        vibrator?.let { vibrateTwice(it) }
+        val times = tremorTimes.toLongArray()
+        val gx = tremorGx.toDoubleArray()
+        val gy = tremorGy.toDoubleArray()
+        val gz = tremorGz.toDoubleArray()
+        tremorTimes.clear(); tremorGx.clear(); tremorGy.clear(); tremorGz.clear()
+        Thread {
+            val result = TremorAnalyzer.analyze(times, gx, gy, gz)
+            Log.i("HapticService", "Tremor check: ${result.outcome} ${result.frequencyHz ?: ""} Hz, ${times.size} samples")
+            // A session started meanwhile has its own screen: don't show this result over it.
+            if (!isServiceRunning) {
+                lastTremorResultAtMs = System.currentTimeMillis()
+                lastTremorResult = result
+            }
+        }.apply { name = "TremorAnalysis" }.start()
     }
 
     @Synchronized
@@ -492,7 +568,7 @@ class HapticService : Service() {
 
         return builder
             .setContentTitle(getString(R.string.notif_title, modeLabel(mode)))
-            .setContentText(getString(R.string.notif_text, bpm))
+            .setContentText(if (mode == TremorAnalyzer.MODE) getString(R.string.tremor_rest_hand) else getString(R.string.notif_text, bpm))
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setOngoing(true)
             .build()
@@ -515,6 +591,7 @@ class HapticService : Service() {
         "rest" -> getString(R.string.mode_rest)
         "writing" -> getString(R.string.mode_fine)
         "stress" -> getString(R.string.mode_calm)
+        TremorAnalyzer.MODE -> getString(R.string.tremor_check_title)
         else -> mode
     }
 

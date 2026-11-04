@@ -27,6 +27,10 @@ import androidx.compose.ui.unit.sp
 import com.medicina.daedaluscompanion.R
 import com.medicina.daedaluscompanion.data.Feeling
 import com.medicina.daedaluscompanion.data.LocalStore
+import com.medicina.daedaluscompanion.data.TremorAnalyzer
+import com.medicina.daedaluscompanion.data.analyzeTremorFile
+import com.medicina.daedaluscompanion.data.tremorSummary
+import java.io.File
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -63,6 +67,16 @@ fun JournalScreen() {
             loadDayHeartRate(context, selectedDay, sessions)
         }
     }
+    // The day's tremor check summaries by file name; empty while loading.
+    var tremorSummaries by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    LaunchedEffect(selectedDay) {
+        tremorSummaries = emptyMap()
+        tremorSummaries = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            sessions.filter { it.mode == TremorAnalyzer.MODE && sameDay(it.date, selectedDay) }.associate {
+                it.fileName to tremorSummary(context, analyzeTremorFile(File(sessionsDir(context), it.fileName)))
+            }
+        }
+    }
 
     val doseTitle = stringResource(R.string.journal_dose)
     val sessionTitle = stringResource(R.string.journal_session)
@@ -72,6 +86,7 @@ fun JournalScreen() {
     val checkInLabel = stringResource(R.string.journal_checkin)
     val modeLabels = HAPTIC_MODES.associate { it.id to stringResource(it.labelRes) }
     val otherLabel = stringResource(R.string.mode_other)
+    val tremorTitle = stringResource(R.string.tremor_check_title)
 
     val entries = buildList {
         doses.filter { sameDay(it.timestamp, selectedDay) }.forEach {
@@ -82,7 +97,11 @@ fun JournalScreen() {
             add(JournalEntry(it.timestamp, label, checkInLabel, if (it.feeling == Feeling.WEARING_OFF) DesignTokens.Alert else DesignTokens.SageLine))
         }
         sessions.filter { sameDay(it.date, selectedDay) }.forEach {
-            add(JournalEntry(it.date, String.format(sessionTitle, modeLabels[it.mode] ?: otherLabel), formatFileSize(it.size), DesignTokens.SageDeep))
+            if (it.mode == TremorAnalyzer.MODE) {
+                add(JournalEntry(it.date, tremorTitle, tremorSummaries[it.fileName].orEmpty(), DesignTokens.SageDeep))
+            } else {
+                add(JournalEntry(it.date, String.format(sessionTitle, modeLabels[it.mode] ?: otherLabel), formatFileSize(it.size), DesignTokens.SageDeep))
+            }
         }
     }.sortedBy { it.time }
 

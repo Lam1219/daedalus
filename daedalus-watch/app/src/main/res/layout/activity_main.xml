@@ -449,4 +449,185 @@
         </LinearLayout>
     </LinearLayout>
 
+    <!-- ===== Watch · Tremor check (recording) ===== -->
+    <LinearLayout
+        android:id="@+id/screen_tremor_check"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            style="@style/WatchText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:maxWidth="160dp"
+            android:text="@string/tremor_check_title"
+            android:textColor="@color/watch_sage"
+            android:textFontWeight="600"
+            android:textSize="14sp" />
+
+        <TextView
+            style="@style/WatchText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:gravity="center"
+            android:maxLines="2"
+            android:maxWidth="160dp"
+            android:text="@string/tremor_rest_hand"
+            android:textFontWeight="600"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/tv_tremor_countdown"
+            style="@style/WatchText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:includeFontPadding="false"
+            android:letterSpacing="-0.04"
+            android:textFontWeight="600"
+            android:textSize="@dimen/walk_rate_text" />
+
+        <LinearLayout
+            android:id="@+id/btn_tremor_stop"
+            android:layout_width="wrap_content"
+            android:layout_height="52dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_pill_raised"
+            android:clickable="true"
+            android:contentDescription="@string/stop"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:gravity="center"
+            android:minWidth="124dp"
+            android:orientation="horizontal"
+            android:paddingHorizontal="18dp">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_stop"
+                android:tint="@color/watch_ink" />
+
+            <TextView
+                style="@style/WatchText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:importantForAccessibility="no"
+                android:text="@string/stop"
+                android:textFontWeight="700"
+                android:textSize="16sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- ===== Watch · Tremor check result (until Done, at most 2 minutes) ===== -->
+    <!-- Scrolls: with "I'm stuck" under Done it can be taller than a small round screen. -->
+    <ScrollView
+        android:id="@+id/screen_tremor_result"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:scrollbars="none"
+        android:visibility="gone">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingVertical="28dp">
+
+        <TextView
+            style="@style/WatchText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:maxWidth="160dp"
+            android:text="@string/tremor_check_title"
+            android:textColor="@color/watch_sage"
+            android:textFontWeight="600"
+            android:textSize="14sp" />
+
+        <!-- Tremor: "5.2 Hz" -->
+        <TextView
+            android:id="@+id/tv_tremor_hz"
+            style="@style/WatchText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:includeFontPadding="false"
+            android:letterSpacing="-0.04"
+            android:textFontWeight="600"
+            android:textSize="@dimen/walk_rate_text" />
+
+        <!-- Tremor: "Tremor rhythm"; otherwise the outcome ("Too much movement"). -->
+        <TextView
+            android:id="@+id/tv_tremor_headline"
+            style="@style/WatchText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:gravity="center"
+            android:maxLines="2"
+            android:maxWidth="160dp"
+            android:textFontWeight="600"
+            android:textSize="18sp" />
+
+        <!-- Tremor: the strength word; Moved / Incomplete: "Rest your hand and try again." -->
+        <TextView
+            android:id="@+id/tv_tremor_detail"
+            style="@style/WatchText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:gravity="center"
+            android:maxLines="2"
+            android:maxWidth="160dp"
+            android:textColor="@color/watch_sage"
+            android:textFontWeight="600"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/btn_tremor_done"
+            style="@style/WatchText"
+            android:layout_width="wrap_content"
+            android:layout_height="52dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_pill_raised"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:gravity="center"
+            android:minWidth="124dp"
+            android:paddingHorizontal="18dp"
+            android:text="@string/done"
+            android:textColor="@color/watch_sage"
+            android:textFontWeight="700"
+            android:textSize="16sp" />
+
+        <!-- "I'm stuck" always works, even while a result is showing. -->
+        <TextView
+            android:id="@+id/btn_tremor_stuck"
+            style="@style/WatchText"
+            android:layout_width="wrap_content"
+            android:layout_height="52dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_pill_sage"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:gravity="center"
+            android:minWidth="124dp"
+            android:paddingHorizontal="18dp"
+            android:text="@string/im_stuck"
+            android:textColor="@color/watch_ground"
+            android:textFontWeight="700"
+            android:textSize="16sp" />
+    </LinearLayout>
+    </ScrollView>
+
 </FrameLayout>

@@ -84,6 +84,21 @@
     <string name="cue_stand">Rappel au lever</string>
     <string name="cue_stand_sub">Une pause avant de marcher après vous être levé·e</string>
 
+    <!-- Tremor check -->
+    <string name="tremor_check_title">Mesure du tremblement</string>
+    <string name="tremor_check_body">Posez la main sur vos genoux pendant 20 secondes. Votre montre mesure le rythme de votre tremblement.</string>
+    <string name="tremor_check_start">Lancer la mesure</string>
+    <string name="tremor_check_running">Mesure en cours sur votre montre</string>
+    <string name="tremor_check_last">Dernière mesure : %1$s · %2$s</string>
+    <string name="tremor_check_note">Une tendance à partager avec votre équipe soignante, pas un diagnostic.</string>
+    <string name="tremor_summary_rhythm">Rythme %1$s Hz · %2$s</string>
+    <string name="tremor_strength_light">Léger</string>
+    <string name="tremor_strength_moderate">Modéré</string>
+    <string name="tremor_strength_strong">Fort</string>
+    <string name="tremor_none">Pas de rythme de tremblement net</string>
+    <string name="tremor_moved">Trop de mouvement</string>
+    <string name="tremor_incomplete">Mesure incomplète</string>
+
     <!-- Journal -->
     <string name="journal_title">Journal</string>
     <string name="journal_empty">Rien de noté ce jour-là.</string>

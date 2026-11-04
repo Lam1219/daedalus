@@ -8,6 +8,8 @@ struct JournalView: View {
     @State private var day = Calendar.current.startOfDay(for: .now)
     @State private var heartRate: [HealthData.Reading] = []
     @State private var loading = true
+    /// Tremor check summaries by session file name, analysed off the main actor.
+    @State private var tremorSummaries: [String: String] = [:]
 
     private struct Entry: Identifiable { let id = UUID(); let date: Date; let icon: String; let title: String; let subtitle: String? }
 
@@ -22,8 +24,11 @@ struct JournalView: View {
         }
         for file in LocalStore.sessionFiles() {
             let info = SessionFileName(file.deletingPathExtension().lastPathComponent)
-            if let start = info.startedAt, cal.isDate(start, inSameDayAs: day) {
-                out.append(Entry(date: start, icon: "waveform", title: L("journal_session", L(CueMode.byId(info.mode)?.labelKey ?? "mode_other")), subtitle: nil))
+            guard let start = info.startedAt, cal.isDate(start, inSameDayAs: day) else { continue }
+            if info.mode == TremorAnalyzer.mode {
+                out.append(Entry(date: start, icon: "hand.raised", title: L("tremor_check_title"), subtitle: tremorSummaries[file.lastPathComponent]))
+            } else {
+                out.append(Entry(date: start, icon: "waveform", title: L("journal_session", CueMode.sessionLabel(info.mode)), subtitle: nil))
             }
         }
         return out.sorted { $0.date > $1.date }
@@ -53,6 +58,7 @@ struct JournalView: View {
             heartRate = await HealthData.shared.heartRate(on: day)
             loading = false
         }
+        .task(id: "\(day.timeIntervalSince1970)-\(WatchLink.shared.filesReceived)") { await loadTremorSummaries() }
     }
 
     private var dayPicker: some View {
@@ -106,6 +112,16 @@ struct JournalView: View {
                 .padding(.top, 12)
                 .accessibilityLabel(L("journal_hr_title"))
             }
+        }
+    }
+
+    private func loadTremorSummaries() async {
+        let cal = Calendar.current
+        for file in LocalStore.sessionFiles() where tremorSummaries[file.lastPathComponent] == nil {
+            let info = SessionFileName(file.deletingPathExtension().lastPathComponent)
+            guard info.mode == TremorAnalyzer.mode, let start = info.startedAt, cal.isDate(start, inSameDayAs: day),
+                  let result = await TremorAnalyzer.analyze(file: file) else { continue }
+            tremorSummaries[file.lastPathComponent] = result.summary
         }
     }
 

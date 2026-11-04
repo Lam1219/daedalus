@@ -16,6 +16,8 @@ final class WatchLink: NSObject {
     /// The cue running on the watch, if any.
     private(set) var runningMode: String?
     private(set) var heartRate: Int?
+    /// Counts session files received, so screens can reload them.
+    private(set) var filesReceived = 0
 
     @ObservationIgnored private let health = HKHealthStore()
 
@@ -38,25 +40,33 @@ final class WatchLink: NSObject {
 
     /// Starts a cue on the watch: directly if the watch app is open, otherwise by launching it.
     func start(mode: CueMode) {
-        let rate = LocalStore.shared.cueRate(mode)
+        start(modeId: mode.id, rate: LocalStore.shared.cueRate(mode))
+    }
+
+    /// Starts the tremor check on the watch (the rate is ignored there).
+    func startTremorCheck() {
+        start(modeId: TremorAnalyzer.mode, rate: 0)
+    }
+
+    private func start(modeId: String, rate: Int) {
         let session = WCSession.default
         guard session.activationState == .activated else { return }
         if session.isReachable {
-            session.sendMessage([WatchKey.command: WatchKey.start, WatchKey.mode: mode.id, WatchKey.rate: rate], replyHandler: nil)
+            session.sendMessage([WatchKey.command: WatchKey.start, WatchKey.mode: modeId, WatchKey.rate: rate], replyHandler: nil)
         } else {
             var context = session.applicationContext
-            context[WatchKey.pendingMode] = mode.id
+            context[WatchKey.pendingMode] = modeId
             context[WatchKey.rate] = rate
             context[WatchKey.pendingAt] = Date.now
             try? session.updateApplicationContext(context)
             let config = HKWorkoutConfiguration()
-            config.activityType = mode.id == "walking" ? .walking : .mindAndBody
-            config.locationType = mode.id == "walking" ? .outdoor : .indoor
+            config.activityType = modeId == "walking" ? .walking : .mindAndBody
+            config.locationType = modeId == "walking" ? .outdoor : .indoor
             health.startWatchApp(with: config) { _, error in
                 if let error { print("Couldn't start the watch app: \(error)") }
             }
         }
-        runningMode = mode.id
+        runningMode = modeId
     }
 
     func stop() {
@@ -115,7 +125,10 @@ extension WatchLink: WCSessionDelegate {
             try? FileManager.default.setAttributes(
                 [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication], ofItemAtPath: destination.path
             )
-            Task { @MainActor in CloudBackup.shared.syncSoon() }
+            Task { @MainActor in
+                self.filesReceived += 1
+                CloudBackup.shared.syncSoon()
+            }
         } catch {
             print("Couldn't save session file \(name): \(error)")
         }

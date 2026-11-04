@@ -24,6 +24,7 @@ import com.medicina.daedaluswatch.haptics.CueRates
 import com.medicina.daedaluswatch.haptics.HapticService
 import com.medicina.daedaluswatch.sensor.HeartRatePermission
 import com.medicina.daedaluswatch.sensor.StandWatchService
+import com.medicina.daedaluswatch.sensor.TremorAnalyzer
 import com.medicina.daedaluswatch.sync.SessionSyncManager
 import java.util.Locale
 import kotlin.math.cos
@@ -32,7 +33,8 @@ import kotlin.math.PI
 /**
  * Watch screens from the design canvas. Home shows "I'm stuck" and live vitals; while a cue
  * runs, the screen for its mode shows instead (walking ring, breathing pacer, or the
- * steady/grounding cue screen). Modes and rates are chosen on the phone.
+ * steady/grounding cue screen). Modes and rates are chosen on the phone. A tremor check (started
+ * from the phone) shows a countdown, then its result until Done.
  */
 class MainActivity : ComponentActivity(), SensorEventListener {
 
@@ -42,6 +44,8 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     private lateinit var screenWalk: View
     private lateinit var screenBreathe: View
     private lateinit var screenCue: View
+    private lateinit var screenTremorCheck: View
+    private lateinit var screenTremorResult: View
 
     private lateinit var tvHomeStatus: TextView
     private lateinit var dotHomeStatus: View
@@ -59,6 +63,10 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     private lateinit var tvCueSub: TextView
     private lateinit var tvCueTimer: TextView
     private lateinit var btnCuePause: ImageButton
+    private lateinit var tvTremorCountdown: TextView
+    private lateinit var tvTremorHz: TextView
+    private lateinit var tvTremorHeadline: TextView
+    private lateinit var tvTremorDetail: TextView
 
     private var sensorManager: SensorManager? = null
     private var homeHeartRate = 0
@@ -82,6 +90,8 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         screenWalk = findViewById(R.id.screen_walk)
         screenBreathe = findViewById(R.id.screen_breathe)
         screenCue = findViewById(R.id.screen_cue)
+        screenTremorCheck = findViewById(R.id.screen_tremor_check)
+        screenTremorResult = findViewById(R.id.screen_tremor_result)
         tvHomeStatus = findViewById(R.id.tv_home_status)
         dotHomeStatus = findViewById(R.id.dot_home_status)
         tvHomeHr = findViewById(R.id.tv_home_hr)
@@ -98,6 +108,10 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         tvCueSub = findViewById(R.id.tv_cue_sub)
         tvCueTimer = findViewById(R.id.tv_cue_timer)
         btnCuePause = findViewById(R.id.btn_cue_pause)
+        tvTremorCountdown = findViewById(R.id.tv_tremor_countdown)
+        tvTremorHz = findViewById(R.id.tv_tremor_hz)
+        tvTremorHeadline = findViewById(R.id.tv_tremor_headline)
+        tvTremorDetail = findViewById(R.id.tv_tremor_detail)
         findViewById<View>(R.id.tv_walk_hint).visibility =
             if (resources.getBoolean(R.bool.show_walk_hint)) View.VISIBLE else View.GONE
 
@@ -106,6 +120,10 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         findViewById<View>(R.id.btn_walk_stop).setOnClickListener { stopCue() }
         findViewById<View>(R.id.btn_breathe_done).setOnClickListener { stopCue() }
         findViewById<View>(R.id.btn_cue_stop).setOnClickListener { stopCue() }
+        findViewById<View>(R.id.btn_tremor_stop).setOnClickListener { stopCue() }
+        findViewById<View>(R.id.btn_tremor_done).setOnClickListener { HapticService.clearTremorResult() }
+        // Starting a cue clears the result, so this goes straight to the walking screen.
+        findViewById<View>(R.id.btn_tremor_stuck).setOnClickListener { startWalkingCue() }
         btnCuePause.setOnClickListener {
             val action = if (HapticService.isUserPaused) HapticService.ACTION_RESUME else HapticService.ACTION_PAUSE
             startService(Intent(this, HapticService::class.java).setAction(action))
@@ -146,7 +164,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     }
 
     private fun show(screen: View) {
-        listOf(screenHome, screenWalk, screenBreathe, screenCue).forEach {
+        listOf(screenHome, screenWalk, screenBreathe, screenCue, screenTremorCheck, screenTremorResult).forEach {
             it.visibility = if (it === screen) View.VISIBLE else View.GONE
         }
     }
@@ -154,6 +172,12 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     private fun render() {
         val now = System.currentTimeMillis()
         if (!HapticService.isServiceRunning) {
+            val tremor = HapticService.lastTremorResult
+            if (tremor != null && now - HapticService.lastTremorResultAtMs < TREMOR_RESULT_MS) {
+                show(screenTremorResult)
+                renderTremorResult(tremor)
+                return
+            }
             show(screenHome)
             val hr = HapticService.latestHeartRate.takeIf { it > 0 } ?: homeHeartRate
             tvHomeHr.text = if (hr > 0) hr.toString() else getString(R.string.value_none)
@@ -165,6 +189,11 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         }
         val bpm = HapticService.runningBpm
         when (HapticService.runningMode) {
+            TremorAnalyzer.MODE -> {
+                show(screenTremorCheck)
+                val leftMs = TremorAnalyzer.CHECK_DURATION_MS - (now - HapticService.startedAtMs)
+                tvTremorCountdown.text = String.format(Locale.getDefault(), "%d", ((leftMs + 999) / 1000).coerceAtLeast(0))
+            }
             "rest" -> {
                 show(screenBreathe)
                 val inhale = HapticService.breathInhale
@@ -208,6 +237,40 @@ class MainActivity : ComponentActivity(), SensorEventListener {
                 ring.beat = (1f - phase * 4f).coerceAtLeast(0f)
             }
         }
+    }
+
+    private fun renderTremorResult(result: TremorAnalyzer.Result) {
+        val hz = result.frequencyHz
+        val tremor = result.outcome == TremorAnalyzer.Outcome.TREMOR && hz != null
+        tvTremorHz.visibility = if (tremor) View.VISIBLE else View.GONE
+        if (tremor) {
+            tvTremorHz.text = getString(R.string.tremor_hz, String.format(Locale.getDefault(), "%.1f", hz))
+            tvTremorHeadline.setText(R.string.tremor_rhythm_caption)
+            tvTremorHeadline.setTextColor(getColor(R.color.watch_muted))
+            tvTremorHeadline.textSize = 14f
+        } else {
+            tvTremorHeadline.setText(
+                when (result.outcome) {
+                    TremorAnalyzer.Outcome.MOVED -> R.string.tremor_moved
+                    TremorAnalyzer.Outcome.INCOMPLETE -> R.string.tremor_incomplete
+                    else -> R.string.tremor_none
+                }
+            )
+            tvTremorHeadline.setTextColor(getColor(R.color.watch_ink))
+            tvTremorHeadline.textSize = 18f
+        }
+        val detail = when {
+            tremor -> when (result.strength) {
+                TremorAnalyzer.Strength.STRONG -> getString(R.string.tremor_strength_strong)
+                TremorAnalyzer.Strength.MODERATE -> getString(R.string.tremor_strength_moderate)
+                else -> getString(R.string.tremor_strength_light)
+            }
+            result.outcome == TremorAnalyzer.Outcome.MOVED || result.outcome == TremorAnalyzer.Outcome.INCOMPLETE ->
+                getString(R.string.tremor_retry)
+            else -> ""
+        }
+        tvTremorDetail.text = detail
+        tvTremorDetail.visibility = if (detail.isEmpty()) View.GONE else View.VISIBLE
     }
 
     /** "Ready" while the phone is reachable, otherwise says so; "I'm stuck" works either way. */
@@ -260,5 +323,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
 
     private companion object {
         const val PHONE_CHECK_MS = 15_000L
+        /** The tremor result screen goes back to home on its own after this long. */
+        const val TREMOR_RESULT_MS = 2 * 60 * 1000L
     }
 }

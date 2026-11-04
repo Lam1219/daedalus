@@ -7,12 +7,14 @@ import com.google.android.gms.wearable.WearableListenerService
 import com.medicina.daedaluswatch.haptics.CueRates
 import com.medicina.daedaluswatch.haptics.HapticService
 import com.medicina.daedaluswatch.sensor.StandWatchService
+import com.medicina.daedaluswatch.sensor.TremorAnalyzer
 
 private const val TAG = "WatchMessageListener"
 
 /**
  * Listens for cue control messages from the companion phone app on /session/control:
  * - `start|<mode>|<bpm>` starts a cue at the rate chosen on the phone (bpm optional)
+ * - `start|tremor`       starts a tremor check (no rate)
  * - `rate|<mode>|<bpm>`  saves the phone's rate for a mode; a running cue of that mode follows it
  * - `stop` / `complete`  stops the cue
  * - `pref|stand|1|0`     turns automatic stand-up detection on or off
@@ -34,11 +36,13 @@ class WatchMessageListener : WearableListenerService() {
             val mode = parts.getOrNull(1)?.lowercase() ?: "stress"
             val bpm = parts.getOrNull(2)?.toIntOrNull()?.takeIf { it > 0 }
             when (parts.firstOrNull()) {
-                "start" -> {
+                "start" -> if (mode == TremorAnalyzer.MODE) {
+                    startHapticService(mode, 0)
+                } else {
                     if (bpm != null) CueRates.set(this, mode, bpm)
                     startHapticService(mode, bpm ?: CueRates.get(this, mode))
                 }
-                "rate" -> if (bpm != null) {
+                "rate" -> if (bpm != null && mode != TremorAnalyzer.MODE) {
                     CueRates.set(this, mode, bpm)
                     if (HapticService.isServiceRunning && HapticService.runningMode == mode) {
                         startService(Intent(this, HapticService::class.java).apply {

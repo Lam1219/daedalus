@@ -2,7 +2,9 @@ package com.medicina.daedaluscompanion.ui.screens
 
 import android.content.Context
 import android.content.Intent
+import androidx.annotation.StringRes
 import com.medicina.daedaluscompanion.R
+import com.medicina.daedaluscompanion.data.TremorAnalyzer
 import java.io.File
 import java.text.DateFormat
 import java.text.SimpleDateFormat
@@ -102,6 +104,14 @@ fun groupSessionsByMode(sessions: List<SessionItem>): List<Pair<HapticMode?, Lis
     val unknownIds = byMode.keys.filter { id -> HAPTIC_MODES.none { it.id == id } }
     val unknown = unknownIds.map { id -> null to byMode.getValue(id) }
     return known + unknown
+}
+
+/** Heading for a group of sessions: the cue mode's name, "Tremor check", or "Other". */
+@StringRes
+fun sessionModeLabelRes(mode: HapticMode?, modeId: String): Int = when {
+    mode != null -> mode.labelRes
+    modeId == TremorAnalyzer.MODE -> R.string.tremor_check_title
+    else -> R.string.mode_other
 }
 
 fun extractMode(fileName: String): String {

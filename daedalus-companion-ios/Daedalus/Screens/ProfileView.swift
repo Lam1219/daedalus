@@ -128,7 +128,7 @@ struct SessionsView: View {
                 ForEach(Array(sorted.enumerated()), id: \.element) { i, file in
                     let info = SessionFileName(file.deletingPathExtension().lastPathComponent)
                     let size = (try? file.resourceValues(forKeys: [.fileSizeKey]).fileSize).map { Int64($0 ?? 0) } ?? 0
-                    ListRow(title: L(CueMode.byId(info.mode)?.labelKey ?? "mode_other"),
+                    ListRow(title: CueMode.sessionLabel(info.mode),
                             subtitle: "\(info.startedAt.map(Fmt.dayTime) ?? file.lastPathComponent) · \(Fmt.fileSize(size))",
                             icon: "doc.text", showDivider: i < sorted.count - 1) {
                         ShareLink(item: file) { Image(systemName: "square.and.arrow.up").foregroundStyle(DS.sageDeep).frame(width: 44, height: 44) }

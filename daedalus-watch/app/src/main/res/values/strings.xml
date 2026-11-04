@@ -41,6 +41,19 @@
     <string name="cd_resume">Resume cue</string>
     <string name="cd_stop">Stop cue</string>
 
+    <!-- Tremor check -->
+    <string name="tremor_check_title">Tremor check</string>
+    <string name="tremor_rest_hand">Rest your hand on your lap</string>
+    <string name="tremor_hz">%1$s Hz</string>
+    <string name="tremor_rhythm_caption">Tremor rhythm</string>
+    <string name="tremor_strength_light">Light</string>
+    <string name="tremor_strength_moderate">Moderate</string>
+    <string name="tremor_strength_strong">Strong</string>
+    <string name="tremor_none">No clear tremor rhythm</string>
+    <string name="tremor_moved">Too much movement</string>
+    <string name="tremor_incomplete">Check incomplete</string>
+    <string name="tremor_retry">Rest your hand and try again.</string>
+
     <!-- Stand-up prompt -->
     <string name="stand_title">Pause before walking</string>
     <string name="stand_sub">You just stood up. Take a few breaths first.</string>

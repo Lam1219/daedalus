@@ -93,6 +93,7 @@ struct TodayView: View {
 
     private var watchSubtitle: String {
         if !watch.isReady { return L("watch_sub_pair") }
+        if watch.runningMode == TremorAnalyzer.mode { return L("tremor_check_running") }
         if let mode = CueMode.byId(watch.runningMode) { return L("watch_sub_cue_on", L(mode.labelKey)) }
         return L("watch_sub_ready")
     }
