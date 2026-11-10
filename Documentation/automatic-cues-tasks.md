@@ -98,9 +98,39 @@ T0–T4 are done: `stream_features.py`, `tremor_stream.py` and `fog.py` with tes
 The 2 s window stays the default; 4 s is kept as an option (`tremor_window_s`).
 - **Weak tremor is limited by the threshold, not the window.** pd07 (about 1.7 °/s) still gets 0 bouts: no threshold that keeps false alarms under 2 per hour reaches it.
 
-**Next, for the tremor gate (F1 0.77 against 0.80):**
-- Check the false episodes in tremor subjects (1.9 per hour) against the video labels: a slight tremor the annotators didn't mark would count as false.
-- Personal thresholds from weeks of shadow-mode data, not 20 s.
+**Label check (`python_scripts/inspect_false_tremor_episodes.py`; T 6 °/s, prominence 16, scored in-sample):**
+
+*Tremor subjects (affected wrist).* 34 false episodes out of about 312; event F1 0.79 in-sample (0.77 leave-one-out).
+
+| Likely cause | Count | What it looks like |
+|---|---|---|
+| Boundary | 13 | Starts within 30 s of a labelled bout (median 19 s): tremor before or after the marked edges |
+| Same rhythm, label "none" | 11 | At the person's own tremor frequency (±0.75 Hz) with a clear peak: possibly a tremor not marked |
+| Arm activity (96/98) | 4 | Strong, about 38 °/s |
+| Other | 6 | |
+
+*PD without tremor labels.* 43 false episodes, 28 of them in three people.
+- **pd17 and pd08 had a rest tremor in the OFF clinical exam.** pd17 scored 1–2 on the arms, pd08 scored 3 on the left arm. Their episodes are mostly on the left wrist, which matches.
+- **Their videos weren't annotated for tremor** because the 15 min screening saw none.
+- **pd24 had a right-leg rest tremor**, but its episodes are on the left wrist, so it stays unexplained.
+
+*Healthy controls.* 35 false episodes. These are strong rhythmic movements (median 21 °/s, 4–5 Hz), and only 37 % happen while sitting. Voluntary rhythmic movements pass the rest gate, which a stricter rest gate could address.
+
+*If the likely-mislabelled episodes were real:*
+
+| Change | Result |
+|---|---|
+| The 24 boundary and same-rhythm episodes counted as real (tremor subjects) | precision 0.89 → 0.97, F1 0.79 → 0.82 |
+| pd17 and pd08 left out (PD without tremor labels) | false episodes at rest 0.44 → 0.32 per hour |
+
+**Conclusion:**
+- **Label gaps hide part of the precision, but recall is the real limit.** Even with perfect precision, F1 would be 0.83 at the current recall of 0.71.
+- **Reporting:** report the gate on the labels as they are (0.77), with the corrected figures as a sensitivity analysis. Don't replace the score.
+
+**Next:**
+- Raise recall on slight tremor through personal thresholds from weeks of shadow-mode data.
+- Tighten the rest gate against voluntary rhythmic movement.
+- Ask Radboud whether pd17, pd08 and pd24 can be annotated for tremor.
 - Then T5–T6.
 
 ## M2 — On-device core · Kotlin and Swift
