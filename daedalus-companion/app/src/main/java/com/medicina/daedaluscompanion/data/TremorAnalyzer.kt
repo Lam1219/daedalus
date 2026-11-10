@@ -1,9 +1,7 @@
 package com.medicina.daedaluscompanion.data
 
 import kotlin.math.PI
-import kotlin.math.cos
 import kotlin.math.roundToInt
-import kotlin.math.sin
 import kotlin.math.sqrt
 
 /**
@@ -93,40 +91,13 @@ object TremorAnalyzer {
             axes[2][k] = gz[j] + f * (gz[j + 1] - gz[j])
         }
 
-        // Hann window; its power sum normalises the spectrum so band power is in (rad/s)².
-        val window = DoubleArray(n) { 0.5 - 0.5 * cos(2 * PI * it / (n - 1)) }
-        val windowPower = window.sumOf { it * it }
-        val signals = axes.map { a ->
-            val mean = a.average()
-            DoubleArray(n) { (a[it] - mean) * window[it] }
-        }
-
-        // One-sided power spectral density, summed over the three axes.
+        // Hann window, then the one-sided power spectral density summed over the three axes
+        // (Spectrum, shared with the streaming features); band power is in (rad/s)².
+        val window = Spectrum.hann(n)
+        val signals = Spectrum.prepare(axes, window)
         val bins = ((F_MAX - F_MIN) / DF).roundToInt() + 1
         val freqs = DoubleArray(bins) { F_MIN + it * DF }
-        val psd = DoubleArray(bins)
-        for (b in 0 until bins) {
-            val w = 2 * PI * freqs[b] / FS
-            val cw = cos(w)
-            val sw = sin(w)
-            var total = 0.0
-            for (x in signals) {
-                // Rotate a phasor instead of calling sin/cos per sample.
-                var c = 1.0
-                var s = 0.0
-                var re = 0.0
-                var im = 0.0
-                for (v in x) {
-                    re += v * c
-                    im -= v * s
-                    val c2 = c * cw - s * sw
-                    s = s * cw + c * sw
-                    c = c2
-                }
-                total += re * re + im * im
-            }
-            psd[b] = 2 * total / (FS * windowPower)
-        }
+        val psd = Spectrum.psd(signals, FS, window, freqs)
 
         fun bandPower(low: Double, high: Double): Double {
             var p = 0.0

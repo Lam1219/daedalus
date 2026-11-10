@@ -104,4 +104,26 @@ object EventLabels {
     const val HAPTIC_BREATHING_END = "HAPTIC_BREATHING_END"
     const val HAPTIC_TREMOR_CUE_START = "HAPTIC_TREMOR_CUE_START"
     const val HAPTIC_TREMOR_CUE_END = "HAPTIC_TREMOR_CUE_END"
+
+    // Automatic cues (Documentation/automatic-cues-design.md, 2.7). Written with source "auto"; their
+    // notes hold key=value pairs separated by ';', for example
+    //   type=tremor;confidence=0.73;start_ms=...;end_ms=...;action=prompted;model=tremor-stream-1.0;threshold_dps=6.0
+    // Keys: type (tremor | fog | pocket), confidence (0-1), start_ms, end_ms, action (shadow | prompted |
+    // accepted | declined | false | ignored | cued), model (detector VERSION), threshold_dps or
+    // freeze_index_threshold, and for POCKET_STATE state (in_pocket | not_in_pocket | unreachable).
+    const val AUTO_TREMOR_START = "AUTO_TREMOR_START"
+    const val AUTO_TREMOR_END = "AUTO_TREMOR_END"
+    const val AUTO_FOG_CANDIDATE = "AUTO_FOG_CANDIDATE"
+    const val AUTO_CUE_PROMPT = "AUTO_CUE_PROMPT"
+    const val AUTO_CUE_ACCEPTED = "AUTO_CUE_ACCEPTED"
+    const val AUTO_CUE_DECLINED = "AUTO_CUE_DECLINED"
+    const val AUTO_CUE_FALSE = "AUTO_CUE_FALSE"
+    const val AUTO_CUE_IGNORED = "AUTO_CUE_IGNORED"
+    const val AUTO_CUE_START = "AUTO_CUE_START"
+    const val AUTO_CUE_END = "AUTO_CUE_END"
+    const val GUARD_START = "GUARD_START"
+    const val GUARD_END = "GUARD_END"
+    const val POCKET_STATE = "POCKET_STATE"
+    const val POCKET_REMINDER = "POCKET_REMINDER"
+    const val POCKET_REMINDER_DISMISSED = "POCKET_REMINDER_DISMISSED"
 }

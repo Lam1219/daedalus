@@ -84,36 +84,13 @@ enum TremorAnalyzer {
             axes[2][k] = gz[j] + f * (gz[j + 1] - gz[j])
         }
 
-        // Hann window; its power sum normalises the spectrum so band power is in (rad/s)².
-        let window = (0..<n).map { 0.5 - 0.5 * cos(2 * Double.pi * Double($0) / Double(n - 1)) }
-        let windowPower = window.reduce(0) { $0 + $1 * $1 }
-        let signals = axes.map { a -> [Double] in
-            let mean = a.reduce(0, +) / Double(n)
-            return (0..<n).map { (a[$0] - mean) * window[$0] }
-        }
-
-        // One-sided power spectral density, summed over the three axes.
+        // Hann window, then the one-sided power spectral density summed over the three axes
+        // (Spectrum, shared with the streaming features); band power is in (rad/s)².
+        let window = Spectrum.hann(n)
+        let signals = Spectrum.prepare(axes, window: window)
         let bins = Int(((fMax - fMin) / df).rounded()) + 1
         let freqs = (0..<bins).map { fMin + Double($0) * df }
-        var psd = [Double](repeating: 0, count: bins)
-        for b in 0..<bins {
-            let w = 2 * Double.pi * freqs[b] / fs
-            let cw = cos(w), sw = sin(w)
-            var total = 0.0
-            for x in signals {
-                // Rotate a phasor instead of calling sin/cos per sample.
-                var c = 1.0, s = 0.0, re = 0.0, im = 0.0
-                for v in x {
-                    re += v * c
-                    im -= v * s
-                    let c2 = c * cw - s * sw
-                    s = s * cw + c * sw
-                    c = c2
-                }
-                total += re * re + im * im
-            }
-            psd[b] = 2 * total / (fs * windowPower)
-        }
+        let psd = Spectrum.psd(signals, fs: fs, window: window, freqs: freqs)
 
         func bandPower(_ low: Double, _ high: Double) -> Double {
             var p = 0.0

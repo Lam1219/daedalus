@@ -115,3 +115,30 @@ targets:
         LOCALIZATION_PREFERS_STRING_CATALOGS: YES
         SWIFT_EMIT_LOC_STRINGS: NO
         SKIP_INSTALL: YES
+
+  # Unit tests of the Shared signal code (stream features, tremor and freeze detectors) on the
+  # Mac: no app host, no simulator, no Supabase. GoldenVectorsTest reads the golden vectors from
+  # ../daedalus_watch_kit/golden.
+  #   xcodebuild test -project Daedalus.xcodeproj -scheme SharedTests -destination 'platform=macOS'
+  SharedTests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: Shared/Spectrum.swift
+      - path: Shared/TremorAnalyzer.swift
+      - path: Shared/StreamFeatures.swift
+      - path: Shared/TremorStream.swift
+      - path: Shared/FogDetector.swift
+      - path: SharedTests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.medicina.daedaluscompanion.sharedtests
+        GENERATE_INFOPLIST_FILE: YES
+        # Runs locally only: ad-hoc signing, no team needed.
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: "-"
+        DEVELOPMENT_TEAM: ""
+    scheme:
+      testTargets:
+        - SharedTests
