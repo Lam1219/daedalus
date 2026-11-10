@@ -54,6 +54,11 @@ CACHE = OUT / "features"
 
 T_GRID = [1.5, 2.0, 3.0, 4.0, 6.0, 8.0, 10.0, 12.0, 15.0, 20.0]
 PROM_GRID = [4.0, 6.0, 8.0, 10.0, 12.0, 16.0]
+# Rest gate grid, used with --rest-gate: (max_slow_ratio, max_slow4_dps); inf = off.
+INF = float("inf")
+RATIO_GRID = [INF, 0.5, 0.35, 0.25, 0.18]
+SLOW4_GRID = [INF, 8.0, 5.0, 3.0]
+REST_GATE = False
 FALSE_PER_HOUR_LIMIT = 2.0
 MIN_BOUT_S = 6.0
 MERGE_GAP_S = 3.0
@@ -203,10 +208,19 @@ class Recording:
         )
 
 
+def settings():
+    """The grid as {key: TremorParams}; keys are (T, prominence[, max_slow_ratio, max_slow4_dps])."""
+    if not REST_GATE:
+        return {(T, prom): ts.TremorParams(threshold_dps=T, min_prominence=prom)
+                for T, prom in itertools.product(T_GRID, PROM_GRID)}
+    return {(T, prom, r, a): ts.TremorParams(threshold_dps=T, min_prominence=prom, max_slow_ratio=r,
+                                             max_slow4_dps=a)
+            for T, prom, r, a in itertools.product(T_GRID, PROM_GRID, RATIO_GRID, SLOW4_GRID)}
+
+
 def score_recording(task):
     rec = Recording(*task)
-    results = {(T, prom): rec.score(ts.TremorParams(threshold_dps=T, min_prominence=prom))
-               for T, prom in itertools.product(T_GRID, PROM_GRID)}
+    results = {key: rec.score(p) for key, p in settings().items()}
     return rec.sid, rec.side, rec.group, rec.annotated, results
 
 
@@ -251,9 +265,9 @@ def choose(train, grid):
     return best_key or max(grid)  # nothing meets the limit: the strictest setting
 
 
-def _init_worker(tremor_window_s, prom_grid):
-    global TREMOR_WINDOW_S, PROM_GRID
-    TREMOR_WINDOW_S, PROM_GRID = tremor_window_s, prom_grid
+def _init_worker(tremor_window_s, prom_grid, t_grid, rest_gate):
+    global TREMOR_WINDOW_S, PROM_GRID, T_GRID, REST_GATE
+    TREMOR_WINDOW_S, PROM_GRID, T_GRID, REST_GATE = tremor_window_s, prom_grid, t_grid, rest_gate
 
 
 def main():
@@ -262,11 +276,16 @@ def main():
     ap.add_argument("--tremor-window", type=int, default=2, choices=[2, 4],
                     help="seconds of gyroscope for the tremor spectrum")
     ap.add_argument("--prominence", type=float, nargs="*", help="prominence grid (default PROM_GRID)")
+    ap.add_argument("--threshold", type=float, nargs="*", help="threshold grid in deg/s (default T_GRID)")
+    ap.add_argument("--rest-gate", action="store_true", help="also tune the rest gate (RATIO_GRID x SLOW4_GRID)")
     args = ap.parse_args()
-    global TREMOR_WINDOW_S, PROM_GRID
+    global TREMOR_WINDOW_S, PROM_GRID, T_GRID, REST_GATE
     TREMOR_WINDOW_S = args.tremor_window
+    REST_GATE = args.rest_gate
     if args.prominence:
         PROM_GRID = args.prominence
+    if args.threshold:
+        T_GRID = args.threshold
     subj = pd.read_csv(DATA / "subjects.csv")
     tasks = []
     for r in subj.itertuples():
@@ -276,13 +295,13 @@ def main():
             tasks += [(r.subject_id, side, r.group, False) for side in ("LW", "RW")]
     t0 = time.time()
     with ProcessPoolExecutor(args.jobs, initializer=_init_worker,
-                             initargs=(TREMOR_WINDOW_S, PROM_GRID)) as ex:
+                             initargs=(TREMOR_WINDOW_S, PROM_GRID, T_GRID, REST_GATE)) as ex:
         recs = []
         for sid, side, group, ann, res in ex.map(score_recording, tasks):
             recs.append(dict(sid=sid, side=side, group=group, annotated=ann, res=res))
             print(f"  {sid} {side} done ({time.time() - t0:.0f} s)", flush=True)
 
-    grid = list(itertools.product(T_GRID, PROM_GRID))
+    grid = list(settings())
     subjects = sorted({r["sid"] for r in recs})
     held = []
     picks = {}
@@ -310,7 +329,8 @@ def main():
     for key in grid:
         s_all = summary(total([r["res"][key] for r in recs]))
         s_hc = summary(total([r["res"][key] for r in recs if r["group"] == "HC"]))
-        table.append(dict(threshold_dps=key[0], min_prominence=key[1], **{k: s_all[k] for k in (
+        gate = dict(max_slow_ratio=key[2], max_slow4_dps=key[3]) if len(key) == 4 else {}
+        table.append(dict(threshold_dps=key[0], min_prominence=key[1], **gate, **{k: s_all[k] for k in (
             "event_precision", "event_recall", "event_f1", "false_per_hour_rest", "false_per_hour",
             "onset_delay_median_s", "window_f1")}, hc_false_per_hour=s_hc["false_per_hour"]))
     table = pd.DataFrame(table).sort_values("event_f1", ascending=False)
@@ -319,13 +339,12 @@ def main():
     for r in held:
         if r["annotated"]:
             s = summary(r["res"][r["key"]])
-            per_subject.append(dict(subject=r["sid"], wrist=r["side"], threshold_dps=r["key"][0],
-                                    min_prominence=r["key"][1], **{k: s[k] for k in (
+            per_subject.append(dict(subject=r["sid"], wrist=r["side"], setting=str(r["key"]), **{k: s[k] for k in (
                                         "bouts", "bouts_hit", "episodes", "event_precision", "event_recall",
                                         "event_f1", "false_per_hour_rest", "onset_delay_median_s")}))
 
     OUT.mkdir(parents=True, exist_ok=True)
-    stamp = time.strftime("%Y%m%d_%H%M") + f"_tw{TREMOR_WINDOW_S}"
+    stamp = time.strftime("%Y%m%d_%H%M") + f"_tw{TREMOR_WINDOW_S}" + ("_gate" if REST_GATE else "")
     table.to_csv(OUT / f"tremor_stream_grid_{stamp}.csv", index=False)
     pd.DataFrame(per_subject).to_csv(OUT / f"tremor_stream_per_subject_{stamp}.csv", index=False)
     report = dict(version=ts.VERSION, features=sf.VERSION, tremor_window_s=TREMOR_WINDOW_S,

@@ -8,11 +8,11 @@ from daedalus_watch_kit.tremor_stream import (
 )
 
 
-def win(sec, dps=0.0, hz=5.0, prom=20.0, ctx=Context.REST_TREMOR_POSSIBLE):
+def win(sec, dps=0.0, hz=5.0, prom=20.0, ctx=Context.REST_TREMOR_POSSIBLE, slow=1.0, slow4=0.0):
     return WindowFeatures(
-        t_end_ms=int(sec * 1000), tremor_dps=dps, peak_hz=hz, prominence=prom, slow_dps=1.0,
+        t_end_ms=int(sec * 1000), tremor_dps=dps, peak_hz=hz, prominence=prom, slow_dps=slow,
         motion_dps=dps + 1, mean_rotation_dps=0.0, acc_std=0.05, gravity_change_deg=0.0,
-        freeze_index=0.0, cadence_spm=0.0, step_regularity=0.0, arm_swing_dps=0.0, context=ctx,
+        freeze_index=0.0, cadence_spm=0.0, step_regularity=0.0, arm_swing_dps=slow4, context=ctx,
     )
 
 
@@ -102,3 +102,15 @@ def test_feedback_steps_and_bounds():
         p = after_feedback(p, False, base_dps=6.0)
     assert p.threshold_dps == pytest.approx(3.0)
     assert after_feedback(TremorParams(threshold_dps=T_MIN), False, base_dps=T_MIN).threshold_dps == T_MIN
+
+
+def test_rest_gate():
+    p = TremorParams(threshold_dps=3.0, max_slow_ratio=0.25, max_slow4_dps=4.0)
+    assert window_positive(win(2, dps=10, slow=2.0, slow4=2.0), p)
+    assert not window_positive(win(2, dps=10, slow=3.0, slow4=2.0), p)     # slow movement > 0.25 x tremor
+    assert not window_positive(win(2, dps=10, slow=2.0, slow4=6.0), p)     # moving over the last 4 s
+    off = TremorParams(threshold_dps=3.0, max_slow_ratio=float("inf"), max_slow4_dps=float("inf"))
+    assert window_positive(win(2, dps=10, slow=3.0, slow4=6.0), off)       # inf turns it off
+    assert not window_positive(win(2, dps=10, slow=6.0, slow4=2.0), P)     # on by default (0.5)
+    # Feedback keeps the gate.
+    assert after_feedback(p, True, base_dps=3.0).max_slow_ratio == 0.25

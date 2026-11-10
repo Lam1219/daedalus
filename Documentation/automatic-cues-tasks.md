@@ -127,11 +127,27 @@ The 2 s window stays the default; 4 s is kept as an option (`tremor_window_s`).
 - **Label gaps hide part of the precision, but recall is the real limit.** Even with perfect precision, F1 would be 0.83 at the current recall of 0.71.
 - **Reporting:** report the gate on the labels as they are (0.77), with the corrected figures as a sensitivity analysis. Don't replace the score.
 
-**Next:**
-- Raise recall on slight tremor through personal thresholds from weeks of shadow-mode data.
-- Tighten the rest gate against voluntary rhythmic movement.
-- Ask Radboud whether pd17, pd08 and pd24 can be annotated for tremor.
-- Then T5–T6.
+**Rest gate** (`--rest-gate`, leave one subject out). Slow movement ≤ 0.5× the tremor band, and 4 s slow rotation ≤ 8 °/s. Now the default.
+
+| | Without gate | With gate |
+|---|---|---|
+| False episodes/h at rest, healthy controls | 0.33 (35 episodes) | **0.08** (13 episodes) |
+| False episodes/h at rest, all | 0.54 | 0.40 |
+| Event F1, tremor subjects (leave one out) | 0.77 | 0.74–0.77, depending on the run |
+| Event F1, best setting in-sample | 0.71 | 0.72 |
+
+**Personal threshold learned from history** (`tremor_learning.py`, `evaluate_tremor_learning.py`). Learned without labels from one part of the visit, scored on the other.
+- **It finds the right people.**
+  - No healthy control got a personal threshold (0 of 80 wrist-parts).
+  - All 8 tremor subjects did, as did pd08, pd17 and pd24, whose clinical exams showed rest tremor.
+- **F1 doesn't move (0.77 against 0.77).** About 2 h of one medication state is too short a history. pd07's tremor is almost all OFF (475 s against 104 s ON), so its threshold learned while OFF is scored on the ON part, and the other way round.
+- **The real test is shadow mode**, with weeks of history across both states. It's part of the phase 1 gate.
+
+**Where the tremor gate stands:** F1 0.77 leave-one-out on the labels as they are, 0.82 if the likely label gaps are counted.
+- **Ship:** the v1 rule as it stands (population threshold, rest gate, capped feedback).
+- **Shadow mode:** measure the learned threshold there.
+- **Radboud:** ask whether pd17, pd08 and pd24 can be annotated for tremor.
+- **Then T5–T6.**
 
 ## M2 — On-device core · Kotlin and Swift
 

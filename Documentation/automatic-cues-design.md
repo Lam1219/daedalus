@@ -156,7 +156,16 @@ Why ask first: a tremor isn't an emergency, and the PRD's false-alarm budget (< 
   - Each "Not shaking" raises *T* by 15 %. Each "I'm shaking" with no detection lowers it by 10 %.
   - *T* always stays within 0.5–1.5 × its starting value. Without that ceiling, "Not shaking" ratchets *T* up and recall falls to 0.21.
   - With the ceiling, answering half the false episodes cut false episodes at rest (PD without tremor) from 0.45 to 0.24 per hour, for 0.02 of F1.
-- **Real personalisation comes from shadow mode.** Weeks of the person's own rest windows and answers replace the 20 s; this is to be evaluated in phase 1.
+- **Rest gate (added 2026-11-10).** A window counts only if the slow movement (0.5–2.5 Hz) is at most 0.5× the tremor-band strength, and the 0.5–2 Hz rotation over the last 4 s is at most 8 °/s.
+  - **Why:** voluntary rhythmic movements in healthy controls carry 2–4× more slow movement than rest tremor.
+  - **Effect:** false episodes at rest in controls fell from 0.33 to 0.08 per hour, for about 0.02 of F1 on tremor subjects.
+- **Personal threshold from shadow-mode history (`tremor_learning.py`).** It needs no labels.
+  - **Candidates:** rest windows with a clear 3.5–7.5 Hz peak.
+  - **Evidence:** if at least 2–5 minutes of them share one rhythm (at least 40 % within ±0.75 Hz of the most common frequency), *T* drops to the 25th percentile of their strength, never below 1.5 °/s nor above the population value. The band also narrows to the person's rhythm.
+  - **Tested on Parkinson@Home:** learned from one part of the visit, scored on the other.
+  - **Who gets a personal threshold:** it finds the right people. No healthy control did (0 of 80 wrist-parts). All 8 tremor subjects did, as did pd08, pd17 and pd24, whose clinical exams showed rest tremor even though their videos weren't annotated.
+  - **Scores:** unchanged (event F1 0.77). About 2 h of one medication state is too short a history: pd07's tremor is almost all OFF (475 s against 104 s ON), so learning from one state doesn't help detection in the other.
+  - **Shadow mode** gives weeks of history across both states. Measuring the gain there is part of the phase 1 gate.
 
 All three steps are deterministic rules that can be explained and reproduced. There is no on-device training in v1.
 

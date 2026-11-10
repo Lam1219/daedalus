@@ -8,7 +8,12 @@ Window positive when all hold:
      A slight tremor (1-2 deg/s) stays under the STILL motion limit, so STILL must count;
   2. peak_hz is inside the accepted band: 3.5-7.5 Hz, or the person's tremor Hz ± 1.5 Hz;
   3. prominence >= MIN_PROMINENCE;
-  4. tremor_dps >= the person's threshold T.
+  4. tremor_dps >= the person's threshold T;
+  5. the hand is quiet around the tremor (rest gate; float("inf") turns a limit off):
+     slow_dps / tremor_dps <= max_slow_ratio (slow movement small next to the tremor), and
+     arm_swing_dps <= max_slow4_dps (little 0.5-2 Hz rotation over the last 4 s).
+     Voluntary rhythmic movements in healthy controls fail these: their slow movement is
+     about 2-4 x that of rest tremor (Parkinson@Home, 2026-11-10).
 
 Episode start: START_K positives in the last START_N windows, whose peak frequencies stay within
 ±FREQ_TOLERANCE_HZ of their median. Episode end: at most END_K positives in the last END_N windows.
@@ -19,7 +24,7 @@ The thresholds are provisional; T4 (python_scripts/evaluate_tremor_parkinson_hom
 from __future__ import annotations
 
 from collections import deque
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Iterable, Optional
 
 import numpy as np
@@ -37,6 +42,11 @@ MIN_PROMINENCE = 16.0
 FREQ_TOLERANCE_HZ = 1.0
 START_K, START_N = 3, 4
 END_K, END_N = 1, 6
+
+# Rest gate. Tuned on Parkinson@Home (2026-11-10): it cuts false episodes at rest in healthy
+# controls from 0.33 to 0.08 per hour for about 0.02 of event F1 on tremor subjects.
+MAX_SLOW_RATIO = 0.5
+MAX_SLOW4_DPS = 8.0
 
 # Personal threshold T, deg/s RMS in 3-8 Hz over a 2 s window.
 T_MIN = 1.5
@@ -59,6 +69,8 @@ class TremorParams:
     threshold_dps: float = T_DEFAULT
     person_hz: Optional[float] = None
     min_prominence: float = MIN_PROMINENCE
+    max_slow_ratio: float = MAX_SLOW_RATIO
+    max_slow4_dps: float = MAX_SLOW4_DPS
 
     def band(self) -> tuple[float, float]:
         if self.person_hz is None:
@@ -99,7 +111,7 @@ def after_feedback(params: TremorParams, false_positive: bool, base_dps: float =
     lo = max(T_MIN, FEEDBACK_FLOOR * base_dps)
     hi = min(T_MAX, FEEDBACK_CEILING * base_dps)
     t = float(np.clip(params.threshold_dps * step, lo, hi))
-    return TremorParams(threshold_dps=t, person_hz=params.person_hz, min_prominence=params.min_prominence)
+    return replace(params, threshold_dps=t)
 
 
 def window_positive(w: WindowFeatures, p: TremorParams) -> bool:
@@ -109,6 +121,8 @@ def window_positive(w: WindowFeatures, p: TremorParams) -> bool:
         and lo - 1e-9 <= w.peak_hz <= hi + 1e-9
         and w.prominence >= p.min_prominence
         and w.tremor_dps >= p.threshold_dps
+        and w.slow_dps <= p.max_slow_ratio * w.tremor_dps
+        and w.arm_swing_dps <= p.max_slow4_dps
     )
 
 
