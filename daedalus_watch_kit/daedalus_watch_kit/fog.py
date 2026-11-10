@@ -40,8 +40,11 @@ VERSION = "fog-1.0"
 WALK_MIN_S = 4
 CANDIDATE_WINDOW_S = 3       # windows after the last walking one (the 4 s gait window lags a stop)
 LOST_REGULARITY = 0.3
-FREEZE_INDEX_DEFAULT = 2.0
-ARM_SWING_SHARE = 0.3
+# Set from false alarms on Parkinson@Home (no freeze labels yet, 2026-11-10): at 4 and 0.2,
+# 1.7 candidates per hour of walking in PD (mostly non-freezers) and 0.6 in healthy controls,
+# against 6.3 and 2.5 at 2 and 0.3. To retune once labelled freezes exist.
+FREEZE_INDEX_DEFAULT = 4.0
+ARM_SWING_SHARE = 0.2
 POSTURE_CHANGE_DEG = 15.0
 TURN_LOOKBACK_S = 3
 STILL_CANCEL_S = 3
@@ -51,6 +54,7 @@ COOLDOWN_S = 20
 @dataclass
 class FogParams:
     freeze_index_threshold: float = FREEZE_INDEX_DEFAULT
+    arm_swing_share: float = ARM_SWING_SHARE  # 0 turns the shuffling route off
     cadence_spm: Optional[float] = None       # the person's walking-cue rate, if known
 
 
@@ -117,7 +121,7 @@ class FogDetector:
         swing = float(np.median([x.arm_swing_dps for x in self._walk]))
         share = w.arm_swing_dps / swing if swing > 0 else 1.0
         trembling = w.freeze_index >= self.params.freeze_index_threshold
-        shuffling = w.step_regularity < LOST_REGULARITY and share < ARM_SWING_SHARE
+        shuffling = w.step_regularity < LOST_REGULARITY and share < self.params.arm_swing_share
         ok = (trembling or shuffling) and w.gravity_change_deg < POSTURE_CHANGE_DEG
         self._pending = self._pending + 1 if ok else 0
         turning = any(x.context == Context.TURNING for x in self._recent)
@@ -143,7 +147,7 @@ class FogDetector:
         if trembling:
             r = fi / max(self.params.freeze_index_threshold, 1e-9)
         else:
-            r = ARM_SWING_SHARE / max(share, 1e-3)
+            r = self.params.arm_swing_share / max(share, 1e-3)
         return round(min(1.0, 1 - 0.5 / r) if r >= 1 else 0.5 * r, 3)
 
     def _reset(self):

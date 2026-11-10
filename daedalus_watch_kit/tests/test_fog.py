@@ -21,7 +21,7 @@ def walk(start, end, ctx=Context.WALKING):
 
 
 def test_trembling_after_walking_is_a_candidate():
-    ws = walk(4, 14) + [win(14, Context.ACTIVE_HAND, reg=0.1, fi=4.0, swing=20)]
+    ws = walk(4, 14) + [win(14, Context.ACTIVE_HAND, reg=0.1, fi=6.0, swing=20)]
     c = detect(ws)
     assert len(c) == 1
     assert c[0].reason == "freeze_index"
@@ -37,7 +37,7 @@ def test_shuffling_after_walking_is_a_candidate():
 
 
 def test_short_walk_is_ignored():
-    ws = walk(4, 6) + [win(6, Context.ACTIVE_HAND, reg=0.1, fi=4.0)]
+    ws = walk(4, 6) + [win(6, Context.ACTIVE_HAND, reg=0.1, fi=6.0)]
     assert detect(ws) == []
 
 
@@ -47,27 +47,27 @@ def test_voluntary_stop_with_still_wrist_cancels():
 
 
 def test_sitting_down_is_not_a_freeze():
-    ws = walk(4, 14) + [win(14, Context.ACTIVE_HAND, reg=0.1, fi=4.0, swing=10, grav=40)]
+    ws = walk(4, 14) + [win(14, Context.ACTIVE_HAND, reg=0.1, fi=6.0, swing=10, grav=40)]
     assert detect(ws) == []
 
 
 def test_late_change_is_not_linked_to_the_walk():
     ws = walk(4, 14) + [win(s, Context.ACTIVE_HAND, reg=0.6, fi=0.5) for s in range(14, 18)]
-    ws += [win(18, Context.ACTIVE_HAND, reg=0.1, fi=4.0)]
+    ws += [win(18, Context.ACTIVE_HAND, reg=0.1, fi=6.0)]
     assert detect(ws) == []
 
 
 def test_turning_needs_two_windows():
     ws = walk(4, 12) + walk(12, 14, Context.TURNING)
-    one = ws + [win(14, Context.ACTIVE_HAND, reg=0.1, fi=4.0), win(15, Context.ACTIVE_HAND, reg=0.6, fi=0.5)]
+    one = ws + [win(14, Context.ACTIVE_HAND, reg=0.1, fi=6.0), win(15, Context.ACTIVE_HAND, reg=0.6, fi=0.5)]
     assert detect(one) == []
-    two = ws + [win(14, Context.ACTIVE_HAND, reg=0.1, fi=4.0), win(15, Context.ACTIVE_HAND, reg=0.1, fi=4.0)]
+    two = ws + [win(14, Context.ACTIVE_HAND, reg=0.1, fi=6.0), win(15, Context.ACTIVE_HAND, reg=0.1, fi=6.0)]
     c = detect(two)
     assert len(c) == 1 and c[0].turning and c[0].detected_ms == 15000
 
 
 def test_cooldown_between_candidates():
-    freeze = lambda s: win(s, Context.ACTIVE_HAND, reg=0.1, fi=4.0)
+    freeze = lambda s: win(s, Context.ACTIVE_HAND, reg=0.1, fi=6.0)
     ws = walk(4, 14) + [freeze(14)] + walk(15, 20) + [freeze(20)]
     assert len(detect(ws)) == 1
     later = 14 + COOLDOWN_S + 1

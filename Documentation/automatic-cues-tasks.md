@@ -158,6 +158,42 @@ The 2 s window stays the default; 4 s is kept as an option (`tremor_window_s`).
 - **It relies most on short history:** mean prominence and median strength over the last 4 windows. The episode logic already uses that history.
 - **Decision:** keep the rules for v1. Retry a model (T28) once shadow mode and our own studies give many more labelled people.
 
+**T5, FoG without freeze labels** (`python_scripts/evaluate_fog_parkinson_home.py`). Parkinson@Home has video-labelled walking, turning, standing and sitting for every subject, both wrists.
+
+*Walking detection from the wrist (per second):*
+
+| Group | Precision | Recall | Hours of walking |
+|---|---|---|---|
+| PD | 0.96 | 0.56 | 22 |
+| Controls | 0.95 | 0.62 | 13 |
+
+Cadence is about 107–109 steps/min.
+- **What this means:** walking that is called walking is right, but about 40 % of walking seconds are missed (short bouts, the 4 s gait window, hands busy).
+- **Effect on freeze alarms:** these drop-outs are the main source of false candidates, since half the candidates come while the video still shows walking.
+
+*This cohort barely freezes.* Only pd01 scored freezing (MDS-UPDRS 3.11) in the OFF exam, and candidate rates don't follow that score (Spearman −0.31). So PD candidates here are almost all false alarms, and parkinsonian gait triggers more of them than healthy gait.
+
+| Freeze index, arm-swing share | Candidates per hour of walking, PD | Controls |
+|---|---|---|
+| 2, 0.3 (first defaults) | 6.3 | 2.5 |
+| **4, 0.2 (new defaults)** | **1.7** | **0.6** |
+| 8, 0 (shuffling route off) | 0.6 | 0 |
+
+Sensitivity can't be measured until labelled freezes exist:
+- Radboud's FoG annotations (A2);
+- our own walking protocol with video;
+- a dataset of freezers.
+
+Next for FoG:
+- Reduce candidates caused by walking-detection drop-outs, for example by requiring the stop to last 2 windows in all cases.
+- Then retune the thresholds on labelled freezes.
+
+**T6, golden test vectors** (`daedalus_watch_kit/golden/`):
+- **The 10 synthetic cases:** still, a rest tremor episode, slight tremor with a personal threshold, voluntary rhythm rejected by the rest gate, walking, walking while turning, a walk ending in trembling (freeze candidate), a walk ending in a voluntary stop, a posture change, and uneven timestamps.
+- **What each file holds:** the input samples (rounded to 6 decimals), the settings, and the expected per-second features, contexts, tremor episodes and freeze candidates, with a 1e-6 tolerance.
+- **Regenerating:** `make_golden.py` regenerates the files, and `tests/test_golden.py` fails when they drift from the code.
+- **Next:** the Kotlin (T8) and Swift (T9) ports read the same files.
+
 **Where the tremor gate stands:** F1 0.77 leave-one-out on the labels as they are, 0.82 if the likely label gaps are counted.
 - **Ship:** the v1 rule as it stands (population threshold, rest gate, capped feedback).
 - **Shadow mode:** measure the learned threshold there.
