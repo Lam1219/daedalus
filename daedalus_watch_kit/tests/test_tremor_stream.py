@@ -114,3 +114,12 @@ def test_rest_gate():
     assert not window_positive(win(2, dps=10, slow=6.0, slow4=2.0), P)     # on by default (0.5)
     # Feedback keeps the gate.
     assert after_feedback(p, True, base_dps=3.0).max_slow_ratio == 0.25
+
+
+def test_classifier_decisions_override_the_rule():
+    # Quiet windows, but a classifier says "tremor" for 10 s: the episode logic still applies.
+    ws = [win(s, dps=6) for s in range(2, 30)]
+    flags = [10 <= s < 20 for s in range(2, 30)]
+    eps = detect(ws, P, positive=flags)
+    assert len(eps) == 1
+    assert eps[0].detected_ms == 12000

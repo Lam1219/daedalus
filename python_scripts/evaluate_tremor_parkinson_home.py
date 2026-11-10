@@ -168,13 +168,21 @@ class Recording:
         i = int(np.clip(np.searchsorted(self.centres, t_s), 0, len(self.centres) - 1))
         return self.truth[i], self.resting[i]
 
-    def score(self, params: ts.TremorParams, episodes=None) -> dict:
-        """Counts for one setting. episodes: precomputed TremorEpisodes (e.g. with feedback)."""
+    def score(self, params: ts.TremorParams, episodes=None, positive=None) -> dict:
+        """Counts for one setting.
+
+        episodes: precomputed TremorEpisodes (e.g. with feedback). positive: per-window decisions
+        from a classifier, replacing the rule for both the episodes and the window metrics.
+        """
         truth, centres = self.truth, self.centres
         long_bouts = [b for b in bouts(centres, truth) if b[1] - b[0] >= MIN_BOUT_S]
         pos_times = centres[truth == POS]
-        positive = np.array([ts.window_positive(w, params) for w in self.windows])
-        eps = ts.detect(self.windows, params) if episodes is None else episodes
+        if positive is None:
+            positive = np.array([ts.window_positive(w, params) for w in self.windows])
+            eps = ts.detect(self.windows, params) if episodes is None else episodes
+        else:
+            positive = np.asarray(positive, dtype=bool)
+            eps = ts.detect(self.windows, params, positive) if episodes is None else episodes
         ep_iv = [(e.start_ms / 1000.0, e.end_ms / 1000.0, e.detected_ms / 1000.0) for e in eps]
 
         n_eval = n_true = n_false_rest = n_false = 0

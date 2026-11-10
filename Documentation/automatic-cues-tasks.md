@@ -143,6 +143,21 @@ The 2 s window stays the default; 4 s is kept as an option (`tremor_window_s`).
 - **F1 doesn't move (0.77 against 0.77).** About 2 h of one medication state is too short a history. pd07's tremor is almost all OFF (475 s against 104 s ON), so its threshold learned while OFF is scored on the ON part, and the other way round.
 - **The real test is shadow mode**, with weeks of history across both states. It's part of the phase 1 gate.
 
+**Trained model vs rules** (`python_scripts/evaluate_tremor_model.py`): gradient-boosted trees (200 trees, depth 4), one per held-out subject, with the decision cut-off chosen on the other subjects. Scored with the same episode logic.
+
+| Model | Event F1, tremor subjects | Precision | Recall | False/h at rest, PD without tremor labels | False/h at rest, controls |
+|---|---|---|---|---|---|
+| Rules, v1 defaults* | **0.77** | 0.91 | **0.67** | 0.39 | **0.05** |
+| Trees on the rule's features | 0.71 | 0.90 | 0.59 | 0.48 | 0.26 |
+| Trees + engineered features (ratios, 4 s history) | 0.73 | 0.92 | 0.61 | **0.17** | 0.13 |
+
+\*The rule defaults were tuned on all subjects, so they're slightly optimistic. The leave-one-out tuned rules scored 0.74–0.77, which is still at least as good as the trees.
+
+- **No model beats the rules.** With 8 tremor subjects, the trees learn less than the hand-set rules encode.
+- **The engineered model does reduce false alarms** in PD without tremor labels, but at the cost of recall.
+- **It relies most on short history:** mean prominence and median strength over the last 4 windows. The episode logic already uses that history.
+- **Decision:** keep the rules for v1. Retry a model (T28) once shadow mode and our own studies give many more labelled people.
+
 **Where the tremor gate stands:** F1 0.77 leave-one-out on the labels as they are, 0.82 if the likely label gaps are counted.
 - **Ship:** the v1 rule as it stands (population threshold, rest gate, capped feedback).
 - **Shadow mode:** measure the learned threshold there.

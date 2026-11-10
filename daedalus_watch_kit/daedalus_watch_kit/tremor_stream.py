@@ -159,9 +159,13 @@ class TremorDetector:
         self._recent: deque[tuple[bool, WindowFeatures]] = deque(maxlen=max(START_N, END_N))
         self.episode: Optional[TremorEpisode] = None
 
-    def update(self, w: WindowFeatures) -> list[tuple[str, TremorEpisode]]:
-        """Returns [] or a list of ("start", episode) / ("end", episode) events."""
-        pos = window_positive(w, self.params)
+    def update(self, w: WindowFeatures, positive: Optional[bool] = None) -> list[tuple[str, TremorEpisode]]:
+        """Returns [] or a list of ("start", episode) / ("end", episode) events.
+
+        positive overrides the window rule, e.g. with a classifier's decision; the episode
+        logic (3 of 4 with a steady rhythm, end after 1 of 6) stays the same.
+        """
+        pos = window_positive(w, self.params) if positive is None else bool(positive)
         self._recent.append((pos, w))
         events: list[tuple[str, TremorEpisode]] = []
 
@@ -213,13 +217,15 @@ class TremorDetector:
         return [("end", ep)]
 
 
-def detect(windows: Iterable[WindowFeatures], params: Optional[TremorParams] = None) -> list[TremorEpisode]:
-    """All finished episodes of a recording."""
+def detect(windows: Iterable[WindowFeatures], params: Optional[TremorParams] = None,
+           positive: Optional[Iterable[bool]] = None) -> list[TremorEpisode]:
+    """All finished episodes of a recording. positive: per-window decisions overriding the rule."""
     det = TremorDetector(params)
     out: list[TremorEpisode] = []
     last_t = 0
+    flags = iter(positive) if positive is not None else None
     for w in windows:
         last_t = w.t_end_ms
-        out += [ep for kind, ep in det.update(w) if kind == "end"]
+        out += [ep for kind, ep in det.update(w, next(flags) if flags else None) if kind == "end"]
     out += [ep for _, ep in det.finish(last_t)]
     return out
