@@ -88,9 +88,19 @@ T0–T4 are done: `stream_features.py`, `tremor_stream.py` and `fog.py` with tes
 - **Capped "Not shaking" feedback is kept.** It cut false episodes at rest in PD without tremor from 0.45 to 0.24 per hour, for 0.02 of F1.
 - **Code updated:** the v1 threshold is the population value, and feedback is capped at 0.5–1.5 × the starting threshold (design 2.4).
 
+**4 s tremor window (`--tremor-window 4`):** not better.
+
+| Window | Event F1, tremor subjects | False/h at rest, controls | Onset delay |
+|---|---|---|---|
+| 2 s | 0.77 | 0.33 | 4.5 s |
+| 4 s | 0.75 | 0.18 | 5.5 s |
+
+The 2 s window stays the default; 4 s is kept as an option (`tremor_window_s`).
+- **Weak tremor is limited by the threshold, not the window.** pd07 (about 1.7 °/s) still gets 0 bouts: no threshold that keeps false alarms under 2 per hour reaches it.
+
 **Next, for the tremor gate (F1 0.77 against 0.80):**
-- Try a 4 s window for weak tremor, since a 2 s window has 0.5 Hz bins and is noisy at 1–2 °/s.
 - Check the false episodes in tremor subjects (1.9 per hour) against the video labels: a slight tremor the annotators didn't mark would count as false.
+- Personal thresholds from weeks of shadow-mode data, not 20 s.
 - Then T5–T6.
 
 ## M2 — On-device core · Kotlin and Swift

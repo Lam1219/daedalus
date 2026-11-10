@@ -125,3 +125,17 @@ def test_resample_uniform():
     t2, x = resample_uniform(t, np.array([0.0, 1.9, 4.1, 6.0, 8.0]))
     assert list(t2) == [0, 20, 40, 60, 80]
     assert x == pytest.approx([0, 2, 4, 6, 8], abs=1e-9)
+
+
+def test_four_second_tremor_window():
+    """A weak tremor reads closer to its true level with 0.25 Hz bins; context is unchanged."""
+    t, a, g = recording(12, gyro=tremor_gyro(4.6, 1.5), seed=4)
+    w2 = compute_features(t, a, g)[-1]
+    w4 = compute_features(t, a, g, tremor_window_s=4)[-1]
+    assert w4.peak_hz == pytest.approx(4.6, abs=0.15)
+    assert w4.tremor_dps == pytest.approx(1.5, rel=0.15)
+    assert w4.prominence > w2.prominence
+    assert w4.context == w2.context
+    ex = StreamFeatureExtractor(tremor_window_s=4)
+    last = [w for i in range(len(t)) if (w := ex.push(t[i], *a[:, i], *g[:, i])) is not None][-1]
+    assert last.tremor_dps == pytest.approx(w4.tremor_dps, rel=1e-9)

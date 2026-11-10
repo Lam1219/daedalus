@@ -140,20 +140,31 @@ def _autocorr(x: np.ndarray, lag: int) -> float:
 
 def window_features(
     acc2: np.ndarray, gyr2: np.ndarray, acc4: Optional[np.ndarray], gyr4: Optional[np.ndarray],
-    prev_gravity: Optional[np.ndarray], t_end_ms: int,
+    prev_gravity: Optional[np.ndarray], t_end_ms: int, tremor_window_s: int = 2,
 ) -> tuple[WindowFeatures, np.ndarray]:
     """Features of one hop.
 
     acc2 and gyr2 are (3, 100) arrays, the last 2 s. acc4 and gyr4 are (3, 200) arrays, the last
     4 s, or None before 4 s of data exist. Returns the features and this window's gravity
     direction, which is passed back as prev_gravity next time.
+
+    tremor_window_s = 4 takes tremor_dps, peak_hz and prominence from the last 4 s instead of 2 s
+    (0.25 Hz bins instead of 0.5 Hz, for weak tremor), once 4 s of data exist. The context
+    features stay on 2 s either way.
     """
-    # Gyroscope spectrum over 2 s, three axes summed.
+    # Gyroscope spectrum over 2 s, three axes summed: voluntary movement and context.
     f, p = _psd(gyr2)
     p = p.sum(axis=0)
-    tremor_dps = float(np.sqrt(_band(f, p, 3.0, 8.0)) * RAD_TO_DEG)
     slow_dps = float(np.sqrt(_band(f, p, 0.5, 2.5)) * RAD_TO_DEG)
     motion_dps = float(np.sqrt(_band(f, p, 0.5, 12.0)) * RAD_TO_DEG)
+
+    # Tremor spectrum: the same 2 s, or the last 4 s.
+    if tremor_window_s == 4 and gyr4 is not None:
+        f, p = _psd(gyr4)
+        p = p.sum(axis=0)
+    elif tremor_window_s not in (2, 4):
+        raise ValueError("tremor_window_s must be 2 or 4")
+    tremor_dps = float(np.sqrt(_band(f, p, 3.0, 8.0)) * RAD_TO_DEG)
 
     in_band = np.where((f >= 3.0 - 1e-9) & (f <= 8.0 + 1e-9))[0]
     k = int(in_band[np.argmax(p[in_band])])
@@ -237,7 +248,8 @@ class StreamFeatureExtractor:
     window comes out once 2 s of samples exist; gait features stay 0 until 4 s exist.
     """
 
-    def __init__(self):
+    def __init__(self, tremor_window_s: int = 2):
+        self._tremor_window_s = tremor_window_s
         self._acc = np.zeros((3, GAIT_WIN))
         self._gyr = np.zeros((3, GAIT_WIN))
         self._n = 0
@@ -255,12 +267,13 @@ class StreamFeatureExtractor:
         feats, self._prev_gravity = window_features(
             self._acc[:, -WIN:], self._gyr[:, -WIN:],
             self._acc if full else None, self._gyr if full else None,
-            self._prev_gravity, t_ms,
+            self._prev_gravity, t_ms, self._tremor_window_s,
         )
         return feats
 
 
-def compute_features(t_ms: np.ndarray, acc: np.ndarray, gyr: np.ndarray) -> list[WindowFeatures]:
+def compute_features(t_ms: np.ndarray, acc: np.ndarray, gyr: np.ndarray,
+                     tremor_window_s: int = 2) -> list[WindowFeatures]:
     """All windows of an evenly sampled 50 Hz recording. acc and gyr are (3, n) arrays.
 
     Gives the same windows as pushing every sample through StreamFeatureExtractor,
@@ -274,7 +287,7 @@ def compute_features(t_ms: np.ndarray, acc: np.ndarray, gyr: np.ndarray) -> list
         f, prev = window_features(
             acc[:, end - WIN:end], gyr[:, end - WIN:end],
             acc[:, end - GAIT_WIN:end] if g else None, gyr[:, end - GAIT_WIN:end] if g else None,
-            prev, int(t_ms[end - 1]),
+            prev, int(t_ms[end - 1]), tremor_window_s,
         )
         out.append(f)
     return out

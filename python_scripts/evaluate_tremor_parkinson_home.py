@@ -63,15 +63,19 @@ POS, NEG, EXCL = 1, 0, -1
 
 # ---------------------------------------------------------------- features (cached)
 
+TREMOR_WINDOW_S = 2    # set from --tremor-window; 2 or 4
+
+
 def features_for(sid: str, side: str) -> pd.DataFrame:
     CACHE.mkdir(parents=True, exist_ok=True)
-    cache = CACHE / f"{sid}_{side}_{sf.VERSION}.pkl"
+    suffix = "" if TREMOR_WINDOW_S == 2 else f"_tw{TREMOR_WINDOW_S}"
+    cache = CACHE / f"{sid}_{side}_{sf.VERSION}{suffix}.pkl"
     if cache.exists():
         return pd.read_pickle(cache)
     s = pd.read_csv(DATA / "sensors" / f"{sid}_{side}.csv")
     acc = s[["ax", "ay", "az"]].to_numpy().T
     gyr = s[["gx", "gy", "gz"]].to_numpy().T
-    df = sf.features_frame(sf.compute_features(s["timestamp_ms"].to_numpy(), acc, gyr))
+    df = sf.features_frame(sf.compute_features(s["timestamp_ms"].to_numpy(), acc, gyr, TREMOR_WINDOW_S))
     df.to_pickle(cache)
     return df
 
@@ -247,10 +251,22 @@ def choose(train, grid):
     return best_key or max(grid)  # nothing meets the limit: the strictest setting
 
 
+def _init_worker(tremor_window_s, prom_grid):
+    global TREMOR_WINDOW_S, PROM_GRID
+    TREMOR_WINDOW_S, PROM_GRID = tremor_window_s, prom_grid
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--jobs", type=int, default=6)
+    ap.add_argument("--tremor-window", type=int, default=2, choices=[2, 4],
+                    help="seconds of gyroscope for the tremor spectrum")
+    ap.add_argument("--prominence", type=float, nargs="*", help="prominence grid (default PROM_GRID)")
     args = ap.parse_args()
+    global TREMOR_WINDOW_S, PROM_GRID
+    TREMOR_WINDOW_S = args.tremor_window
+    if args.prominence:
+        PROM_GRID = args.prominence
     subj = pd.read_csv(DATA / "subjects.csv")
     tasks = []
     for r in subj.itertuples():
@@ -259,7 +275,8 @@ def main():
         else:
             tasks += [(r.subject_id, side, r.group, False) for side in ("LW", "RW")]
     t0 = time.time()
-    with ProcessPoolExecutor(args.jobs) as ex:
+    with ProcessPoolExecutor(args.jobs, initializer=_init_worker,
+                             initargs=(TREMOR_WINDOW_S, PROM_GRID)) as ex:
         recs = []
         for sid, side, group, ann, res in ex.map(score_recording, tasks):
             recs.append(dict(sid=sid, side=side, group=group, annotated=ann, res=res))
@@ -308,10 +325,11 @@ def main():
                                         "event_f1", "false_per_hour_rest", "onset_delay_median_s")}))
 
     OUT.mkdir(parents=True, exist_ok=True)
-    stamp = time.strftime("%Y%m%d_%H%M")
+    stamp = time.strftime("%Y%m%d_%H%M") + f"_tw{TREMOR_WINDOW_S}"
     table.to_csv(OUT / f"tremor_stream_grid_{stamp}.csv", index=False)
     pd.DataFrame(per_subject).to_csv(OUT / f"tremor_stream_per_subject_{stamp}.csv", index=False)
-    report = dict(version=ts.VERSION, features=sf.VERSION, leave_one_subject_out=loso,
+    report = dict(version=ts.VERSION, features=sf.VERSION, tremor_window_s=TREMOR_WINDOW_S,
+                  leave_one_subject_out=loso,
                   picks={k: list(v) for k, v in picks.items()},
                   gate=dict(event_f1_target=0.80, false_per_hour_rest_target=FALSE_PER_HOUR_LIMIT))
     (OUT / f"tremor_stream_report_{stamp}.json").write_text(json.dumps(report, indent=2, default=float))
