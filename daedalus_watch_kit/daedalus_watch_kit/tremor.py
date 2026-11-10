@@ -12,6 +12,9 @@ from scipy.signal import butter, filtfilt, stft
 
 from .quality_rules import TREMOR_BAND_LOW_HZ, TREMOR_BAND_HIGH_HZ
 
+# np.trapz was removed in NumPy 2; np.trapezoid replaces it.
+_trapezoid = getattr(np, "trapezoid", None) or np.trapz
+
 
 def bandpass_filter(signal: np.ndarray, low_hz: float, high_hz: float,
                     sample_rate: float, order: int = 4) -> np.ndarray:
@@ -98,7 +101,7 @@ def compute_tremor_features(
 
     # Tremor band power from spectrum
     tremor_mask = (f >= TREMOR_BAND_LOW_HZ) & (f <= TREMOR_BAND_HIGH_HZ)
-    tremor_power = float(np.trapz(power_spectrum[tremor_mask], f[tremor_mask]))
+    tremor_power = float(_trapezoid(power_spectrum[tremor_mask], f[tremor_mask]))
 
     # Dominant frequency in tremor band
     if np.any(tremor_mask) and np.sum(tremor_mask) > 0:

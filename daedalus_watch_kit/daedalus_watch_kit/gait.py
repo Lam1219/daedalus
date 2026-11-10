@@ -10,6 +10,9 @@ from typing import Optional
 from scipy.signal import butter, filtfilt, find_peaks
 from scipy.signal import welch
 
+# np.trapz was removed in NumPy 2; np.trapezoid replaces it.
+_trapezoid = getattr(np, "trapezoid", None) or np.trapz
+
 
 def remove_gravity(
     ax: np.ndarray, ay: np.ndarray, az: np.ndarray,
@@ -115,7 +118,7 @@ def detect_gait(
     # --- Spectral features ---
     freqs, psd = welch(gait_signal, fs=sample_rate, nperseg=min(256, len(gait_signal)))
     walking_mask = (freqs >= 0.5) & (freqs <= 3.0)
-    walking_power = float(np.trapz(psd[walking_mask], freqs[walking_mask]))
+    walking_power = float(_trapezoid(psd[walking_mask], freqs[walking_mask]))
 
     features = {
         "cadence_steps_per_min": final_cadence,

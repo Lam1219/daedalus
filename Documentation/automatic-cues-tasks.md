@@ -66,6 +66,28 @@ The Python version is the reference: Kotlin and Swift must match it on shared te
 
 **Gate M1:** tremor F1 > 0.80 and < 2 false events per hour at rest on Parkinson@Home. FoG numbers are reported; their targets are set from them.
 
+### Status 2026-11-10
+
+T0–T4 are done: `stream_features.py`, `tremor_stream.py` and `fog.py` with tests, 172 kit tests passing. NumPy 2 compatibility was fixed in `gait.py`, `hrv.py` and `tremor.py`.
+
+**T4 result (leave one subject out, population threshold, no personal calibration):**
+
+| Measure | Result | Gate |
+|---|---|---|
+| Event F1, tremor subjects (8, most affected wrist) | **0.77**: precision 0.89, recall 0.67 | > 0.80, not met |
+| Event F1, all 49 subjects | 0.68: false episodes in controls lower precision | |
+| False episodes per hour at rest | **0.54** over 102 h of sitting or lying (controls 0.33, PD without tremor 0.44) | < 2, met |
+| Onset delay | median 4.5 s | |
+
+**What limits recall:** slight tremor. pd07's labelled tremor is about 1.7 °/s, far below the population threshold of 6 °/s, and gets 0 of 12 bouts. pd02 and pd22 are similar. This is what the personal threshold (calibration plus feedback) is for, but Parkinson@Home has no calibration rest to test it on.
+
+**Fixed along the way:** slight tremor was classed as "still" and excluded. The tremor rule now accepts still windows.
+
+**Next:**
+- Simulate a calibration from each subject's first sitting minutes to test the personal threshold.
+- Try a longer window (4 s) for weak tremor.
+- Then T5–T6.
+
 ## M2 — On-device core · Kotlin and Swift
 
 - **T7. Shared spectral function.** Split `TremorAnalyzer` (3 copies: Galaxy Watch, Android phone, iOS `Shared/`) so the 20 s check and the stream use one function.

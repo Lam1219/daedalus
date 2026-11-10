@@ -13,6 +13,9 @@ from typing import Optional
 from scipy.signal import welch, lombscargle
 from scipy.interpolate import interp1d
 
+# np.trapz was removed in NumPy 2; np.trapezoid replaces it.
+_trapezoid = getattr(np, "trapezoid", None) or np.trapz
+
 
 def clean_ibi(
     rr_intervals: np.ndarray,
@@ -142,8 +145,8 @@ def compute_frequency_domain_features(
         lf_mask = (freqs >= 0.04) & (freqs <= 0.15)
         hf_mask = (freqs >= 0.15) & (freqs <= 0.4)
 
-        lf_power = np.trapz(power[lf_mask], freqs[lf_mask])
-        hf_power = np.trapz(power[hf_mask], freqs[hf_mask])
+        lf_power = _trapezoid(power[lf_mask], freqs[lf_mask])
+        hf_power = _trapezoid(power[hf_mask], freqs[hf_mask])
 
     else:
         # Resample at 4 Hz then Welch
@@ -158,8 +161,8 @@ def compute_frequency_domain_features(
         lf_mask = (freqs >= 0.04) & (freqs <= 0.15)
         hf_mask = (freqs >= 0.15) & (freqs <= 0.4)
 
-        lf_power = np.trapz(psd[lf_mask], freqs[lf_mask])
-        hf_power = np.trapz(psd[hf_mask], freqs[hf_mask])
+        lf_power = _trapezoid(psd[lf_mask], freqs[lf_mask])
+        hf_power = _trapezoid(psd[hf_mask], freqs[hf_mask])
 
     lf_hf_ratio = lf_power / (hf_power + 1e-9)
     total_power = lf_power + hf_power
