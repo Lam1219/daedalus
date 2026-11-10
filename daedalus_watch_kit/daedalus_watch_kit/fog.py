@@ -22,6 +22,9 @@ freeze candidates. In v1 the watch starts the walking cue on a candidate; this m
 After a candidate the detector waits COOLDOWN_S seconds, and needs a new walking state, before
 another one.
 
+fog-1.1 (2026-11-10): a still second resets the run of freeze seconds, and walking that resumes
+within the candidate window continues the same walk instead of starting a new one.
+
 Thresholds are provisional, to be tuned on labelled FoG data (design phase 0, task T5).
 """
 
@@ -35,7 +38,7 @@ import numpy as np
 
 from .stream_features import Context, WindowFeatures
 
-VERSION = "fog-1.0"
+VERSION = "fog-1.1"
 
 WALK_MIN_S = 4
 CANDIDATE_WINDOW_S = 3       # windows after the last walking one (the 4 s gait window lags a stop)
@@ -89,8 +92,10 @@ class FogDetector:
 
     def update(self, w: WindowFeatures) -> Optional[FogCandidate]:
         if self._walking(w):
-            if self._walk_end is not None:   # walking again after a stop: start a new walk
-                self._walk, self._walk_end = [], None
+            # Walking again within the candidate window (a stop shorter than that, or a second
+            # where walking detection dropped out): the same walk goes on. A longer stop or a
+            # still wrist has already reset it.
+            self._walk_end = None
             self._walk.append(w)
             self._recent.append(w)
             self._pending = self._still = self._since_stop = 0
@@ -107,6 +112,7 @@ class FogDetector:
 
         if w.context == Context.STILL:
             self._still += 1
+            self._pending = 0     # a still second breaks a run of freeze seconds
             if self._still >= STILL_CANCEL_S:
                 self._reset()
             return None

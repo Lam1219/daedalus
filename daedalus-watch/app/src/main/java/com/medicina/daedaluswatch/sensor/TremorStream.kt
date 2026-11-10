@@ -72,7 +72,7 @@ object TremorStream {
     fun afterFeedback(params: TremorParams, falsePositive: Boolean, baseDps: Double = T_DEFAULT): TremorParams {
         val step = if (falsePositive) FALSE_STEP else MISSED_STEP
         val lo = maxOf(T_MIN, FEEDBACK_FLOOR * baseDps)
-        val hi = minOf(T_MAX, FEEDBACK_CEILING * baseDps)
+        val hi = maxOf(lo, minOf(T_MAX, FEEDBACK_CEILING * baseDps))   // an extreme base can't invert the bounds
         val t = minOf(maxOf(params.thresholdDps * step, lo), hi)
         return params.copy(thresholdDps = t)
     }

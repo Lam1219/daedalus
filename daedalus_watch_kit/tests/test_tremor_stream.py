@@ -123,3 +123,9 @@ def test_classifier_decisions_override_the_rule():
     eps = detect(ws, P, positive=flags)
     assert len(eps) == 1
     assert eps[0].detected_ms == 12000
+
+
+def test_feedback_bounds_never_invert():
+    # A base below 1 deg/s would put the 0.5 x floor (T_MIN) above the 1.5 x ceiling.
+    p = after_feedback(TremorParams(threshold_dps=1.0), True, base_dps=0.8)
+    assert p.threshold_dps == pytest.approx(T_MIN)

@@ -1,7 +1,7 @@
 package com.medicina.daedaluswatch.sensor
 
 /**
- * Freezing-of-gait detector from the wrist (fog-1.0, Documentation/automatic-cues-design.md 2.5).
+ * Freezing-of-gait detector from the wrist (fog-1.1, Documentation/automatic-cues-design.md 2.5).
  * It reads one [WindowFeatures] per second during a walking guard and reports freeze candidates.
  * In v1 the watch starts the walking cue on a candidate; this class does not cue.
  *
@@ -25,7 +25,7 @@ package com.medicina.daedaluswatch.sensor
  */
 class FogDetector(val params: FogParams = FogParams()) {
     companion object {
-        const val VERSION = "fog-1.0"
+        const val VERSION = "fog-1.1"
 
         const val WALK_MIN_S = 4
         /** Windows after the last walking one (the 4 s gait window lags a stop). */
@@ -62,10 +62,9 @@ class FogDetector(val params: FogParams = FogParams()) {
 
     fun update(w: WindowFeatures): FogCandidate? {
         if (walking(w)) {
-            if (walkEnd != null) {   // walking again after a stop: start a new walk
-                walk.clear()
-                walkEnd = null
-            }
+            // Walking again within the candidate window (a short stop, or a second where walking
+            // detection dropped out): the same walk goes on. A longer stop has already reset it.
+            walkEnd = null
             walk.add(w)
             if (recent.size == TURN_LOOKBACK_S) recent.removeFirst()
             recent.addLast(w)
@@ -86,6 +85,7 @@ class FogDetector(val params: FogParams = FogParams()) {
 
         if (w.context == Context.STILL) {
             still++
+            pending = 0   // a still second breaks a run of freeze seconds
             if (still >= STILL_CANCEL_S) reset()
             return null
         }
@@ -142,7 +142,7 @@ data class FogParams(
     val freezeIndexThreshold: Double = FogDetector.FREEZE_INDEX_DEFAULT,
     /** 0 turns the shuffling route off. */
     val armSwingShare: Double = FogDetector.ARM_SWING_SHARE,
-    /** The person's walking-cue rate, if known (not used by fog-1.0's rules). */
+    /** The person's walking-cue rate, if known (not used by fog-1.1's rules). */
     val cadenceSpm: Double? = null,
 )
 

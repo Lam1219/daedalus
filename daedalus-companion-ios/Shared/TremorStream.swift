@@ -73,7 +73,7 @@ enum TremorStream {
     static func afterFeedback(_ params: Params, falsePositive: Bool, baseDps: Double = tDefault) -> Params {
         let step = falsePositive ? falseStep : missedStep
         let lo = max(tMin, feedbackFloor * baseDps)
-        let hi = min(tMax, feedbackCeiling * baseDps)
+        let hi = max(lo, min(tMax, feedbackCeiling * baseDps))   // an extreme base can't invert the bounds
         var p = params
         p.thresholdDps = StreamMath.clip(params.thresholdDps * step, lo, hi)
         return p

@@ -109,7 +109,7 @@ def after_feedback(params: TremorParams, false_positive: bool, base_dps: float =
     """
     step = FALSE_STEP if false_positive else MISSED_STEP
     lo = max(T_MIN, FEEDBACK_FLOOR * base_dps)
-    hi = min(T_MAX, FEEDBACK_CEILING * base_dps)
+    hi = max(lo, min(T_MAX, FEEDBACK_CEILING * base_dps))   # an extreme base can't invert the bounds
     t = float(np.clip(params.threshold_dps * step, lo, hi))
     return replace(params, threshold_dps=t)
 

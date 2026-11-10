@@ -1,6 +1,6 @@
 import Foundation
 
-/// Freezing-of-gait detector from the wrist for automatic cues (model "fog-1.0",
+/// Freezing-of-gait detector from the wrist for automatic cues (model "fog-1.1",
 /// Documentation/automatic-cues-design.md, 2.5). It consumes one `WindowFeatures` per second
 /// during a walking guard and reports freeze candidates; it does not cue (in v1 the watch starts
 /// the walking cue on a candidate).
@@ -22,7 +22,7 @@ import Foundation
 ///
 /// Thresholds are provisional, to be tuned on labelled freezes.
 struct FogDetector {
-    static let version = "fog-1.0"
+    static let version = "fog-1.1"
 
     static let walkMinS = 4
     /// Windows after the last walking one (the 4 s gait window lags a stop).
@@ -94,7 +94,9 @@ struct FogDetector {
 
     mutating func update(_ w: WindowFeatures) -> Candidate? {
         if Self.walking(w) {
-            if walkEndMs != nil { clearWalk() }   // walking again after a stop: start a new walk
+            // Walking again within the candidate window (a short stop, or a second where walking
+            // detection dropped out): the same walk goes on. A longer stop has already reset it.
+            walkEndMs = nil
             if walkCount == 0 { walkStartMs = w.tEndMs }
             walkCount += 1
             walkArmSwing.append(w.armSwingDps)
@@ -116,6 +118,7 @@ struct FogDetector {
 
         if w.context == .still {
             still += 1
+            pending = 0   // a still second breaks a run of freeze seconds
             if still >= Self.stillCancelS { reset() }
             return nil
         }

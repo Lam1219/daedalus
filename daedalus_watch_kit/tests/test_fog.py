@@ -113,3 +113,21 @@ def test_end_to_end_voluntary_stop():
     gyr[1, :n_walk] += np.radians(60) * np.sqrt(2) * np.sin(2 * np.pi * (100 / 120) * tw)
     acc += rng.normal(0, 0.02, acc.shape)
     assert detect(compute_features((t * 1000).astype(np.int64), acc, gyr)) == []
+
+
+def test_still_second_breaks_a_run_of_freeze_seconds():
+    """fog-1.1: after a turn two freeze seconds in a row are needed; a still second between them breaks the run."""
+    ws = walk(4, 12) + walk(12, 14, Context.TURNING)
+    ws += [win(14, Context.ACTIVE_HAND, reg=0.1, fi=6.0),
+           win(15, Context.STILL, reg=0.1, fi=0.2, swing=1),
+           win(16, Context.ACTIVE_HAND, reg=0.1, fi=6.0)]
+    assert detect(ws) == []
+
+
+def test_walk_continues_over_a_one_second_dropout():
+    """fog-1.1: a second where walking detection drops out doesn't restart the walk."""
+    ws = walk(4, 10) + [win(10, Context.ACTIVE_HAND, reg=0.6, fi=0.5)] + walk(11, 13)
+    ws += [win(13, Context.ACTIVE_HAND, reg=0.1, fi=6.0)]
+    c = detect(ws)
+    assert len(c) == 1
+    assert c[0].walk_start_ms == 0          # the walk that began at 4 s (first window covers 0-4 s)

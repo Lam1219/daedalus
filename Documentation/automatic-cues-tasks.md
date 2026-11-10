@@ -176,7 +176,7 @@ Cadence is about 107–109 steps/min.
 | Freeze index, arm-swing share | Candidates per hour of walking, PD | Controls |
 |---|---|---|
 | 2, 0.3 (first defaults) | 6.3 | 2.5 |
-| **4, 0.2 (new defaults)** | **1.7** | **0.6** |
+| **4, 0.2 (new defaults)** | **1.7** (fog-1.1: 2.0) | **0.6** |
 | 8, 0 (shuffling route off) | 0.6 | 0 |
 
 Sensitivity can't be measured until labelled freezes exist:
@@ -193,6 +193,24 @@ Next for FoG:
 - **What each file holds:** the input samples (rounded to 6 decimals), the settings, and the expected per-second features, contexts, tremor episodes and freeze candidates, with a 1e-6 tolerance.
 - **Regenerating:** `make_golden.py` regenerates the files, and `tests/test_golden.py` fails when they drift from the code.
 - **Next:** the Kotlin (T8) and Swift (T9) ports read the same files.
+
+**T7–T10, on-device ports (done 2026-11-10):**
+- **T7:** `Spectrum` (Kotlin in both Android apps, Swift in `Shared/`) is now the one Hann window and PSD used by the 20 s check and the streaming features. tremor-1.0 results are unchanged.
+- **T8, Galaxy Watch:** `StreamFeatures.kt`, `TremorStream.kt`, `FogDetector.kt`. `GoldenVectorsTest` covers all 10 cases plus streaming against batch, and `DetectorRulesTest` covers the fog-1.1 rules.
+- **T9, Apple Watch:** `StreamFeatures.swift`, `TremorStream.swift`, `FogDetector.swift`, and a `SharedTests` macOS test target. Run it with `xcodebuild test -project Daedalus.xcodeproj -scheme SharedTests -destination 'platform=macOS'`.
+- **Match with Python:** both ports agree within 4e-9.
+- **T10:** the automatic-cue event labels are in every copy, and their `notes` format is documented with the labels. `test_auto_cue_labels.py` checks all copies.
+- **fog-1.1**, from the port reviews:
+  - a still second resets a run of freeze seconds;
+  - walking that resumes within the candidate window continues the same walk.
+
+  With these, false alarms at the defaults are 2.0 per hour of walking in PD (was 1.7) and 0.6 in controls (unchanged).
+- **Feedback bounds:** they can no longer invert for an extreme starting threshold.
+- **Noted, not changed:**
+  - with the optional 4 s tremor window, episode starts are reported 2 s late;
+  - `FogParams.cadence_spm` is unused (kept for the person's walking-cue rate);
+  - the walk's window list isn't capped (at most 3,600 per hour, fine on the watch).
+- **Next:** M3, guard sessions in shadow mode (T11–T17).
 
 **Where the tremor gate stands:** F1 0.77 leave-one-out on the labels as they are, 0.82 if the likely label gaps are counted.
 - **Ship:** the v1 rule as it stands (population threshold, rest gate, capped feedback).
