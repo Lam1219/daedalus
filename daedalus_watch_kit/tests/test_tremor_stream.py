@@ -4,7 +4,7 @@ import pytest
 
 from daedalus_watch_kit.stream_features import Context, WindowFeatures
 from daedalus_watch_kit.tremor_stream import (
-    T_MAX, T_MIN, TremorDetector, TremorParams, after_feedback, calibrate, detect, window_positive,
+    T_MIN, TremorDetector, TremorParams, after_feedback, calibrate, detect, window_positive,
 )
 
 
@@ -89,9 +89,16 @@ def test_calibration_threshold():
 
 
 def test_feedback_steps_and_bounds():
-    p = after_feedback(TremorParams(threshold_dps=10.0), false_positive=True)
+    p = after_feedback(TremorParams(threshold_dps=10.0), false_positive=True, base_dps=10.0)
     assert p.threshold_dps == pytest.approx(11.5)
-    p = after_feedback(TremorParams(threshold_dps=10.0), false_positive=False)
+    p = after_feedback(TremorParams(threshold_dps=10.0), false_positive=False, base_dps=10.0)
     assert p.threshold_dps == pytest.approx(9.0)
-    assert after_feedback(TremorParams(threshold_dps=T_MAX), True).threshold_dps == T_MAX
-    assert after_feedback(TremorParams(threshold_dps=T_MIN), False).threshold_dps == T_MIN
+    # Repeated "Not shaking" stops at 1.5 x the starting threshold; "I'm shaking" at 0.5 x.
+    p = TremorParams(threshold_dps=6.0)
+    for _ in range(20):
+        p = after_feedback(p, True, base_dps=6.0)
+    assert p.threshold_dps == pytest.approx(9.0)
+    for _ in range(40):
+        p = after_feedback(p, False, base_dps=6.0)
+    assert p.threshold_dps == pytest.approx(3.0)
+    assert after_feedback(TremorParams(threshold_dps=T_MIN), False, base_dps=T_MIN).threshold_dps == T_MIN

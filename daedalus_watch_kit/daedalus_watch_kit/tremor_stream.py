@@ -46,6 +46,8 @@ REST_MULTIPLIER = 3.0       # T = max(T_MIN, 3 x the 90th percentile at calibrat
 CALIBRATION_TREMOR_SHARE = 0.5
 FALSE_STEP = 1.15           # "Not shaking"
 MISSED_STEP = 0.90          # "I'm shaking" with no detection
+FEEDBACK_FLOOR = 0.5        # feedback keeps T within 0.5-1.5 x its starting value
+FEEDBACK_CEILING = 1.5
 
 # tremor-1.0 strength levels, deg/s.
 MODERATE_DPS = 10.0
@@ -65,24 +67,38 @@ class TremorParams:
                 min(BAND_HIGH_HZ, self.person_hz + PERSONAL_BAND_HZ))
 
 
+# Not used to set T in v1. On Parkinson@Home, a T from 20 s of calibration rest did worse than
+# the population T (event F1 0.73 vs 0.77, more false episodes): 20 s is too short a sample of a
+# tremor that comes and goes. Kept for the shadow-mode study, where weeks of rest windows replace
+# the 20 s. See python_scripts/evaluate_tremor_calibration.py.
 def calibrate(rest_windows: Iterable[WindowFeatures], tremor_band_dps: Optional[float] = None,
-              tremor_hz: Optional[float] = None) -> TremorParams:
+              tremor_hz: Optional[float] = None, rest_multiplier: float = REST_MULTIPLIER,
+              tremor_share: float = CALIBRATION_TREMOR_SHARE,
+              min_prominence: float = MIN_PROMINENCE) -> TremorParams:
     """Personal settings from the calibration rest (20 s, hand on the lap).
 
     tremor_band_dps and tremor_hz come from the tremor-1.0 check when it found a tremor
     (Result.bandDps, Result.frequencyHz).
     """
     values = [w.tremor_dps for w in rest_windows if w.context in (Context.REST_TREMOR_POSSIBLE, Context.STILL)]
-    t = T_DEFAULT if not values else max(T_MIN, REST_MULTIPLIER * float(np.percentile(values, 90)))
+    t = T_DEFAULT if not values else max(T_MIN, rest_multiplier * float(np.percentile(values, 90)))
     if tremor_band_dps is not None:
-        t = min(t, CALIBRATION_TREMOR_SHARE * tremor_band_dps)
-    return TremorParams(threshold_dps=float(np.clip(t, T_MIN, T_MAX)), person_hz=tremor_hz)
+        t = min(t, tremor_share * tremor_band_dps)
+    return TremorParams(threshold_dps=float(np.clip(t, T_MIN, T_MAX)), person_hz=tremor_hz,
+                        min_prominence=min_prominence)
 
 
-def after_feedback(params: TremorParams, false_positive: bool) -> TremorParams:
-    """'Not shaking' raises T by 15 %; a missed tremor lowers it by 10 %, within bounds."""
+def after_feedback(params: TremorParams, false_positive: bool, base_dps: float = T_DEFAULT) -> TremorParams:
+    """'Not shaking' raises T by 15 %; a missed tremor lowers it by 10 %.
+
+    T stays within FEEDBACK_FLOOR-FEEDBACK_CEILING x base_dps (the threshold before any
+    feedback). Without the ceiling, "Not shaking" ratchets T up and recall collapses
+    (calibration evaluation, 2026-11-10).
+    """
     step = FALSE_STEP if false_positive else MISSED_STEP
-    t = float(np.clip(params.threshold_dps * step, T_MIN, T_MAX))
+    lo = max(T_MIN, FEEDBACK_FLOOR * base_dps)
+    hi = min(T_MAX, FEEDBACK_CEILING * base_dps)
+    t = float(np.clip(params.threshold_dps * step, lo, hi))
     return TremorParams(threshold_dps=t, person_hz=params.person_hz, min_prominence=params.min_prominence)
 
 

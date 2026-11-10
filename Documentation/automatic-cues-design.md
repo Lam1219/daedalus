@@ -136,10 +136,27 @@ A small **context state** is derived per window: `STILL`, `REST_TREMOR_POSSIBLE`
 
 Why ask first: a tremor isn't an emergency, and the PRD's false-alarm budget (< 2 per hour at rest) is easier to hold if the person filters.
 
-**Personal threshold *T*:**
-- **Start:** *T* = max(1.5 °/s, 3 × the person's resting `tremorDps` 90th percentile). The resting value is measured during a 20 s calibration rest with the hand on the lap, which is the existing tremor check, reused.
-- **If the calibration showed a tremor:** *T* becomes min(*T*, 0.5 × its `bandDps`). The calibration also stores the person's typical tremor frequency, which narrows the accepted band to ±1.5 Hz around it.
-- **Feedback:** each "Not shaking" raises *T* by 15 %. Each "I'm shaking" from the phone or watch with no detection lowers it by 10 %, within bounds.
+**Threshold *T* (revised 2026-11-10 after testing on Parkinson@Home):**
+- **Start:** the population value, *T* = 6 °/s with prominence ≥ 16 (T4).
+- **Calibration doesn't set *T*.** We simulated calibrations at 6 random quiet-sitting moments per recording. Setting *T* from 20 s of rest did worse than the population value:
+
+  | Threshold | Event F1, tremor subjects | False episodes/h at rest, PD without tremor |
+  |---|---|---|
+  | Population value | 0.77 | 0.45 |
+  | From 20 s of rest | 0.73 | 0.87 |
+  | Population, lowered by a tremor found at calibration | 0.75 | |
+  | Rest-based, kept within 0.5–1.5 × the population value | 0.75 | |
+
+  A 20 s sample of a tremor that comes and goes is too noisy:
+  - tremor-like motion during the rest raises *T* above the person's tremor;
+  - a very quiet rest drops *T* into the noise.
+
+  The calibration's tremor check still stores the person's typical frequency for the Journal.
+- **Feedback:**
+  - Each "Not shaking" raises *T* by 15 %. Each "I'm shaking" with no detection lowers it by 10 %.
+  - *T* always stays within 0.5–1.5 × its starting value. Without that ceiling, "Not shaking" ratchets *T* up and recall falls to 0.21.
+  - With the ceiling, answering half the false episodes cut false episodes at rest (PD without tremor) from 0.45 to 0.24 per hour, for 0.02 of F1.
+- **Real personalisation comes from shadow mode.** Weeks of the person's own rest windows and answers replace the 20 s; this is to be evaluated in phase 1.
 
 All three steps are deterministic rules that can be explained and reproduced. There is no on-device training in v1.
 
@@ -205,7 +222,7 @@ The phone reads them from the session file like the tremor check, for the Cues c
   - a link to calibration.
 
   The Breathing row stays "Coming soon". Both switches start in **shadow mode** (below) until the person's first week of data is in.
-- **Calibration.** Reuse the tremor check (rest, 20 s), then add 10 s arms extended and a 30 s normal walk. This sets *T*, the typical tremor Hz, the walking cadence and the arm-swing baseline. It takes about 1 min, and the person can repeat it.
+- **Calibration.** Reuse the tremor check (rest, 20 s), then add 10 s arms extended and a 30 s normal walk. This sets the typical tremor Hz, the walking cadence and the arm-swing baseline, but not the tremor threshold (see 2.4). It takes about 1 min, and the person can repeat it.
 - **Journal.** Show auto episodes alongside manual cues, with "Was this right?" on recent ones.
 
 ### 2.9 Phone in the pocket (fog-pocket-1.0)

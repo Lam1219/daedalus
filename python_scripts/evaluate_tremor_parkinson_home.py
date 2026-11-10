@@ -136,40 +136,45 @@ def bouts(centres_s, truth):
 
 # ---------------------------------------------------------------- scoring one recording
 
-def score_recording(task):
-    sid, side, group, tremor_annotated = task
-    subj = pd.read_csv(DATA / "subjects.csv").set_index("subject_id")
-    tremor_lab = pd.read_csv(DATA / "labels_tremor.csv", dtype={"code": str})
-    mob_lab = pd.read_csv(DATA / "labels_mobility.csv", dtype={"code": str})
-    df = features_for(sid, side)
-    windows = to_windows(df)
-    centres = df.t_end_ms.to_numpy() / 1000.0 - 1.0
-    truth, resting = window_truth(centres, sid, group, tremor_annotated, tremor_lab, mob_lab, subj)
-    bts = bouts(centres, truth)
-    long_bouts = [b for b in bts if b[1] - b[0] >= MIN_BOUT_S]
-    pos_times = centres[truth == POS]
-    rest_neg_hours = float(((truth == NEG) & resting).sum()) / 3600.0
-    neg_hours = float((truth == NEG).sum()) / 3600.0
+class Recording:
+    """One wrist recording with its features and per-window truth, ready to score."""
 
-    def label_at(t_s):
-        i = int(np.clip(np.searchsorted(centres, t_s), 0, len(centres) - 1))
-        return truth[i], resting[i]
+    def __init__(self, sid, side, group, tremor_annotated):
+        self.sid, self.side, self.group, self.annotated = sid, side, group, tremor_annotated
+        subj = pd.read_csv(DATA / "subjects.csv").set_index("subject_id")
+        tremor_lab = pd.read_csv(DATA / "labels_tremor.csv", dtype={"code": str})
+        mob_lab = pd.read_csv(DATA / "labels_mobility.csv", dtype={"code": str})
+        self.df = features_for(sid, side)
+        self.windows = to_windows(self.df)
+        self.centres = self.df.t_end_ms.to_numpy() / 1000.0 - 1.0
+        self.truth, self.resting = window_truth(self.centres, sid, group, tremor_annotated,
+                                                tremor_lab, mob_lab, subj)
 
-    results = {}
-    for T, prom in itertools.product(T_GRID, PROM_GRID):
-        params = ts.TremorParams(threshold_dps=T, min_prominence=prom)
-        positive = np.array([ts.window_positive(w, params) for w in windows])
-        eps = ts.detect(windows, params)
+    def exclude(self, start_s, end_s):
+        """Leave a span out of scoring (e.g. the calibration rest)."""
+        self.truth = self.truth.copy()
+        self.truth[(self.centres >= start_s) & (self.centres < end_s)] = EXCL
+
+    def label_at(self, t_s):
+        i = int(np.clip(np.searchsorted(self.centres, t_s), 0, len(self.centres) - 1))
+        return self.truth[i], self.resting[i]
+
+    def score(self, params: ts.TremorParams, episodes=None) -> dict:
+        """Counts for one setting. episodes: precomputed TremorEpisodes (e.g. with feedback)."""
+        truth, centres = self.truth, self.centres
+        long_bouts = [b for b in bouts(centres, truth) if b[1] - b[0] >= MIN_BOUT_S]
+        pos_times = centres[truth == POS]
+        positive = np.array([ts.window_positive(w, params) for w in self.windows])
+        eps = ts.detect(self.windows, params) if episodes is None else episodes
         ep_iv = [(e.start_ms / 1000.0, e.end_ms / 1000.0, e.detected_ms / 1000.0) for e in eps]
 
         n_eval = n_true = n_false_rest = n_false = 0
         for s, e, d in ep_iv:
-            lab, rest = label_at(d - 1.0)
+            lab, rest = self.label_at(d - 1.0)
             if lab == EXCL:
                 continue
             n_eval += 1
-            overlaps = bool(((pos_times >= s) & (pos_times <= e)).any())
-            if overlaps:
+            if ((pos_times >= s) & (pos_times <= e)).any():
                 n_true += 1
             else:
                 n_false += 1
@@ -183,15 +188,22 @@ def score_recording(task):
                 inside = [d - bs for s, e, d in over if bs <= d <= be]
                 if inside:
                     delays.append(min(inside))
-        evaluated = truth != EXCL
-        results[(T, prom)] = dict(
+        return dict(
             episodes=n_eval, true_episodes=n_true, false_episodes=n_false, false_rest=n_false_rest,
             bouts=len(long_bouts), bouts_hit=hit, delays=delays,
             win_tp=int((positive & (truth == POS)).sum()), win_fp=int((positive & (truth == NEG)).sum()),
             win_fn=int((~positive & (truth == POS)).sum()),
-            rest_hours=rest_neg_hours, neg_hours=neg_hours, eval_hours=float(evaluated.sum()) / 3600.0,
+            rest_hours=float(((truth == NEG) & self.resting).sum()) / 3600.0,
+            neg_hours=float((truth == NEG).sum()) / 3600.0,
+            eval_hours=float((truth != EXCL).sum()) / 3600.0,
         )
-    return sid, side, group, tremor_annotated, results
+
+
+def score_recording(task):
+    rec = Recording(*task)
+    results = {(T, prom): rec.score(ts.TremorParams(threshold_dps=T, min_prominence=prom))
+               for T, prom in itertools.product(T_GRID, PROM_GRID)}
+    return rec.sid, rec.side, rec.group, rec.annotated, results
 
 
 # ---------------------------------------------------------------- aggregation

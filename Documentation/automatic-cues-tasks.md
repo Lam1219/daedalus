@@ -83,9 +83,14 @@ T0–T4 are done: `stream_features.py`, `tremor_stream.py` and `fog.py` with tes
 
 **Fixed along the way:** slight tremor was classed as "still" and excluded. The tremor rule now accepts still windows.
 
-**Next:**
-- Simulate a calibration from each subject's first sitting minutes to test the personal threshold.
-- Try a longer window (4 s) for weak tremor.
+**Calibration test (`python_scripts/evaluate_tremor_calibration.py`):**
+- **No calibrated threshold beat the population value.** Calibration from 20 s of rest scored 0.73 against 0.77 for the population threshold, and the bounded and found-tremor variants 0.75.
+- **Capped "Not shaking" feedback is kept.** It cut false episodes at rest in PD without tremor from 0.45 to 0.24 per hour, for 0.02 of F1.
+- **Code updated:** the v1 threshold is the population value, and feedback is capped at 0.5–1.5 × the starting threshold (design 2.4).
+
+**Next, for the tremor gate (F1 0.77 against 0.80):**
+- Try a 4 s window for weak tremor, since a 2 s window has 0.5 Hz bins and is noisy at 1–2 °/s.
+- Check the false episodes in tremor subjects (1.9 per hour) against the video labels: a slight tremor the annotators didn't mark would count as false.
 - Then T5–T6.
 
 ## M2 — On-device core · Kotlin and Swift
@@ -120,9 +125,9 @@ T0–T4 are done: `stream_features.py`, `tremor_stream.py` and `fog.py` with tes
   - **Cues screen:** "Coming soon" becomes the switches "Walking guard" and "Shaking prompts" (shadow), plus quiet hours.
   - **Journal:** shows the episodes with "Was this right?".
 - **T15. Calibration.** Extend the tremor check to: rest 20 s → arms extended 10 s → walk 30 s.
-  - **Stores:** *T*, the person's tremor Hz, cadence and arm-swing baseline, on the phone.
+  - **Stores:** the person's tremor Hz, cadence and arm-swing baseline, on the phone. It doesn't store the tremor threshold (see the calibration test).
   - **Sends:** them to the watch with the cue rates.
-- **T16. Learning from feedback.** Feedback from the watch and the Journal adjusts *T* (+15 % / −10 %, within bounds). Each change is logged.
+- **T16. Learning from feedback.** Feedback from the watch and the Journal adjusts *T* (+15 % / −10 %, kept within 0.5–1.5 × the starting value). Each change is logged.
 - **T17. Battery test.** A 1 h walk guard and a 1 h rest guard on each watch, three times each.
   - **Output:** a short report that decides the guard length (decision 5).
 
