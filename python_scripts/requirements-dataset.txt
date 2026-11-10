@@ -1,0 +1,8 @@
+# For parkinson_home_to_csv.py (Python 3.10 or newer; mat-io doesn't install on 3.9)
+#   /opt/homebrew/bin/python3.13 -m venv python_scripts/.venv
+#   python_scripts/.venv/bin/pip install -r python_scripts/requirements-dataset.txt
+mat-io>=1.0.2
+h5py>=3.10
+numpy>=1.26
+pandas>=2.1
+scipy>=1.11

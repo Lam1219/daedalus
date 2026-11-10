@@ -1,0 +1,156 @@
+# Automatic cues: implementation tasks
+
+Built from [automatic-cues-design.md](automatic-cues-design.md) (decisions of 2026-11-10). Each task names its files, what "done" means, and what it waits for. Milestones follow the design's phases 0 → 3.
+
+## Done today (2026-11-10)
+
+- [x] Research and design: `Documentation/automatic-cues-design.md`.
+- [x] Decisions recorded:
+  - FoG cues start automatically; tremor cues ask first with Fine motor.
+  - PADS is dropped.
+  - Guard length is set after the battery test.
+  - The pocket phone is added as a second FoG detector, with a stand-up reminder.
+- [x] Parkinson@Home converter: `python_scripts/parkinson_home_to_csv.py` and `requirements-dataset.txt`, with a venv in `python_scripts/.venv`. All 49 subjects are converted to `dataset/csv/` (50 Hz). Label alignment was checked on pd18 (AUC 0.90 at zero shift).
+- [x] `.gitignore`: `dataset/` (covered by the DUA) and `python_scripts/.venv/`.
+- [x] Draft of the Apple entitlement request: `Documentation/apple-movement-disorder-entitlement-request.md`.
+
+## Actions outside the code (you)
+
+| # | Action | Unblocks |
+|---|---|---|
+| A1 | Submit the Movement Disorder entitlement form (Account Holder or Admin of team SFQ29D84T9) | M6 tremor minutes on iPhone |
+| A2 | Ask Radboud for (a) the FoG video annotations and (b) the trouser-pocket phone recordings of the same visits | M1 FoG evaluation; M5 pocket evaluation |
+| A3 | Record healthy-volunteer negatives on both watches: typing, brushing teeth, car ride, shaking a hand on purpose, cane or walker, plus instructed tremor-like motion. Use the existing session files, about 5 min per activity; walking with the phone in a pocket from now on | M1 false-alarm testing, M5 |
+| A4 | Clinical adviser review of the watch wording ("Shaking noticed · Start fine motor cue?", "Walking cue on", pocket reminder) | M4 release |
+
+## M0 — Housekeeping
+
+- **T0. Commit today's work** on a new branch `feature/automatic-cues`, cut from `feature/session-timeout` because the tremor check it builds on hasn't been merged to `main` yet.
+  - Commit the design docs, task list, converter, requirements and `.gitignore`.
+  - The untracked PDFs in the repo root are not part of this.
+
+## M1 — Offline reference (Python, `daedalus_watch_kit`) · phase 0
+
+The Python version is the reference: Kotlin and Swift must match it on shared test vectors.
+
+- **T1. Streaming features.** `daedalus_watch_kit/stream_features.py`.
+  - **What it computes:** 2 s windows with a 1 s hop at 50 Hz: `tremorDps`, `peakHz`, `prominence`, `slowDps`, gravity and its change, `cadence` / `stepRegularity` (4 s), `armSwingDps`, `freezeIndex`. Plus the context state (`STILL`, `REST_TREMOR_POSSIBLE`, `ACTIVE_HAND`, `WALKING`, `TURNING`).
+  - **Reuse:** the DFT is the one in `tremor.py` / tremor-1.0, so no new maths.
+  - **Done when:** `tests/test_stream_features.py` passes on synthetic signals (pure 5 Hz rotation, walking at 100 steps/min, still).
+- **T2. Tremor detector** `tremor_stream.py` (`tremor-stream-1.0`).
+  - **Logic:** per-window positive rule, episode start (3 of 4) and end (≤ 1 of 6), personal threshold *T* from calibration, feedback steps (+15 % / −10 %).
+  - **Done when:** tests pass for episode boundaries and threshold updates.
+  - **Waits for:** T1.
+- **T3. FoG detector** `fog.py` (`fog-1.0`).
+  - **Logic:** walking state, freeze candidate (cadence lost and (freeze index high, or arm swing collapsed)), no posture change, stillness-cancel at 3 s, the turning rule.
+  - **Done when:** tests pass on synthetic walk → tremble-in-place → walk, and on walk → voluntary stop.
+  - **Waits for:** T1. Can run in parallel with T2.
+- **T4. Evaluation on Parkinson@Home.** `python_scripts/evaluate_tremor_parkinson_home.py`.
+  - **Labels per second:**
+    - Tremor codes 1–3 count as positive.
+    - Code 0 counts as negative.
+    - Codes 96–98 count as "active hand"; they must not prompt.
+    - Code 99 is excluded.
+  - **Wrists:** the most affected wrist is the positive side; the other wrist and the healthy controls give negatives.
+  - **Time at rest:** free-living sitting time from `labels_mobility.csv` gives the false events per hour at rest.
+  - **Threshold tuning:** leave one subject out.
+  - **Output:** F1, false events per hour, and onset delay, split by OFF / ON, written to a report in `dataset/reports/` (git-ignored).
+  - **Waits for:** T2.
+- **T5. FoG evaluation.**
+  - **Data:** the same harness on the A2 FoG labels if Radboud provides them; until then, on the A3 recordings (false events per hour of walking only).
+  - **Waits for:** T3, and A2 or A3.
+- **T6. Golden test vectors.** `daedalus_watch_kit/golden/*.json`.
+  - **What:** about 10 short IMU snippets (synthetic, plus A3 recordings, never Parkinson@Home data, because of the DUA) with the expected features, window decisions and episodes.
+  - **Done when:** a script regenerates them and the Python tests check them.
+  - **Waits for:** T2, T3.
+
+**Gate M1:** tremor F1 > 0.80 and < 2 false events per hour at rest on Parkinson@Home. FoG numbers are reported; their targets are set from them.
+
+## M2 — On-device core · Kotlin and Swift
+
+- **T7. Shared spectral function.** Split `TremorAnalyzer` (3 copies: Galaxy Watch, Android phone, iOS `Shared/`) so the 20 s check and the stream use one function.
+  - **Done when:** the existing tremor tests still pass and the outputs are unchanged, so it stays `tremor-1.0`.
+- **T8. Kotlin streaming core.** In the watch app `sensor/`: `StreamFeatures.kt`, `TremorStream.kt`, `FogDetector.kt`.
+  - **Done when:** unit tests read the T6 golden vectors and match within tolerance.
+  - **Waits for:** T6, T7.
+- **T9. Swift streaming core.** The same in `daedalus-companion-ios/Shared/`.
+  - There's no iOS test target yet: add a `SharedTests` XCTest target in `project.yml` that reads the same golden JSON.
+  - **Waits for:** T6, T7. Can run in parallel with T8.
+- **T10. New event labels in every copy:**
+  - **Labels:** `AUTO_TREMOR_*`, `AUTO_FOG_CANDIDATE`, `AUTO_CUE_*`, `GUARD_*`, `POCKET_*`.
+  - **Copies:** `daedalus-shared/.../EventLabels.kt`, the phone's `model/EventLabels.kt`, the watch's `model/DataModels.kt`, `daedalus_watch_kit/event_labels.py`, and the Swift side.
+  - **Event fields:** type, confidence, start, end, action, model version, threshold.
+  - **Can start now.**
+
+## M3 — Guard sessions in shadow mode · phase 1
+
+- **T11. Galaxy Watch guard.**
+  - **Modes:** `walk_guard` and `rest_guard` in `HapticService` (foreground service, 50 Hz acc and gyro).
+  - **Behaviour:** runs T8 every second and writes events to the session file. No cue and no prompt.
+  - **Ring buffer:** keeps the 10 s before "I'm stuck".
+  - **Battery:** logs the battery level every 5 min.
+  - **Ends:** after 1 h, for now.
+- **T12. Apple Watch guard.** The same in `CueController`, under `HKWorkoutSession`: walking for the walk guard, mind-and-body for the rest guard.
+- **T13. Watch screens.** "Walk with guard" and "Rest guard" on both watch homes, with a guard-running state and "I'm stuck" still on top.
+  - **Strings:** EN/FR in the Android files, then regenerate the iOS catalogs.
+- **T14. Phone read-back.**
+  - **Reading:** both phone apps read the auto events from session files, as they do for the tremor check.
+  - **Cues screen:** "Coming soon" becomes the switches "Walking guard" and "Shaking prompts" (shadow), plus quiet hours.
+  - **Journal:** shows the episodes with "Was this right?".
+- **T15. Calibration.** Extend the tremor check to: rest 20 s → arms extended 10 s → walk 30 s.
+  - **Stores:** *T*, the person's tremor Hz, cadence and arm-swing baseline, on the phone.
+  - **Sends:** them to the watch with the cue rates.
+- **T16. Learning from feedback.** Feedback from the watch and the Journal adjusts *T* (+15 % / −10 %, within bounds). Each change is logged.
+- **T17. Battery test.** A 1 h walk guard and a 1 h rest guard on each watch, three times each.
+  - **Output:** a short report that decides the guard length (decision 5).
+
+**Gate M3:** ≥ 2 weeks of shadow use in the pilot, with false events within budget.
+
+## M4 — Cueing v1 · phase 2
+
+- **T18. Tremor prompt.** Short double tap and "Shaking noticed · Start fine motor cue?" with Start, Not now and Not shaking.
+  - **Timing:** times out after 10 s. Fine motor runs for 2 min, or until the episode ends + 30 s.
+  - **Cooldowns:** 10 min; 30 min after two "Not now" in a row.
+  - **Never:** during quiet hours, while charging, or during another cue.
+- **T19. Automatic FoG cue.** The walking cue at the person's rate, as "I'm stuck" does.
+  - **Stops:** after 10 s of walking, after 60 s, or on Stop.
+  - **Repeats:** 20 s cooldown. Two quick stops silence it for 10 min.
+- **T20. "Did this help?"** After automatic cues; the answers feed T16.
+
+## M5 — Pocket phone · phase 2b
+
+- **T21. Android phone pocket detector.**
+  - **Detection:** a foreground service runs `fog-pocket-1.0` with orientation-free signals and thigh pitch.
+  - **Pocket check:** every 10 s, from step-rhythm agreement with the watch, a steady thigh angle, and proximity and light.
+  - **Shared logic:** the Python reference goes in `daedalus_watch_kit/fog_pocket.py` first.
+- **T22. Phone → watch score.**
+  - **Transport:** Data Layer `MessageClient` messages, plus the fusion rules on the watch (OR and AND-lite, logged side by side in shadow).
+  - **Sitting:** a "sitting" state from the pocket cancels candidates.
+  - **Fallback:** the phone vibrates the rhythm in the pocket if the watch is out of reach.
+- **T23. Pocket reminder** (Galaxy Watch first).
+  - **Trigger:** on stand-up (`StandDetector`), check the pocket state, then check again after 5–10 steps.
+  - **Message:** "Phone in your pocket? It helps your walking cue", sharing a buzz with "Pause before walking".
+  - **Limits:** 30 min, 3 per day, "Not today", and a "no pocket" setting.
+  - **Unreachable phone:** "Your phone isn't with you".
+- **T24. iPhone spike.** Does a walking workout mirrored from the watch (`startMirroringToCompanionDevice`) keep `CMMotionManager` at 50 Hz in the background, screen locked, for 1 h?
+  - **Output:** a one-page result. Then T25, or the iPhone stays watch-only.
+  - **Independent:** can run any time.
+- **T25. iPhone pocket detector and reminder** on the Apple Watch, if T24 passes.
+
+## M6 — Later
+
+- **T26. Tremor minutes on iPhone** from `CMMovementDisorderManager`, off by default and only after a diagnosis is confirmed. Needs A1.
+- **T27. Tremor minutes on Galaxy Watch** from a batched 50 Hz background detector.
+- **T28. Model v2.** A small classifier on the consented labels, run with LiteRT and Core ML. It ships only if it beats v1 on the full evaluation set.
+
+## Order and parallel work
+
+```
+T0 ─ T1 ─┬─ T2 ─ T4 ──────────┐
+         └─ T3 ─ T5           ├─ T6 ─┬─ T8 (Kotlin) ─┬─ T11 ─┐
+T10 (any time)                │      └─ T9 (Swift) ──┴─ T12 ─┼─ T13 ─ T14 ─ T15 ─ T16 ─ T17 ─ M4 ─ M5
+T7 (any time, before T8/T9) ──┘                                │
+T24 iPhone spike (any time) ───────────────────────────────────┘
+```
+
+Suggested first slice: **T0 → T1 → T2 → T4.** This tells us within days whether the tremor rule reaches the M1 gate on real patient data, before any app code changes.

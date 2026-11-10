@@ -17,3 +17,9 @@ daedalus-companion-ios/Daedalus/App/SupabaseConfig.generated.swift
 # Xcode per-user state
 xcuserdata/
 *.xcuserstate
+
+# Parkinson@Home dataset (Radboud): patient data under a Data Use Agreement, never committed
+dataset/
+
+# Python virtual environment for the dataset scripts
+python_scripts/.venv/
