@@ -29,3 +29,8 @@ python_scripts/.venv/
 daedalus-watch/**/build/
 daedalus-companion/**/build/
 daedalus-shared/**/build/
+
+# Python compiled files and install metadata: generated, never committed
+__pycache__/
+*.py[cod]
+*.egg-info/
