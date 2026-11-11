@@ -13,6 +13,13 @@ import WatchKit
 /// The tremor check ("tremor") runs the same way but plays no rhythm: a tap at the start and
 /// one at the end, every motion sample recorded, and it stops on its own after
 /// `TremorAnalyzer.checkDuration`, then shows the result until Done.
+///
+/// A guard ("walk_guard", "rest_guard"; automatic cues in shadow mode, see `GuardRows`) runs the
+/// same way with no rhythm: a tap at the start, every motion sample recorded and pushed through
+/// `GuardEngine`, whose events go into the session CSV, plus a battery reading every 5 minutes.
+/// "I'm stuck" during a guard (`start(mode: "walking")`, from the watch or the iPhone) starts the
+/// walking rhythm inside the guard, which keeps recording; `stopGuardCue()` stops just that rhythm,
+/// `stop()` the whole guard.
 @MainActor
 @Observable
 final class CueController: NSObject {
@@ -32,6 +39,8 @@ final class CueController: NSObject {
     private(set) var lastTremorAt: Date?
     /// When the running tremor check stops on its own.
     private(set) var tremorEndsAt: Date?
+    /// During a guard: "I'm stuck" started the walking rhythm inside it.
+    private(set) var guardCueActive = false
 
     @ObservationIgnored private let health = HKHealthStore()
     @ObservationIgnored private var session: HKWorkoutSession?
@@ -39,6 +48,9 @@ final class CueController: NSObject {
     @ObservationIgnored private var cueTask: Task<Void, Never>?
     @ObservationIgnored private var timeoutTask: Task<Void, Never>?
     @ObservationIgnored private var resultTask: Task<Void, Never>?
+    @ObservationIgnored private var batteryTask: Task<Void, Never>?
+    /// Whether this guard turned battery monitoring on (and so turns it off again).
+    @ObservationIgnored private var enabledBatteryMonitoring = false
 
     /// A session the person forgets to stop ends on its own after this long.
     static let maxSessionDuration: Duration = .seconds(60 * 60)
@@ -48,6 +60,9 @@ final class CueController: NSObject {
 
     var isRunning: Bool { mode != nil }
     var isTremorCheck: Bool { mode == TremorAnalyzer.mode }
+    var isGuard: Bool { GuardRows.isGuard(mode) }
+    /// The running guard's engine mode, or nil when no guard runs.
+    var guardMode: GuardEngine.Mode? { mode.flatMap { GuardRows.isGuard($0) ? GuardRows.engineMode($0) : nil } }
 
     /// Rates set on the iPhone (Cues screen); "I'm stuck" starts at the person's own rhythm.
     func savedRate(_ mode: String) -> Int {
@@ -65,17 +80,27 @@ final class CueController: NSObject {
     // MARK: Start / stop
 
     func start(mode: String, rate: Int? = nil) {
+        // "I'm stuck" during a guard: the walking rhythm starts inside the guard, which keeps recording.
+        if isGuard && mode == "walking" {
+            startGuardCue(rate: rate ?? savedRate(mode))
+            return
+        }
         if isRunning { stop() }
         self.mode = mode
         self.rate = rate ?? savedRate(mode)
         paused = false
         heartRate = nil
+        guardCueActive = false
         clearTremorResult()
         let tremor = mode == TremorAnalyzer.mode
+        let guarding = GuardRows.isGuard(mode)
         tremorEndsAt = tremor ? Date.now.addingTimeInterval(TremorAnalyzer.checkDuration) : nil
-        recorder.start(mode: mode, everySample: tremor)
-        startWorkout(walking: mode == "walking")
-        if tremor { WKInterfaceDevice.current().play(.start) }
+        recorder.start(mode: mode, everySample: tremor || guarding,
+                       guardMode: guarding ? GuardRows.engineMode(mode) : nil)
+        startWorkout(walking: mode == "walking" || mode == GuardRows.walkGuard)
+        // No rhythm in the tremor check or a guard: one tap to say it started.
+        if tremor || guarding { WKInterfaceDevice.current().play(.start) }
+        if guarding { startBatteryLog() }
         startCue()
         startTimeout()
         PhoneLink.shared.sendStatus()
@@ -85,6 +110,13 @@ final class CueController: NSObject {
         guard let mode else { return }
         timeoutTask?.cancel(); timeoutTask = nil
         cueTask?.cancel(); cueTask = nil
+        if GuardRows.isGuard(mode) {
+            // Before the file is closed: the end of an "I'm stuck" rhythm, the last battery reading,
+            // then (in recorder.stop) an open tremor episode's end and GUARD_END.
+            if guardCueActive { recorder.write(GuardRows.stuckCueEnd(tMs: Self.nowMs())) }
+            guardCueActive = false
+            stopBatteryLog()
+        }
         endWorkout()
         let file = recorder.stop()
         let tremor = mode == TremorAnalyzer.mode
@@ -113,7 +145,62 @@ final class CueController: NSObject {
         lastTremorAt = nil
     }
 
+    /// During a guard: stops only the "I'm stuck" walking rhythm; the guard keeps recording.
+    func stopGuardCue() {
+        guard isGuard, guardCueActive else { return }
+        guardCueActive = false
+        cueTask?.cancel(); cueTask = nil
+        paused = false
+        recorder.write(GuardRows.stuckCueEnd(tMs: Self.nowMs()))
+        WKInterfaceDevice.current().play(.stop)
+    }
+
+    /// "I'm stuck" during a guard: the walking rhythm at the person's rate, inside the guard.
+    private func startGuardCue(rate: Int) {
+        guard isGuard, !guardCueActive else { return }
+        self.rate = rate
+        paused = false
+        guardCueActive = true
+        recorder.write(GuardRows.stuckCueStart(tMs: Self.nowMs(), bpm: rate))
+        startCue()
+    }
+
+    private static func nowMs() -> Int64 { Int64(Date.now.timeIntervalSince1970 * 1000) }
+
+    // MARK: Guard battery log
+
+    /// GUARD_BATTERY at the start and every `GuardRows.batteryInterval` (the last one is in `stop`).
+    private func startBatteryLog() {
+        let device = WKInterfaceDevice.current()
+        enabledBatteryMonitoring = !device.isBatteryMonitoringEnabled
+        device.isBatteryMonitoringEnabled = true
+        logBattery()
+        batteryTask?.cancel()
+        batteryTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: GuardRows.batteryInterval)
+                guard !Task.isCancelled else { return }
+                self?.logBattery()
+            }
+        }
+    }
+
+    private func stopBatteryLog() {
+        batteryTask?.cancel(); batteryTask = nil
+        logBattery()
+        if enabledBatteryMonitoring { WKInterfaceDevice.current().isBatteryMonitoringEnabled = false }
+        enabledBatteryMonitoring = false
+    }
+
+    private func logBattery() {
+        let device = WKInterfaceDevice.current()
+        let charging = device.batteryState == .charging || device.batteryState == .full
+        recorder.write(GuardRows.battery(tMs: Self.nowMs(), level: device.batteryLevel, charging: charging))
+    }
+
     func togglePause() {
+        // A guard has no rhythm of its own to pause (the "I'm stuck" rhythm stops with stopGuardCue).
+        guard !isGuard else { return }
         paused.toggle()
         if paused { cueTask?.cancel(); cueTask = nil } else { startCue() }
     }
@@ -135,7 +222,12 @@ final class CueController: NSObject {
     private func startCue() {
         cueTask?.cancel()
         // The tremor check plays no rhythm: taps would shake the wrist it measures.
-        guard let mode, mode != TremorAnalyzer.mode else { return }
+        // A guard plays one only while "I'm stuck" started it: the walking rhythm.
+        guard var mode, mode != TremorAnalyzer.mode else { return }
+        if GuardRows.isGuard(mode) {
+            guard guardCueActive else { return }
+            mode = "walking"
+        }
         let device = WKInterfaceDevice.current()
         if mode == "rest" {
             // Breathing pacer: breathe in for 40% of each breath, out for 60% (6/min = in 4 s · out 6 s).
@@ -227,7 +319,9 @@ extension CueController: HKLiveWorkoutBuilderDelegate {
 /// Writes the session CSV: ~10 rows a second with the latest heart rate and wrist motion
 /// (acceleration in m/s² including gravity, rotation in rad/s — the Android watch's units).
 /// For the tremor check it writes every sample (50 a second), stamped with the sample's own
-/// time, and keeps the rotation in memory for `TremorAnalyzer`.
+/// time, and keeps the rotation in memory for `TremorAnalyzer`. A guard writes every sample the
+/// same way, pushes it through `GuardEngine` and writes the engine's events after it
+/// (`GuardRows`); the engine lives on the motion queue, so samples and events stay in order.
 final class SessionRecorder {
     /// Rotation samples kept for the tremor check (times in wall-clock ms, rad/s).
     struct Motion { var timesMs: [Int64] = [], gx: [Double] = [], gy: [Double] = [], gz: [Double] = [] }
@@ -245,6 +339,8 @@ final class SessionRecorder {
     private var handle: FileHandle?
     private var url: URL?
     private var lastWrite = Date.distantPast
+    /// The running guard's engine (touched only on `queue`, or after the queue has drained).
+    private var guardEngine: GuardEngine?
 
     static var sessionsDir: URL {
         let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("sessions")
@@ -252,15 +348,24 @@ final class SessionRecorder {
         return dir
     }
 
-    func start(mode: String, everySample: Bool = false) {
+    /// `guardMode` makes this a guard session: the guard header, and every sample through the engine
+    /// (with `everySample`).
+    func start(mode: String, everySample: Bool = false, guardMode: GuardEngine.Mode? = nil) {
         let url = Self.sessionsDir.appendingPathComponent(CueDefaults.sessionFileName(mode: mode, start: .now))
-        FileManager.default.createFile(atPath: url.path, contents: Data(CueDefaults.csvHeader.utf8))
+        let guarding = guardMode != nil
+        FileManager.default.createFile(atPath: url.path, contents: Data((guarding ? GuardRows.header : CueDefaults.csvHeader).utf8))
         self.url = url
         handle = try? FileHandle(forWritingTo: url)
         handle?.seekToEndOfFile()
         heartRate = nil
         lastWrite = .distantPast
         motion = Motion()
+        guardEngine = guardMode.map { GuardEngine(mode: $0) }
+        if var engine = guardEngine {
+            // Motion updates haven't started yet: nothing else touches the engine or the file.
+            write(rows: engine.begin(tMs: Int64(Date.now.timeIntervalSince1970 * 1000)))
+            guardEngine = engine
+        }
 
         guard motionManager.isDeviceMotionAvailable else { return }
         motionManager.deviceMotionUpdateInterval = 1.0 / 50
@@ -272,8 +377,11 @@ final class SessionRecorder {
                 // The sample's own time (seconds since boot) as wall-clock ms.
                 let at = Date.now.timeIntervalSince1970 - (ProcessInfo.processInfo.systemUptime - data.timestamp)
                 timeMs = Int64((at * 1000).rounded())
-                self.motion.timesMs.append(timeMs)
-                self.motion.gx.append(r.x); self.motion.gy.append(r.y); self.motion.gz.append(r.z)
+                if !guarding {
+                    // Kept for TremorAnalyzer (the tremor check only; a guard can last an hour).
+                    self.motion.timesMs.append(timeMs)
+                    self.motion.gx.append(r.x); self.motion.gy.append(r.y); self.motion.gz.append(r.z)
+                }
             } else {
                 let now = Date.now
                 guard now.timeIntervalSince(self.lastWrite) >= 0.1 else { return }
@@ -282,19 +390,40 @@ final class SessionRecorder {
             }
             let g = 9.80665
             let a = data.userAcceleration, gr = data.gravity
-            let row = String(
-                format: "%lld,%d,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,,\n",
-                timeMs, self.heartRate ?? 0,
-                (a.x + gr.x) * g, (a.y + gr.y) * g, (a.z + gr.z) * g, r.x, r.y, r.z
-            )
+            let ax = (a.x + gr.x) * g, ay = (a.y + gr.y) * g, az = (a.z + gr.z) * g
+            let row = GuardRows.sampleRow(tMs: timeMs, heartRate: self.heartRate, ax: ax, ay: ay, az: az,
+                                          gx: r.x, gy: r.y, gz: r.z, guardSession: guarding)
             self.handle?.write(Data(row.utf8))
+            if var engine = self.guardEngine {
+                self.guardEngine = nil   // keep the engine uniquely referenced while it mutates
+                let events = engine.push(tMs: Double(timeMs), ax: ax, ay: ay, az: az, gx: r.x, gy: r.y, gz: r.z)
+                self.guardEngine = engine
+                self.write(rows: events)
+            }
         }
     }
 
-    /// Stops recording; returns the finished file.
+    /// An event row in a guard session, in order with the samples (on the motion queue).
+    func write(_ event: GuardEvent) {
+        queue.addOperation { [weak self] in
+            guard let self, self.guardEngine != nil else { return }
+            self.write(rows: [event])
+        }
+    }
+
+    private func write(rows: [GuardEvent]) {
+        for e in rows { handle?.write(Data(GuardRows.eventRow(e).utf8)) }
+    }
+
+    /// Stops recording; returns the finished file. A guard writes the engine's last rows
+    /// (an open tremor episode's end, GUARD_END) before the file is closed.
     func stop() -> URL? {
         motionManager.stopDeviceMotionUpdates()
         queue.waitUntilAllOperationsAreFinished()
+        if var engine = guardEngine {
+            guardEngine = nil
+            write(rows: engine.finish(tMs: Int64(Date.now.timeIntervalSince1970 * 1000)))
+        }
         try? handle?.close()
         handle = nil
         defer { url = nil }

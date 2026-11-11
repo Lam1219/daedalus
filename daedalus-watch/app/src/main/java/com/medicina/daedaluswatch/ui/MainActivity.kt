@@ -24,6 +24,7 @@ import com.medicina.daedaluswatch.haptics.CueRates
 import com.medicina.daedaluswatch.haptics.HapticService
 import com.medicina.daedaluswatch.sensor.HeartRatePermission
 import com.medicina.daedaluswatch.sensor.StandWatchService
+import com.medicina.daedaluswatch.sensor.GuardSession
 import com.medicina.daedaluswatch.sensor.TremorAnalyzer
 import com.medicina.daedaluswatch.sync.SessionSyncManager
 import java.util.Locale
@@ -215,8 +216,28 @@ class MainActivity : ComponentActivity(), SensorEventListener {
                     else -> ""
                 }
             }
+            GuardSession.MODE_WALK_GUARD, GuardSession.MODE_REST_GUARD -> {
+                // Interim guard screen (T13 brings the real one). "I'm stuck" inside a guard shows the walking rhythm.
+                if (HapticService.guardCueActive) {
+                    show(screenWalk)
+                    tvWalkRate.text = bpm.toString()
+                    val beatMs = 60_000f / bpm.coerceAtLeast(1)
+                    val phase = ((now - HapticService.startedAtMs) % beatMs.toLong()) / beatMs
+                    ring.beat = (1f - phase * 4f).coerceAtLeast(0f)
+                } else {
+                    show(screenCue)
+                    val walk = HapticService.runningMode == GuardSession.MODE_WALK_GUARD
+                    ivCueIcon.setImageResource(if (walk) R.drawable.ic_footprints else R.drawable.ic_waves)
+                    tvCueTitle.text = getString(if (walk) R.string.mode_walk_guard else R.string.mode_rest_guard)
+                    tvCueSub.text = getString(R.string.guard_notif_text)
+                    val elapsed = ((now - HapticService.startedAtMs) / 1000).coerceAtLeast(0)
+                    tvCueTimer.text = String.format(Locale.getDefault(), "%d:%02d", elapsed / 60, elapsed % 60)
+                    btnCuePause.visibility = View.GONE
+                }
+            }
             "writing", "stress" -> {
                 show(screenCue)
+                btnCuePause.visibility = View.VISIBLE
                 val calm = HapticService.runningMode == "stress"
                 ivCueIcon.setImageResource(if (calm) R.drawable.ic_waves else R.drawable.ic_pen)
                 tvCueTitle.text = getString(if (calm) R.string.mode_calm else R.string.mode_fine)

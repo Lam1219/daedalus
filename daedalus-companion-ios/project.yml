@@ -132,6 +132,8 @@ targets:
       - path: Shared/FogDetector.swift
       - path: Shared/AutoCueEvents.swift
       - path: Shared/GuardEngine.swift
+      - path: Shared/GuardRows.swift
+      - path: Shared/WatchProtocol.swift
       - path: SharedTests
     settings:
       base:

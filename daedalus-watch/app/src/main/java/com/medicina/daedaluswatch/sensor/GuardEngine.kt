@@ -32,7 +32,7 @@ import java.math.RoundingMode
  * Python's f"{x:.Nf}" ([GuardEngine.fmt]: correctly rounded, ties to even on the exact binary
  * value), booleans "true"/"false". The phones parse them by key.
  *
- *     GUARD_START          type=guard;mode=<walk|rest>;models=<features>,<tremor>,<fog>
+ *     GUARD_START          type=guard;mode=<walk|rest>;models=<features>+<tremor>+<fog>
  *     AUTO_TREMOR_START    type=tremor;action=shadow;model=;start_ms=;hz=(1);strength=;confidence=(2);threshold_dps=(2)
  *     AUTO_TREMOR_END      type=tremor;action=shadow;model=;start_ms=;end_ms=;hz=(1);strength=;peak_dps=(2)
  *     AUTO_FOG_CANDIDATE   type=fog;action=shadow;model=;walk_start_ms=;walk_end_ms=;reason=;turning=;
@@ -103,7 +103,7 @@ class GuardEngine(
     // ------------------------------------------------------------------ lifecycle
 
     fun begin(tMs: Long): List<GuardEvent> {
-        val notes = "type=guard;mode=$mode;models=${StreamFeatures.VERSION},${TremorStream.VERSION},${FogDetector.VERSION}"
+        val notes = "type=guard;mode=$mode;models=${StreamFeatures.VERSION}+${TremorStream.VERSION}+${FogDetector.VERSION}"
         return emit(listOf(GuardEvent(tMs, EventLabels.GUARD_START, notes)))
     }
 

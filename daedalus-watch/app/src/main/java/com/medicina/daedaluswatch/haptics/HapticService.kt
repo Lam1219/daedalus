@@ -7,8 +7,10 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.ServiceInfo
 import android.net.Uri
+import android.os.BatteryManager
 import android.os.Build
 import android.provider.Settings
 import android.hardware.Sensor
@@ -22,6 +24,9 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
 import com.medicina.daedaluswatch.R
+import com.medicina.daedaluswatch.sensor.GuardEngine
+import com.medicina.daedaluswatch.sensor.GuardEvent
+import com.medicina.daedaluswatch.sensor.GuardSession
 import com.medicina.daedaluswatch.sensor.TremorAnalyzer
 import com.medicina.daedaluswatch.sensor.VitalsTracker
 import com.medicina.daedaluswatch.sync.SessionSyncManager
@@ -85,6 +90,16 @@ class HapticService : Service() {
 
     private val isTremorCheck get() = currentMode == TremorAnalyzer.MODE
 
+    /** Guard session (walk or rest, shadow mode): records every sample and logs detector events. */
+    private val isGuard get() = GuardSession.isGuard(currentMode)
+    private var guardEngine: GuardEngine? = null
+    private val guardBattery = object : Runnable {
+        override fun run() {
+            writeBattery()
+            mainHandler.postDelayed(this, GuardSession.BATTERY_INTERVAL_MS)
+        }
+    }
+
     companion object {
         const val EXTRA_BPM = "extra_bpm"
         const val EXTRA_MODE = "extra_mode"
@@ -95,6 +110,8 @@ class HapticService : Service() {
         /** Pause / resume the pulses of a running cue from the watch screen (recording continues). */
         const val ACTION_PAUSE = "action_pause"
         const val ACTION_RESUME = "action_resume"
+        /** During a guard: stop the "I'm stuck" walking rhythm but keep the guard running. */
+        const val ACTION_STOP_CUE = "action_stop_cue"
 
         /** Breathing pacer: inhale share of each breath (In 4 s · Out 6 s at 6 breaths/min). */
         const val INHALE_SHARE = 0.4f
@@ -124,6 +141,9 @@ class HapticService : Service() {
         @Volatile var startedAtMs: Long = 0L
             private set
         @Volatile var isUserPaused: Boolean = false
+            private set
+        /** A guard is running and "I'm stuck" started the walking rhythm inside it. */
+        @Volatile var guardCueActive: Boolean = false
             private set
         @Volatile var isMeasuringSpo2: Boolean = false
             private set
@@ -169,8 +189,11 @@ class HapticService : Service() {
                 var bpm = intent.getIntExtra(EXTRA_BPM, 80)
                 // Breathe mode is breaths per minute (6–20, as on the phones); an old pulse rate (e.g. 70) falls back to 6.
                 if (mode == "rest" && bpm !in 6..20) bpm = 6
-                startForegroundService(bpm, mode)
+                // "I'm stuck" during a guard: the walking rhythm starts inside the guard, which keeps recording.
+                if (isRunning && isGuard && mode == "walking") startGuardCue(bpm)
+                else startForegroundService(bpm, mode)
             }
+            ACTION_STOP_CUE -> stopGuardCue()
             ACTION_STOP -> {
                 stopService()
             }
@@ -243,6 +266,9 @@ class HapticService : Service() {
         // Create session CSV file
         createSessionFile(mode)
 
+        // A guard's engine must exist before the first sample arrives.
+        if (GuardSession.isGuard(mode)) startGuard()
+
         // Start sensor recording
         startSensorRecording()
 
@@ -250,7 +276,7 @@ class HapticService : Service() {
         latestBreathingRate = null
         latestBreathing = null
         latestSpo2 = null
-        vitalsTracker = VitalsTracker(
+        if (!GuardSession.isGuard(mode)) vitalsTracker = VitalsTracker(
             this,
             onBreathingRate = { latestBreathingRate = it; latestBreathing = it },
             onSpo2 = { latestSpo2 = it },
@@ -264,7 +290,8 @@ class HapticService : Service() {
         ).also { it.start() }
 
         // Start haptic thread; the tremor check has no rhythm, only one short buzz to begin.
-        if (mode == TremorAnalyzer.MODE) vibrator?.let { vibrateOnce(it, 60) }
+        // A guard plays no rhythm either (shadow mode): one short buzz to say it started.
+        if (mode == TremorAnalyzer.MODE || GuardSession.isGuard(mode)) vibrator?.let { vibrateOnce(it, 60) }
         else startHapticThread(bpm)
 
         // Notify phone
@@ -286,7 +313,10 @@ class HapticService : Service() {
 
         csvWriter = BufferedWriter(FileWriter(sessionFile))
         // breathing_rate_brpm and spo2_percent are blank until a reading is available.
-        csvWriter?.write("timestamp_ms,heart_rate_bpm,ax,ay,az,gx,gy,gz,breathing_rate_brpm,spo2_percent\n")
+        csvWriter?.write(
+            if (GuardSession.isGuard(mode)) GuardSession.HEADER
+            else "timestamp_ms,heart_rate_bpm,ax,ay,az,gx,gy,gz,breathing_rate_brpm,spo2_percent\n"
+        )
         csvWriter?.flush()
     }
 
@@ -324,6 +354,12 @@ class HapticService : Service() {
                     return
                 }
 
+                // Guard: the same, and every sample goes through the guard engine.
+                if (isGuard) {
+                    if (event.sensor.type == Sensor.TYPE_GYROSCOPE) writeGuardSample(event)
+                    return
+                }
+
                 // Write to CSV at ~10Hz (every 100ms) to avoid excessive I/O
                 val now = System.currentTimeMillis()
                 if (now - lastWriteTime >= 100) {
@@ -349,6 +385,17 @@ class HapticService : Service() {
                 csvWriter?.write("$time,$lastHr,${lastAccel[0]},${lastAccel[1]},${lastAccel[2]},${lastGyro[0]},${lastGyro[1]},${lastGyro[2]},$breathing,$spo2\n")
             }
 
+            private fun writeGuardSample(event: SensorEvent) {
+                val time = System.currentTimeMillis() - (SystemClock.elapsedRealtimeNanos() - event.timestamp) / 1_000_000
+                csvWriter?.write(GuardSession.sampleRow(time, lastHr, lastAccel[0], lastAccel[1], lastAccel[2], lastGyro[0], lastGyro[1], lastGyro[2]))
+                val rows = guardEngine?.push(
+                    time,
+                    lastAccel[0].toDouble(), lastAccel[1].toDouble(), lastAccel[2].toDouble(),
+                    lastGyro[0].toDouble(), lastGyro[1].toDouble(), lastGyro[2].toDouble(),
+                ) ?: return
+                writeGuardEvents(rows)
+            }
+
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
 
@@ -364,6 +411,65 @@ class HapticService : Service() {
         }
 
         Log.i("HapticService", "Sensor recording started: accel=${accelerometer != null}, gyro=${gyroscope != null}, heartRate=${heartRateSensor != null}")
+    }
+
+    // ------------------------------------------------------------------ guard sessions
+
+    /** Engine, GUARD_START and the first battery reading; then a battery reading every 5 minutes. */
+    private fun startGuard() {
+        guardCueActive = false
+        val engine = GuardEngine(GuardSession.engineMode(currentMode))
+        guardEngine = engine
+        writeGuardEvents(engine.begin(System.currentTimeMillis()))
+        mainHandler.removeCallbacks(guardBattery)
+        mainHandler.post(guardBattery)
+    }
+
+    /** The last battery reading, an open tremor episode's end and GUARD_END, before the file is closed. */
+    private fun finishGuard() {
+        mainHandler.removeCallbacks(guardBattery)
+        if (guardCueActive) {
+            guardCueActive = false
+            writeGuardEvents(listOf(GuardSession.stuckCueEnd(System.currentTimeMillis())))
+        }
+        writeBattery()
+        guardEngine?.let { writeGuardEvents(it.finish(System.currentTimeMillis())) }
+        guardEngine = null
+    }
+
+    /** "I'm stuck" during a guard: the walking rhythm at the person's rate, inside the guard. */
+    private fun startGuardCue(bpm: Int) {
+        if (!isGuard || guardCueActive) return
+        guardCueActive = true
+        currentBpm = bpm
+        runningBpm = bpm
+        writeGuardEvents(listOf(GuardSession.stuckCueStart(System.currentTimeMillis(), bpm)))
+        startHapticThread(bpm)
+        Log.i("HapticService", "I'm stuck during $currentMode: walking rhythm at $bpm")
+    }
+
+    /** Stops only the rhythm; the guard keeps recording. */
+    private fun stopGuardCue() {
+        if (!isGuard || !guardCueActive) return
+        guardCueActive = false
+        hapticThread?.interrupt()
+        hapticThread = null
+        vibrator?.cancel()
+        writeGuardEvents(listOf(GuardSession.stuckCueEnd(System.currentTimeMillis())))
+    }
+
+    private fun writeGuardEvents(rows: List<GuardEvent>) {
+        for (e in rows) csvWriter?.write(GuardSession.eventRow(e))
+    }
+
+    /** Battery percent (-1 when unknown) and whether the watch is on its charger (a full battery still plugged in counts). */
+    private fun writeBattery() {
+        val bm = getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
+        val raw = bm?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) ?: -1
+        val percent = if (raw in 0..100) raw else -1
+        val status = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        val onCharger = (status?.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) ?: 0) != 0
+        writeGuardEvents(listOf(GuardSession.battery(System.currentTimeMillis(), percent, onCharger)))
     }
 
     /** Applies a new rate to the running cue without restarting the session recording. */
@@ -386,7 +492,7 @@ class HapticService : Service() {
             var consecutiveErrors = 0
             var pulseCount = 0
             try {
-                while (isRunning && consecutiveErrors < 10) {
+                while (isRunning && cueOn() && consecutiveErrors < 10) {
                     try {
                         if (currentMode == "rest") {
                             // Breathing pacer: one pulse = breathe in, two pulses = breathe out.
@@ -429,6 +535,9 @@ class HapticService : Service() {
         }
     }
 
+    /** In a guard the rhythm plays only while "I'm stuck" started it. */
+    private fun cueOn() = !isGuard || guardCueActive
+
     /** Pulses are skipped during an SpO2 reading or while the person paused the cue. */
     private fun silenced() = pulsesPaused || isUserPaused
 
@@ -460,7 +569,7 @@ class HapticService : Service() {
     /** Sleeps in short steps so a stop or a rate change takes effect quickly. */
     private fun sleepWhileRunning(ms: Long) {
         var remaining = ms
-        while (remaining > 0 && isRunning) {
+        while (remaining > 0 && isRunning && cueOn()) {
             try {
                 val step = minOf(remaining, 100L)
                 Thread.sleep(step)
@@ -502,6 +611,7 @@ class HapticService : Service() {
 
         // Stop sensor recording
         sensorListener?.let { sensorManager?.unregisterListener(it) }
+        if (isGuard) finishGuard()
         csvWriter?.flush()
         csvWriter?.close()
         csvWriter = null
@@ -568,7 +678,13 @@ class HapticService : Service() {
 
         return builder
             .setContentTitle(getString(R.string.notif_title, modeLabel(mode)))
-            .setContentText(if (mode == TremorAnalyzer.MODE) getString(R.string.tremor_rest_hand) else getString(R.string.notif_text, bpm))
+            .setContentText(
+                when {
+                    mode == TremorAnalyzer.MODE -> getString(R.string.tremor_rest_hand)
+                    GuardSession.isGuard(mode) -> getString(R.string.guard_notif_text)
+                    else -> getString(R.string.notif_text, bpm)
+                }
+            )
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setOngoing(true)
             .build()
@@ -592,6 +708,8 @@ class HapticService : Service() {
         "writing" -> getString(R.string.mode_fine)
         "stress" -> getString(R.string.mode_calm)
         TremorAnalyzer.MODE -> getString(R.string.tremor_check_title)
+        GuardSession.MODE_WALK_GUARD -> getString(R.string.mode_walk_guard)
+        GuardSession.MODE_REST_GUARD -> getString(R.string.mode_rest_guard)
         else -> mode
     }
 

@@ -28,6 +28,7 @@
 		5789D3C4A71942FC1FB25092 /* StreamFeatures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4872EFD37E4A66ED8199C445 /* StreamFeatures.swift */; };
 		58B9764ED049FE590207C08D /* GuardEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2497345E8AB604C3CDC15CF9 /* GuardEngine.swift */; };
 		61F09CF93724F2E102C32EAC /* MedScheduleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE98915962602BDAFA647BC6 /* MedScheduleView.swift */; };
+		67B26F00376804AA6C9373A9 /* GuardRows.swift in Sources */ = {isa = PBXBuildFile; fileRef = 501EBF997F7EC67B547EE46E /* GuardRows.swift */; };
 		67C435D1EC4829B15F74786E /* FogDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DB004787E58EF63D34225D1 /* FogDetector.swift */; };
 		69ABE929265916BD60AC4E03 /* AutoCueEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3668027307406C14399574C /* AutoCueEvents.swift */; };
 		69E34C15252127C85449C270 /* CueController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC53BFD500D6DD6922476C1E /* CueController.swift */; };
@@ -45,6 +46,7 @@
 		8CA92F99DE02DA4C422D5801 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5480976F7A695C8F734CBC8A /* ProfileView.swift */; };
 		9221ACE197FE8A0FA6FFAA7E /* manrope_medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D5C7D06A6F17CEC09E507CAE /* manrope_medium.ttf */; };
 		9D1EEBC4D8EF846763F495DA /* LocalStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965BE0D9BAACE252E18E7C71 /* LocalStore.swift */; };
+		A2B26E3D49089E078CDC1B98 /* GuardRows.swift in Sources */ = {isa = PBXBuildFile; fileRef = 501EBF997F7EC67B547EE46E /* GuardRows.swift */; };
 		A3EC5EBDEFB2B24BA10499A9 /* DataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25F06693D2BF6B4001975D85 /* DataView.swift */; };
 		A76894378796ACFC2A57C679 /* StreamFeatures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4872EFD37E4A66ED8199C445 /* StreamFeatures.swift */; };
 		AEDF68C94B44D64DBCB11E34 /* HealthData.swift in Sources */ = {isa = PBXBuildFile; fileRef = C777DC18C33DC287833A4911 /* HealthData.swift */; };
@@ -53,18 +55,21 @@
 		BB9CD4F8850972800F2FDB90 /* DaedalusWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 909E49D914C50518C3340242 /* DaedalusWatchApp.swift */; };
 		BF6EDB9EEE7A7FFFFEF5511B /* AuthStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0C5976F2BE265F97C2454DD /* AuthStore.swift */; };
 		C269D4B49DDEE98E2228A8CC /* Design.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDFBE00D91B272086D0E0E14 /* Design.swift */; };
+		C51D6FA558601B36117A11FC /* WatchProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6485044222FB7804202F8BD9 /* WatchProtocol.swift */; };
 		C535FBC585C00487C5184002 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 37638DCE1ECA226E98C9DBCB /* Assets.xcassets */; };
 		C5CFD05D7D6C29126B7EA0FE /* FogDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DB004787E58EF63D34225D1 /* FogDetector.swift */; };
 		D23BD99F1083C915C8CEE9D0 /* manrope_regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A0137D3444643C96BB3A98D1 /* manrope_regular.ttf */; };
 		E0476FC4F6EAF024F97EAE8D /* MedsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F31A82F4FF9D31DE11AE556 /* MedsView.swift */; };
 		E2C8371ABC03A9B169B7C383 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB34ACE4A9297B33034FB71 /* MainTabView.swift */; };
 		E957ADC0D05BB75EE04FDBD9 /* WatchProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6485044222FB7804202F8BD9 /* WatchProtocol.swift */; };
+		EBEC680559751E190AA98C69 /* GuardRows.swift in Sources */ = {isa = PBXBuildFile; fileRef = 501EBF997F7EC67B547EE46E /* GuardRows.swift */; };
 		ED0DB294F05614E7FCFDE6AC /* Spectrum.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26D6649A289BADAE361ED102 /* Spectrum.swift */; };
 		F021738A49AC03BF597E0C44 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 33426E7B5ABB34E301994154 /* Supabase */; };
 		F1685335AD47FBBE5A8C4880 /* TremorAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5163B22452A74F992C4097FB /* TremorAnalyzer.swift */; };
 		F45C31FD05EC9D9E84485BB4 /* TremorAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5163B22452A74F992C4097FB /* TremorAnalyzer.swift */; };
 		F70C1092E2E675D3664716F1 /* CueScreens.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7733875C0BFF73204F9F8B8 /* CueScreens.swift */; };
 		F7C9093B2D421CBA6FA8FF4F /* GoldenVectorsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AEC50A494094517DEBB9799 /* GoldenVectorsTest.swift */; };
+		FB3F70CC00F32D0707B99493 /* GuardRowsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F39B169B2B6D2EEAEA9DDB4 /* GuardRowsTest.swift */; };
 		FBA363896D1E4B52DAFF1842 /* StreamFeatures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4872EFD37E4A66ED8199C445 /* StreamFeatures.swift */; };
 		FE1F0DC5DEE1558CDD16A9AF /* PhoneLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F5401E8E6F4E13365D53753 /* PhoneLink.swift */; };
 /* End PBXBuildFile section */
@@ -110,6 +115,7 @@
 		48CC127CC7FB9AD883E5409D /* manrope_semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = manrope_semibold.ttf; sourceTree = "<group>"; };
 		4A0DB3DE9769F7837F7FA71D /* CloudBackup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudBackup.swift; sourceTree = "<group>"; };
 		4E30DD3AE97D04D9F87B29D9 /* Daedalus.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Daedalus.entitlements; sourceTree = "<group>"; };
+		501EBF997F7EC67B547EE46E /* GuardRows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuardRows.swift; sourceTree = "<group>"; };
 		5163B22452A74F992C4097FB /* TremorAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TremorAnalyzer.swift; sourceTree = "<group>"; };
 		5480976F7A695C8F734CBC8A /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		57DE24248AD40D1FCF842A08 /* TremorStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TremorStream.swift; sourceTree = "<group>"; };
@@ -131,6 +137,7 @@
 		909E49D914C50518C3340242 /* DaedalusWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DaedalusWatchApp.swift; sourceTree = "<group>"; };
 		91595194A0EC0ADEC3BDF164 /* SharedTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SharedTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		965BE0D9BAACE252E18E7C71 /* LocalStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalStore.swift; sourceTree = "<group>"; };
+		9F39B169B2B6D2EEAEA9DDB4 /* GuardRowsTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuardRowsTest.swift; sourceTree = "<group>"; };
 		A0137D3444643C96BB3A98D1 /* manrope_regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = manrope_regular.ttf; sourceTree = "<group>"; };
 		A0C5976F2BE265F97C2454DD /* AuthStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthStore.swift; sourceTree = "<group>"; };
 		A3668027307406C14399574C /* AutoCueEvents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoCueEvents.swift; sourceTree = "<group>"; };
@@ -191,6 +198,7 @@
 			children = (
 				6BA10E01C3C3758CEBD2F3F6 /* DetectorRulesTest.swift */,
 				2AEC50A494094517DEBB9799 /* GoldenVectorsTest.swift */,
+				9F39B169B2B6D2EEAEA9DDB4 /* GuardRowsTest.swift */,
 			);
 			path = SharedTests;
 			sourceTree = "<group>";
@@ -302,6 +310,7 @@
 				A3668027307406C14399574C /* AutoCueEvents.swift */,
 				7DB004787E58EF63D34225D1 /* FogDetector.swift */,
 				2497345E8AB604C3CDC15CF9 /* GuardEngine.swift */,
+				501EBF997F7EC67B547EE46E /* GuardRows.swift */,
 				26D6649A289BADAE361ED102 /* Spectrum.swift */,
 				4872EFD37E4A66ED8199C445 /* StreamFeatures.swift */,
 				5163B22452A74F992C4097FB /* TremorAnalyzer.swift */,
@@ -510,6 +519,7 @@
 				BB9CD4F8850972800F2FDB90 /* DaedalusWatchApp.swift in Sources */,
 				C5CFD05D7D6C29126B7EA0FE /* FogDetector.swift in Sources */,
 				13761F91859EEEDA1EB31166 /* GuardEngine.swift in Sources */,
+				EBEC680559751E190AA98C69 /* GuardRows.swift in Sources */,
 				FE1F0DC5DEE1558CDD16A9AF /* PhoneLink.swift in Sources */,
 				ED0DB294F05614E7FCFDE6AC /* Spectrum.swift in Sources */,
 				A76894378796ACFC2A57C679 /* StreamFeatures.swift in Sources */,
@@ -528,10 +538,13 @@
 				77248CBB46CC5C61AACCA935 /* FogDetector.swift in Sources */,
 				F7C9093B2D421CBA6FA8FF4F /* GoldenVectorsTest.swift in Sources */,
 				38FBD40493659B558A464A18 /* GuardEngine.swift in Sources */,
+				A2B26E3D49089E078CDC1B98 /* GuardRows.swift in Sources */,
+				FB3F70CC00F32D0707B99493 /* GuardRowsTest.swift in Sources */,
 				7D89B11140216AB102D4C201 /* Spectrum.swift in Sources */,
 				5789D3C4A71942FC1FB25092 /* StreamFeatures.swift in Sources */,
 				F1685335AD47FBBE5A8C4880 /* TremorAnalyzer.swift in Sources */,
 				B83B4EB0BE01A06723E30674 /* TremorStream.swift in Sources */,
+				C51D6FA558601B36117A11FC /* WatchProtocol.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -548,6 +561,7 @@
 				C269D4B49DDEE98E2228A8CC /* Design.swift in Sources */,
 				67C435D1EC4829B15F74786E /* FogDetector.swift in Sources */,
 				58B9764ED049FE590207C08D /* GuardEngine.swift in Sources */,
+				67B26F00376804AA6C9373A9 /* GuardRows.swift in Sources */,
 				AEDF68C94B44D64DBCB11E34 /* HealthData.swift in Sources */,
 				7793AF2E9919EAAC84BD73AC /* JournalView.swift in Sources */,
 				7B91F7EEE151B2F1A3653FD3 /* L10n.swift in Sources */,

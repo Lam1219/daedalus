@@ -67,4 +67,8 @@
     <string name="notif_channel">Repères Daedalus</string>
     <string name="notif_title">Daedalus · %1$s</string>
     <string name="notif_text">Repère à %1$d par minute · enregistrement des capteurs</string>
+    <!-- Veilles (repères automatiques, mode silencieux : elles enregistrent et apprennent, sans repère) -->
+    <string name="mode_walk_guard">Veille en marche</string>
+    <string name="mode_rest_guard">Veille au repos</string>
+    <string name="guard_notif_text">Apprend vos habitudes · pas encore de repère automatique</string>
 </resources>

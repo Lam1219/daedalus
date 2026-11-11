@@ -23,7 +23,7 @@ Event notes: key=value pairs separated by ';', keys always in the order below, n
 like Python's f"{x:.Nf}" (correctly rounded, ties to even on the exact binary value), booleans
 "true"/"false". The phones parse them by key.
 
-  GUARD_START          type=guard;mode=<walk|rest>;models=<features>,<tremor>,<fog>
+  GUARD_START          type=guard;mode=<walk|rest>;models=<features>+<tremor>+<fog>
   AUTO_TREMOR_START    type=tremor;action=shadow;model=;start_ms=;hz=(1);strength=;confidence=(2);threshold_dps=(2)
   AUTO_TREMOR_END      type=tremor;action=shadow;model=;start_ms=;end_ms=;hz=(1);strength=;peak_dps=(2)
   AUTO_FOG_CANDIDATE   type=fog;action=shadow;model=;walk_start_ms=;walk_end_ms=;reason=;turning=;
@@ -129,7 +129,7 @@ class GuardEngine:
     # -------------------------------------------------------------- lifecycle
 
     def begin(self, t_ms: int) -> list[tuple[int, str, str]]:
-        notes = f"type=guard;mode={self.mode};models={sf.VERSION},{ts.VERSION},{fog.VERSION}"
+        notes = f"type=guard;mode={self.mode};models={sf.VERSION}+{ts.VERSION}+{fog.VERSION}"
         return self._emit([(int(t_ms), ev.GUARD_START, notes)])
 
     def push(self, t_ms: float, ax, ay, az, gx, gy, gz) -> list[tuple[int, str, str]]:

@@ -67,4 +67,8 @@
     <string name="notif_channel">Daedalus cues</string>
     <string name="notif_title">Daedalus · %1$s</string>
     <string name="notif_text">Cueing at %1$d per minute · recording sensors</string>
+    <!-- Guard sessions (automatic cues, shadow mode: they record and learn, nothing cues yet) -->
+    <string name="mode_walk_guard">Walk guard</string>
+    <string name="mode_rest_guard">Rest guard</string>
+    <string name="guard_notif_text">Learning your patterns · no automatic cues yet</string>
 </resources>

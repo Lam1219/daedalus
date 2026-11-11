@@ -26,7 +26,7 @@ import Foundation
 /// Notes: key=value pairs separated by ';', keys always in this order; numbers like Python's
 /// f"{x:.Nf}" (correctly rounded, ties to even on the exact binary value), booleans true/false.
 ///
-///     GUARD_START          type=guard;mode=<walk|rest>;models=<features>,<tremor>,<fog>
+///     GUARD_START          type=guard;mode=<walk|rest>;models=<features>+<tremor>+<fog>
 ///     AUTO_TREMOR_START    type=tremor;action=shadow;model=;start_ms=;hz=(1);strength=;confidence=(2);threshold_dps=(2)
 ///     AUTO_TREMOR_END      type=tremor;action=shadow;model=;start_ms=;end_ms=;hz=(1);strength=;peak_dps=(2)
 ///     AUTO_FOG_CANDIDATE   type=fog;action=shadow;model=;walk_start_ms=;walk_end_ms=;reason=;turning=;
@@ -69,7 +69,7 @@ struct GuardEngine {
 
     @discardableResult
     mutating func begin(tMs: Int64) -> [GuardEvent] {
-        let notes = "type=guard;mode=\(mode.rawValue);models=\(StreamFeatures.version),\(TremorStream.version),\(FogDetector.version)"
+        let notes = "type=guard;mode=\(mode.rawValue);models=\(StreamFeatures.version)+\(TremorStream.version)+\(FogDetector.version)"
         return emit([GuardEvent(epochMs: tMs, name: AutoCueEvents.guardStart, notes: notes)])
     }
 

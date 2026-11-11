@@ -125,6 +125,14 @@ def test_fmt_rounds_like_python():
     assert guard.fmt(4.0, 1) == "4.0"
 
 
+def test_notes_never_hold_a_comma():
+    """Event notes go into one CSV cell: no commas anywhere."""
+    for name in ("walk_then_tremble", "rest_tremor_episode", "gap_and_duplicate"):
+        _, t, acc, gyr = case(name)
+        for mode in (guard.WALK, guard.REST):
+            assert all("," not in notes for _, _, notes in guard.run(mode, t, acc, gyr))
+
+
 def test_bad_mode():
     with pytest.raises(ValueError):
         guard.GuardEngine("sleep")

@@ -223,6 +223,42 @@ struct TremorResultView: View {
     }
 }
 
+/// A guard running (placeholder until the guard screens, T13): its name, "I'm stuck" — which starts
+/// the walking rhythm inside the guard — or, while that rhythm plays, a button that stops just the
+/// rhythm; Stop ends the guard.
+struct GuardView: View {
+    @State private var cue = CueController.shared
+
+    var body: some View {
+        VStack(spacing: 6) {
+            Image(systemName: cue.guardMode == .walk ? "figure.walk" : "shield").font(.system(size: 20)).foregroundStyle(WS.sage)
+            // The strings come with T13; English until then.
+            Text(cue.guardMode == .walk
+                 ? NSLocalizedString("mode_walk_guard", value: "Walk guard", comment: "")
+                 : NSLocalizedString("mode_rest_guard", value: "Rest guard", comment: ""))
+                .font(.system(size: 17, weight: .semibold)).foregroundStyle(WS.ink)
+            if cue.guardCueActive {
+                Text("\(cue.rate) \(L("unit_steps_min"))").font(.system(size: 13)).foregroundStyle(WS.soft)
+                Button { cue.stopGuardCue() } label: {
+                    Image(systemName: "pause.fill").font(.system(size: 18)).foregroundStyle(WS.ground)
+                        .frame(width: 52, height: 52).background(WS.sage, in: Circle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(L("cd_pause"))
+            } else {
+                Button { cue.start(mode: "walking") } label: {
+                    Text(L("im_stuck")).font(.system(size: 15, weight: .semibold)).foregroundStyle(WS.ground)
+                        .frame(maxWidth: .infinity, minHeight: 44).background(WS.sage, in: Capsule())
+                }
+                .buttonStyle(.plain)
+            }
+            StopButton()
+        }
+        .padding(4)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
 private struct StopButton: View {
     var body: some View {
         Button { CueController.shared.stop() } label: {

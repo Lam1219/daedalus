@@ -212,6 +212,29 @@ Next for FoG:
   - the walk's window list isn't capped (at most 3,600 per hour, fine on the watch).
 - **Next:** M3, guard sessions in shadow mode (T11–T17).
 
+**M3, guard sessions (2026-11-11):**
+- **Guard engine (guard-1.0):** `guard.py`, `GuardEngine.kt`, `GuardEngine.swift`. A streaming resampler (repeated times skipped, a gap over 250 ms restarts it) feeds the features and detectors, and they write event rows. All three versions match the golden event rows exactly, including the `gap_and_duplicate` case.
+- **T11, Galaxy Watch** (`HapticService`, `GuardSession.kt`):
+  - modes `walk_guard` / `rest_guard`;
+  - every gyroscope sample is written and pushed through the engine, with events in the CSV's `event` / `event_notes` columns;
+  - `GUARD_BATTERY` at the start, every 5 min and at the end (unknown = -1, charging = on the charger);
+  - no vitals tracker and no rhythm, one buzz at the start;
+  - "I'm stuck" (a walking start) plays the rhythm inside the guard, and `ACTION_STOP_CUE` stops only that rhythm;
+  - an interim guard screen.
+- **T12, Apple Watch** (`CueController`, `GuardRows.swift`): the same rows and behaviour.
+  - Workout: walking for the walk guard, mind-and-body for the rest guard.
+  - `stopGuardCue()` stops only the "I'm stuck" rhythm.
+  - An interim `GuardView` (English titles until T13 regenerates the iOS catalogs).
+- **Tests:**
+  - kit: 219;
+  - Galaxy Watch: 81, and the debug APK builds;
+  - Apple Watch shared code: 26, and the watch app builds for the simulator.
+- **Not yet run on a real watch:** 50 Hz recording, battery readings, foreground and workout behaviour over an hour.
+- **Next:**
+  - T13, the real watch screens (start a guard, guard running, stop the rhythm only, EN/FR on both);
+  - T14, phone read-back of the event rows;
+  - T15–T17.
+
 **Where the tremor gate stands:** F1 0.77 leave-one-out on the labels as they are, 0.82 if the likely label gaps are counted.
 - **Ship:** the v1 rule as it stands (population threshold, rest gate, capped feedback).
 - **Shadow mode:** measure the learned threshold there.
