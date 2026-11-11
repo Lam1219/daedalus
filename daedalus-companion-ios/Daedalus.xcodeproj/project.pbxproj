@@ -12,6 +12,7 @@
 		0CDD4718802CE5F770B9F6C5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B0F91B77F0B357FB846209A9 /* Assets.xcassets */; };
 		0D966510097EADF44C99762D /* WatchLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83C3B53C70907B4943E83703 /* WatchLink.swift */; };
 		12E4A0E7FBDDF6C6D42131D4 /* DaedalusApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C23B60DB03E8595B2184402 /* DaedalusApp.swift */; };
+		13761F91859EEEDA1EB31166 /* GuardEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2497345E8AB604C3CDC15CF9 /* GuardEngine.swift */; };
 		145E717F3AFCD8FD946660D8 /* CuesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A63F4925B0072B7FDF98E883 /* CuesView.swift */; };
 		1862AE7F018FD71D3B2EB8C4 /* CloudBackup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0DB3DE9769F7837F7FA71D /* CloudBackup.swift */; };
 		1A4C94387363D8052A5DB52B /* TremorStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57DE24248AD40D1FCF842A08 /* TremorStream.swift */; };
@@ -19,15 +20,18 @@
 		2CD36334978480D045CBAC1B /* WatchProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6485044222FB7804202F8BD9 /* WatchProtocol.swift */; };
 		32C04F0CA5489AA6C4C1427A /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 675D7D8586FCD11DA1D47627 /* Localizable.xcstrings */; };
 		3487D370930031BA4773450D /* TremorStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57DE24248AD40D1FCF842A08 /* TremorStream.swift */; };
+		38FBD40493659B558A464A18 /* GuardEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2497345E8AB604C3CDC15CF9 /* GuardEngine.swift */; };
 		3956FE6BDA0DBBD5F7D0C1F9 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 7386EEDFDB9894B5761CEF7C /* Localizable.xcstrings */; };
 		39644BE4E7A2C45EBFACE2D5 /* Spectrum.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26D6649A289BADAE361ED102 /* Spectrum.swift */; };
 		3E6046F6EC69CDD52B2465A9 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE84C1953F000FC5BE1558CF /* TodayView.swift */; };
 		5387B7EB7E1D10FDBB5203C2 /* manrope_semibold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 48CC127CC7FB9AD883E5409D /* manrope_semibold.ttf */; };
 		5789D3C4A71942FC1FB25092 /* StreamFeatures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4872EFD37E4A66ED8199C445 /* StreamFeatures.swift */; };
+		58B9764ED049FE590207C08D /* GuardEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2497345E8AB604C3CDC15CF9 /* GuardEngine.swift */; };
 		61F09CF93724F2E102C32EAC /* MedScheduleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE98915962602BDAFA647BC6 /* MedScheduleView.swift */; };
 		67C435D1EC4829B15F74786E /* FogDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DB004787E58EF63D34225D1 /* FogDetector.swift */; };
 		69ABE929265916BD60AC4E03 /* AutoCueEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3668027307406C14399574C /* AutoCueEvents.swift */; };
 		69E34C15252127C85449C270 /* CueController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC53BFD500D6DD6922476C1E /* CueController.swift */; };
+		6BEE01AEA0215DC86F729A7F /* AutoCueEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3668027307406C14399574C /* AutoCueEvents.swift */; };
 		6C4BC1096FEFE381E3D4AD6E /* TremorAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5163B22452A74F992C4097FB /* TremorAnalyzer.swift */; };
 		76DDC0599BBB0FA5805D68D1 /* SupabaseConfig.generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8C0E85CA17A183E43C3D4B /* SupabaseConfig.generated.swift */; };
 		77248CBB46CC5C61AACCA935 /* FogDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DB004787E58EF63D34225D1 /* FogDetector.swift */; };
@@ -93,6 +97,7 @@
 		0F5401E8E6F4E13365D53753 /* PhoneLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneLink.swift; sourceTree = "<group>"; };
 		10A7CD730672C40D09C58F0D /* LoginFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginFlow.swift; sourceTree = "<group>"; };
 		1710CA52690E77273A6925F1 /* Daedalus.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Daedalus.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2497345E8AB604C3CDC15CF9 /* GuardEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuardEngine.swift; sourceTree = "<group>"; };
 		25F06693D2BF6B4001975D85 /* DataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataView.swift; sourceTree = "<group>"; };
 		267DD789F692A1D3E17C0687 /* ProfileSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSetup.swift; sourceTree = "<group>"; };
 		26D6649A289BADAE361ED102 /* Spectrum.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spectrum.swift; sourceTree = "<group>"; };
@@ -296,6 +301,7 @@
 			children = (
 				A3668027307406C14399574C /* AutoCueEvents.swift */,
 				7DB004787E58EF63D34225D1 /* FogDetector.swift */,
+				2497345E8AB604C3CDC15CF9 /* GuardEngine.swift */,
 				26D6649A289BADAE361ED102 /* Spectrum.swift */,
 				4872EFD37E4A66ED8199C445 /* StreamFeatures.swift */,
 				5163B22452A74F992C4097FB /* TremorAnalyzer.swift */,
@@ -503,6 +509,7 @@
 				F70C1092E2E675D3664716F1 /* CueScreens.swift in Sources */,
 				BB9CD4F8850972800F2FDB90 /* DaedalusWatchApp.swift in Sources */,
 				C5CFD05D7D6C29126B7EA0FE /* FogDetector.swift in Sources */,
+				13761F91859EEEDA1EB31166 /* GuardEngine.swift in Sources */,
 				FE1F0DC5DEE1558CDD16A9AF /* PhoneLink.swift in Sources */,
 				ED0DB294F05614E7FCFDE6AC /* Spectrum.swift in Sources */,
 				A76894378796ACFC2A57C679 /* StreamFeatures.swift in Sources */,
@@ -516,9 +523,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6BEE01AEA0215DC86F729A7F /* AutoCueEvents.swift in Sources */,
 				85280FC611943FA087C8BBD5 /* DetectorRulesTest.swift in Sources */,
 				77248CBB46CC5C61AACCA935 /* FogDetector.swift in Sources */,
 				F7C9093B2D421CBA6FA8FF4F /* GoldenVectorsTest.swift in Sources */,
+				38FBD40493659B558A464A18 /* GuardEngine.swift in Sources */,
 				7D89B11140216AB102D4C201 /* Spectrum.swift in Sources */,
 				5789D3C4A71942FC1FB25092 /* StreamFeatures.swift in Sources */,
 				F1685335AD47FBBE5A8C4880 /* TremorAnalyzer.swift in Sources */,
@@ -538,6 +547,7 @@
 				A3EC5EBDEFB2B24BA10499A9 /* DataView.swift in Sources */,
 				C269D4B49DDEE98E2228A8CC /* Design.swift in Sources */,
 				67C435D1EC4829B15F74786E /* FogDetector.swift in Sources */,
+				58B9764ED049FE590207C08D /* GuardEngine.swift in Sources */,
 				AEDF68C94B44D64DBCB11E34 /* HealthData.swift in Sources */,
 				7793AF2E9919EAAC84BD73AC /* JournalView.swift in Sources */,
 				7B91F7EEE151B2F1A3653FD3 /* L10n.swift in Sources */,

@@ -17,7 +17,7 @@ COPIES = [
 
 def test_auto_labels_are_in_all_events():
     assert set(AUTO_CUE_EVENTS) <= set(ALL_EVENTS)
-    assert len(AUTO_CUE_EVENTS) == len(set(AUTO_CUE_EVENTS)) == 15
+    assert len(AUTO_CUE_EVENTS) == len(set(AUTO_CUE_EVENTS)) == 16
 
 
 @pytest.mark.parametrize("path", COPIES)

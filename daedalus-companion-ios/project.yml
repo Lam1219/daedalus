@@ -130,6 +130,8 @@ targets:
       - path: Shared/StreamFeatures.swift
       - path: Shared/TremorStream.swift
       - path: Shared/FogDetector.swift
+      - path: Shared/AutoCueEvents.swift
+      - path: Shared/GuardEngine.swift
       - path: SharedTests
     settings:
       base:

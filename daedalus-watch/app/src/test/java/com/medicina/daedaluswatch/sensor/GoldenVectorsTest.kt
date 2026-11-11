@@ -111,6 +111,7 @@ class GoldenVectorsTest(private val name: String) {
         assertEquals(StreamFeatures.VERSION, v["features"])
         assertEquals(TremorStream.VERSION, v["tremor"])
         assertEquals(FogDetector.VERSION, v["fog"])
+        assertEquals(GuardEngine.VERSION, v["guard"])
     }
 
     @Test fun matchesPythonReference() {
@@ -164,6 +165,41 @@ class GoldenVectorsTest(private val name: String) {
             assertEquals("$name candidates[$i].detected_ms", num(m["detected_ms"]).toLong(), c.detectedMs)
             assertEquals("$name candidates[$i].reason", m["reason"], c.reason.value)
             assertEquals("$name candidates[$i].turning", m["turning"], c.turning)
+        }
+    }
+
+    /**
+     * The raw input (no resampling first) through a whole guard session in each mode gives exactly
+     * the Python event rows: time, name and notes string.
+     */
+    @Test fun guardEventsMatchPythonReference() {
+        val inp = obj(case["input"])
+        val t = longs(inp["t_ms"])
+        val ch = listOf("ax", "ay", "az", "gx", "gy", "gz").map { doubles(inp[it]) }
+        val acc = ch.subList(0, 3).toTypedArray()
+        val gyr = ch.subList(3, 6).toTypedArray()
+        val tp = obj(case["tremor_params"])
+        val tremorParams = TremorParams(
+            thresholdDps = num(tp["threshold_dps"]),
+            personHz = tp["person_hz"]?.let { num(it) },
+            minProminence = num(tp["min_prominence"]),
+            maxSlowRatio = num(tp["max_slow_ratio"]),
+            maxSlow4Dps = num(tp["max_slow4_dps"]),
+        )
+        val fp = obj(case["fog_params"])
+        val fogParams = FogParams(
+            freezeIndexThreshold = num(fp["freeze_index_threshold"]),
+            armSwingShare = num(fp["arm_swing_share"]),
+            cadenceSpm = fp["cadence_spm"]?.let { num(it) },
+        )
+        val expected = obj(obj(case["expected"])["guard_events"])
+        for (mode in listOf(GuardEngine.MODE_WALK, GuardEngine.MODE_REST)) {
+            val want = arr(expected[mode]).map { r ->
+                val row = arr(r)
+                GuardEvent(num(row[0]).toLong(), row[1] as String, row[2] as String)
+            }
+            val got = GuardEngine.run(mode, t, acc, gyr, tremorParams, fogParams)
+            assertEquals("$name guard $mode", want, got)
         }
     }
 

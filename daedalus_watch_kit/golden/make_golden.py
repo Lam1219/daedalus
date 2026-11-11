@@ -23,7 +23,8 @@ File format (all times in ms, acceleration m/s² with gravity, rotation rad/s):
   "expected": {
     "windows": [{"t_end_ms", "tremor_dps", ..., "context"}],
     "tremor_episodes": [{"start_ms", "detected_ms", "end_ms", "hz", "strength"}],
-    "fog_candidates": [{"detected_ms", "reason", "turning"}]
+    "fog_candidates": [{"detected_ms", "reason", "turning"}],
+    "guard_events": {"walk": [[epoch_ms, event_name, notes], ...], "rest": [...]}
   },
   "tolerance": {"relative", "absolute"}
 }
@@ -39,6 +40,7 @@ from pathlib import Path
 import numpy as np
 
 from daedalus_watch_kit import fog
+from daedalus_watch_kit import guard
 from daedalus_watch_kit import stream_features as sf
 from daedalus_watch_kit import tremor_stream as ts
 
@@ -172,6 +174,13 @@ def cases():
                                  gyr=lambda t: np.vstack([0 * t, 0 * t + math.radians(70), 0 * t]))
            .add(5, tilt_deg=70.0).build(), ts.TremorParams(), fog.FogParams())
 
+    yield ("gap_and_duplicate",
+           "28 s of 5 Hz rest tremor at 8 deg/s with a 420 ms gap at 12 s and one repeated sample "
+           "time at 20 s: the guard restarts its grid once (gaps=1) and skips the repeat; batch "
+           "features interpolate across the gap.",
+           with_gap_and_duplicate(Builder(11).add(2).add(24, gyr=tremor(5.0, 8.0)).add(2).build()),
+           ts.TremorParams(), fog.FogParams())
+
     yield ("jittered_timestamps",
            "Uneven sample times (±4 ms) around 50 Hz, 6 Hz tremor at 10 deg/s for 14 s: resample "
            "first, then one episode.",
@@ -210,7 +219,21 @@ def expected(t_ms, acc, gyr, tp: ts.TremorParams, fp: fog.FogParams):
         tremor_episodes=[dict(start_ms=e.start_ms, detected_ms=e.detected_ms, end_ms=e.end_ms,
                               hz=e.hz, strength=e.strength) for e in eps],
         fog_candidates=[dict(detected_ms=c.detected_ms, reason=c.reason, turning=c.turning) for c in cands],
+        # The raw input (not resampled) through a whole guard session, as the watch would run it.
+        # Event rows must match exactly: times, names and notes strings.
+        guard_events={m: [list(r) for r in guard.run(m, t_ms, acc, gyr, tp, fp)] for m in (guard.WALK, guard.REST)},
     )
+
+
+def with_gap_and_duplicate(data, gap_from_s=12.0, gap_ms=420, duplicate_at_s=20.0):
+    """Drops the samples in a gap longer than the guard's 250 ms limit, and gives one sample the
+    previous sample's time (as batched sensor delivery can)."""
+    t, a, g = data
+    keep = ~((t > gap_from_s * 1000) & (t < gap_from_s * 1000 + gap_ms))
+    t, a, g = t[keep].copy(), a[:, keep], g[:, keep]
+    i = int(np.searchsorted(t, duplicate_at_s * 1000))
+    t[i] = t[i - 1]
+    return t, a, g
 
 
 def payload(name, description, data, tp, fp):
@@ -218,7 +241,7 @@ def payload(name, description, data, tp, fp):
     resample, exp = expected(t_ms, acc, gyr, tp, fp)
     return _clean(dict(
         name=name, description=description,
-        versions=dict(features=sf.VERSION, tremor=ts.VERSION, fog=fog.VERSION),
+        versions=dict(features=sf.VERSION, tremor=ts.VERSION, fog=fog.VERSION, guard=guard.VERSION),
         resample=resample,
         input=dict(t_ms=t_ms.tolist(), ax=acc[0].tolist(), ay=acc[1].tolist(), az=acc[2].tolist(),
                    gx=gyr[0].tolist(), gy=gyr[1].tolist(), gz=gyr[2].tolist()),

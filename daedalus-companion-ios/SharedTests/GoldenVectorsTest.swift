@@ -96,7 +96,9 @@ final class GoldenVectorsTest: XCTestCase {
 
     func testGoldenDirectoryHasTheCases() throws {
         let names = try Self.loadCases().map(\.name)
-        XCTAssertEqual(names.count, 10, "golden cases in \(Self.goldenDir.path): \(names)")
+        // At least the cases that existed when this test was written; make_golden.py may add more.
+        XCTAssertGreaterThanOrEqual(names.count, 11, "golden cases in \(Self.goldenDir.path): \(names)")
+        XCTAssertTrue(names.contains("gap_and_duplicate"))
     }
 
     func testVersionsMatchTheGoldenFiles() throws {
@@ -186,6 +188,116 @@ final class GoldenVectorsTest: XCTestCase {
         let mid = w4[10]
         XCTAssertEqual(mid.peakHz, 5.0, accuracy: 0.1)
         XCTAssertEqual(mid.tremorDps, 8.0, accuracy: 1.0)
+    }
+
+    // MARK: - Guard engine (guard-1.0)
+
+    func testGuardVersionMatchesTheGoldenFiles() throws {
+        for c in try Self.loadCases() {
+            let v = c.json["versions"] as! [String: String]
+            XCTAssertEqual(v["guard"], GuardEngine.version, c.name)
+        }
+    }
+
+    /// The raw input (not resampled first) through a guard session gives exactly the Python rows.
+    func testGuardEventsMatchTheGoldenFiles() throws {
+        for c in try Self.loadCases() {
+            let i = c.input
+            let t = Self.ints(i["t_ms"])
+            let ch = ["ax", "ay", "az", "gx", "gy", "gz"].map { Self.doubles(i[$0]) }
+            let tp = Self.tremorParams(c.json["tremor_params"] as! [String: Any])
+            let fp = Self.fogParams(c.json["fog_params"] as! [String: Any])
+            let expected = c.expected["guard_events"] as! [String: Any]
+            for mode in [GuardEngine.Mode.walk, .rest] {
+                let got = GuardEngine.run(mode: mode, timesMs: t, acc: Array(ch[0..<3]), gyr: Array(ch[3..<6]),
+                                          tremorParams: tp, fogParams: fp)
+                let exp = (expected[mode.rawValue] as! [[Any]]).map {
+                    GuardEvent(epochMs: ($0[0] as! NSNumber).int64Value, name: $0[1] as! String, notes: $0[2] as! String)
+                }
+                XCTAssertEqual(got.count, exp.count, "\(c.name) \(mode.rawValue): event count")
+                for (k, (g, e)) in zip(got, exp).enumerated() {
+                    XCTAssertEqual(g, e, "\(c.name) \(mode.rawValue) events[\(k)]")
+                }
+            }
+        }
+    }
+
+    /// Python's f"{x:.Nf}" on the exact binary value: 0.125 and 0.375 are exact ties (to even),
+    /// 2.675 is 2.67499... in binary.
+    func testGuardNumberFormatting() {
+        XCTAssertEqual(GuardEngine.fmt(0.125, 2), "0.12")
+        XCTAssertEqual(GuardEngine.fmt(0.375, 2), "0.38")
+        XCTAssertEqual(GuardEngine.fmt(2.675, 2), "2.67")
+        XCTAssertEqual(GuardEngine.fmt(0.25, 1), "0.2")
+        XCTAssertEqual(GuardEngine.fmt(6, 2), "6.00")
+        XCTAssertEqual(GuardEngine.fmt(0.0625, 3), "0.062")
+        XCTAssertEqual(GuardEngine.fmt(1234.5, 0), "1234")
+    }
+
+    private static func resampleAll(_ t: [Int64], _ ch: [[Double]]) -> (t: [Int64], ch: [[Double]], restarts: Int) {
+        var r = StreamResampler(channels: ch.count)
+        var outT: [Int64] = []
+        var outCh = ch.map { _ in [Double]() }
+        for k in t.indices {
+            r.push(tMs: Double(t[k]), ch.map { $0[k] })
+            for row in 0..<r.outCount {
+                outT.append(r.outTimes[row])
+                for c in ch.indices { outCh[c].append(r.value(row, c)) }
+            }
+        }
+        return (outT, outCh, r.restarts)
+    }
+
+    func testResamplerPassesEvenInputThrough() {
+        let t = (0..<200).map { Int64(1_000 + $0 * 20) }
+        let ch = [t.map { sin(Double($0) / 70) }, t.map { Double($0) * 0.5 }]
+        let r = Self.resampleAll(t, ch)
+        XCTAssertEqual(r.t, t)
+        XCTAssertEqual(r.ch, ch)
+        XCTAssertEqual(r.restarts, 0)
+    }
+
+    func testResamplerMatchesResampleUniformOnJitteredInput() throws {
+        let c = try XCTUnwrap(Self.loadCases().first { $0.name == "jittered_timestamps" })
+        let t = Self.ints(c.input["t_ms"])
+        let ch = ["ax", "ay", "az", "gx", "gy", "gz"].map { Self.doubles(c.input[$0]) }
+        let batch = StreamFeatures.resampleUniform(timesMs: t, channels: ch)
+        let r = Self.resampleAll(t, ch)
+        XCTAssertEqual(r.t, batch.timesMs)
+        XCTAssertEqual(r.ch, batch.channels)
+        XCTAssertEqual(r.restarts, 0)
+    }
+
+    func testResamplerRestartsOnAGapOrABackwardTime() {
+        var r = StreamResampler(channels: 1)
+        r.push(tMs: 0, [0])
+        r.push(tMs: 40, [4])
+        XCTAssertEqual(r.outTimes, [20, 40])
+        XCTAssertEqual(r.outValues, [2, 4])
+        XCTAssertFalse(r.push(tMs: 290, [9]))   // 250 ms: not yet a gap
+        XCTAssertEqual(r.outTimes.first, 60)
+        XCTAssertTrue(r.push(tMs: 541, [7]))    // 251 ms: a gap, the grid starts again here
+        XCTAssertEqual(r.outTimes, [541])
+        XCTAssertEqual(r.outValues, [7])
+        r.push(tMs: 571, [10])
+        XCTAssertEqual(r.outTimes, [561])
+        XCTAssertEqual(r.outValues[0], 9, accuracy: 1e-12)
+        XCTAssertFalse(r.push(tMs: 571, [3]))   // same time: skipped
+        XCTAssertEqual(r.outTimes, [])
+        XCTAssertEqual(r.restarts, 1)
+        XCTAssertTrue(r.push(tMs: 570, [3]))    // backwards: restart
+        XCTAssertEqual(r.outTimes, [570])
+        XCTAssertEqual(r.restarts, 2)
+
+        // A gap starts a new feature extractor: windows need 2 s of samples after it.
+        var eng = GuardEngine(mode: .rest)
+        for k in 0..<150 { eng.push(tMs: Double(k * 20), ax: 0, ay: 0, az: 9.81, gx: 0, gy: 0, gz: 0) }
+        XCTAssertEqual(eng.windows, 2)
+        for k in 0..<99 { eng.push(tMs: Double(10_000 + k * 20), ax: 0, ay: 0, az: 9.81, gx: 0, gy: 0, gz: 0) }
+        XCTAssertEqual(eng.windows, 2)
+        eng.push(tMs: Double(10_000 + 99 * 20), ax: 0, ay: 0, az: 9.81, gx: 0, gy: 0, gz: 0)
+        XCTAssertEqual(eng.windows, 3)
+        XCTAssertEqual(eng.finish(tMs: 12_000).last?.notes, "type=guard;mode=rest;windows=3;gaps=1")
     }
 
     func testPythonRounding() {

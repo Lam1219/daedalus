@@ -214,11 +214,20 @@ New labels in `EventLabels` (shared Kotlin, Swift, Python):
 - `AUTO_FOG_CANDIDATE`
 - `AUTO_CUE_PROMPT`, `AUTO_CUE_ACCEPTED`, `AUTO_CUE_DECLINED`, `AUTO_CUE_FALSE`, `AUTO_CUE_IGNORED`
 - `AUTO_CUE_START`, `AUTO_CUE_END`
-- `GUARD_START`, `GUARD_END`
+- `GUARD_START`, `GUARD_END`, `GUARD_BATTERY`
 - `POCKET_STATE` (in pocket / not / phone unreachable), `POCKET_REMINDER`, `POCKET_REMINDER_DISMISSED`
 
 Each event carries the PRD fields:
-- type, confidence (0–1, from margin over threshold), start, end, action taken, model version (`tremor-stream-1.0`, `fog-1.0`), and the threshold in force.
+- type, confidence (0–1, from margin over threshold), start, end, action taken, model version (`tremor-stream-1.0`, `fog-1.1`), and the threshold in force.
+
+**Where the events go (decided 2026-11-11).** A guard session writes its events into its own session CSV, not a separate file. That keeps one file per session for the transfer to the phone and for the phone's session lists.
+- The guard header adds two trailing columns:
+  `timestamp_ms,heart_rate_bpm,ax,ay,az,gx,gy,gz,breathing_rate_brpm,spo2_percent,event,event_notes`
+- **Sample rows** leave `event` and `event_notes` empty.
+- **Event rows** fill only `timestamp_ms`, `event` and `event_notes`; every other cell is blank.
+- **Notes format:** `event_notes` holds `key=value` pairs separated by `;`. It never contains a comma.
+- **Keys and number formats** are fixed by the guard engine (`guard.py`, guard-1.0).
+- **Compatibility:** readers find columns by header name, so tremor-check and cue files, which have no event columns, read as before.
 
 The phone reads them from the session file like the tremor check, for the Cues card, the Journal and the shared report.
 

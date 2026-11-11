@@ -123,6 +123,7 @@ object EventLabels {
     const val AUTO_CUE_END = "AUTO_CUE_END"
     const val GUARD_START = "GUARD_START"
     const val GUARD_END = "GUARD_END"
+    const val GUARD_BATTERY = "GUARD_BATTERY"
     const val POCKET_STATE = "POCKET_STATE"
     const val POCKET_REMINDER = "POCKET_REMINDER"
     const val POCKET_REMINDER_DISMISSED = "POCKET_REMINDER_DISMISSED"

@@ -21,6 +21,7 @@ enum AutoCueEvents {
     static let autoCueEnd = "AUTO_CUE_END"
     static let guardStart = "GUARD_START"
     static let guardEnd = "GUARD_END"
+    static let guardBattery = "GUARD_BATTERY"
     static let pocketState = "POCKET_STATE"
     static let pocketReminder = "POCKET_REMINDER"
     static let pocketReminderDismissed = "POCKET_REMINDER_DISMISSED"
@@ -38,6 +39,7 @@ enum AutoCueEvents {
         "AUTO_CUE_END",
         "GUARD_START",
         "GUARD_END",
+        "GUARD_BATTERY",
         "POCKET_STATE",
         "POCKET_REMINDER",
         "POCKET_REMINDER_DISMISSED",
