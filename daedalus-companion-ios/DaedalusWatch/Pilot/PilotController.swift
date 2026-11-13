@@ -71,7 +71,7 @@ final class PilotController {
     func appBecameActive() {
         // 19: presses left waiting (also an orphan from a crash mid-beat) are written even if
         // study mode was turned off since.
-        if !PressStore.pending().isEmpty { sealDuePresses() }
+        if PressStore.hasPending { sealDuePresses() }
         guard isStudy else { return }
         armRecorder()
         refreshEarbuds()
@@ -216,8 +216,12 @@ final class PilotController {
     }
 
     /// A wrist pulse of this press played (the first is the wrist's beat start).
+    /// Round 002, 12: the pulse that sets the start (also the wrist's first pulse after a fallback)
+    /// saves the pending file, so a crash right after keeps the start time. The save is queued
+    /// behind the pulse itself, which is played right after this call.
     func wristBeatPlayed(atMs ms: Int64) {
-        beat?.wristPulse(atMs: ms)
+        guard beat?.wristPulse(atMs: ms) == true else { return }
+        Task { @MainActor [weak self] in self?.savePendingNow() }
     }
 
     /// The beat stopped (Stop, or the 10-minute limit): ask the check-in, or write the file.
@@ -288,16 +292,46 @@ final class PilotController {
     /// Writes each waiting press once the background recorder covers press + 60 s (18), or after
     /// `Pilot.sealGiveUpMs` with what there is, marked `motion_partial`. The running press is never
     /// written; an orphan (the app stopped mid-beat) is (19). Retries every 30 s while presses wait.
+    ///
+    /// Round 002, 10: the work (decoding the pending files, querying the recorder, writing) runs off
+    /// the main thread, one pass at a time, and no pass runs while a press is running (the beat and
+    /// its screen keep the main thread to themselves; the pass is retried afterwards).
     func sealDuePresses() {
-        let now = Self.nowMs()
-        var waiting = false
+        guard Pilot.sealRetryShouldRun(pressRunning: press != nil) else { scheduleSealRetry(); return }
+        guard !sealing else { sealAgain = true; return }
+        sealing = true
+        Task { [weak self] in
+            let (files, waiting) = await Task.detached(priority: .utility) { Self.sealPass(nowMs: Self.nowMs()) }.value
+            guard let self else { return }
+            for file in files { PhoneLink.shared.send(pilotFile: file) }
+            self.sealing = false
+            if self.sealAgain { self.sealAgain = false; self.sealDuePresses() } else if waiting { self.scheduleSealRetry() }
+        }
+    }
+
+    @ObservationIgnored private var sealing = false
+    @ObservationIgnored private var sealAgain = false
+
+    private func scheduleSealRetry() {
+        guard sealRetry == nil else { return }
+        sealRetry = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(30))
+            self?.sealRetry = nil
+            self?.sealDuePresses()
+        }
+    }
+
+    /// One pass over the waiting presses, off the main thread. Returns the files written and
+    /// whether any press still waits. Only called when no press runs, so every pending file is
+    /// finished or an orphan.
+    private nonisolated static func sealPass(nowMs now: Int64) -> ([URL], Bool) {
+        var written: [URL] = [], waiting = false
         for (url, record, liveSamples) in PressStore.pending() {
-            let current = press.map { $0.pressIndex == record.pressIndex && $0.pressMs == record.pressMs } ?? false
             let from = Date(timeIntervalSince1970: Double(record.pressMs - Int64(Pilot.bufferBeforeS) * 1000) / 1000)
             let to = Date(timeIntervalSince1970: Double(record.pressMs + Int64(Pilot.bufferAfterS) * 1000) / 1000)
-            let recorded = current || now < record.pressMs + Int64(Pilot.bufferAfterS) * 1000 ? [] : Self.recorded(from: from, to: to)
+            let recorded = now < record.pressMs + Int64(Pilot.bufferAfterS) * 1000 ? [] : recorded(from: from, to: to)
             switch Pilot.sealDecision(nowMs: now, pressMs: record.pressMs, recordedLastMs: recorded.map(\.tMs).max(),
-                                      isCurrentPress: current) {
+                                      isCurrentPress: false) {
             case .wait:
                 waiting = true
             case let .seal(partial):
@@ -306,21 +340,15 @@ final class PilotController {
                 full.motionPartial = partial
                 if let file = PressStore.write(full) {
                     try? FileManager.default.removeItem(at: url)
-                    PhoneLink.shared.send(pilotFile: file)
+                    written.append(file)
                 }
             }
         }
-        if waiting && sealRetry == nil {
-            sealRetry = Task { [weak self] in
-                try? await Task.sleep(for: .seconds(30))
-                self?.sealRetry = nil
-                self?.sealDuePresses()
-            }
-        }
+        return (written, waiting)
     }
 
     /// The background recorder's acceleration in [from, to], in m/s² with wall-clock ms.
-    private static func recorded(from: Date, to: Date) -> [PressSamples.Sample] {
+    private nonisolated static func recorded(from: Date, to: Date) -> [PressSamples.Sample] {
         guard CMSensorRecorder.isAccelerometerRecordingAvailable(),
               let list = CMSensorRecorder().accelerometerData(from: from, to: to) else { return [] }
         var out: [PressSamples.Sample] = []
@@ -331,7 +359,7 @@ final class PilotController {
         return out
     }
 
-    static func nowMs() -> Int64 { Int64(Date.now.timeIntervalSince1970 * 1000) }
+    nonisolated static func nowMs() -> Int64 { Int64(Date.now.timeIntervalSince1970 * 1000) }
 
     // MARK: Pocket reminder (B10, fallback: times set on the iPhone)
 
@@ -426,6 +454,11 @@ enum PressStore {
         var r = record
         r.samples = PressSamples(tMs: live.map(\.tMs), ax: live.map(\.ax), ay: live.map(\.ay), az: live.map(\.az))
         try? r.json().write(to: pendingDir.appendingPathComponent(r.fileName), options: .atomic)
+    }
+
+    /// Whether any press waits (names only: no decoding on the main thread).
+    static var hasPending: Bool {
+        ((try? FileManager.default.contentsOfDirectory(atPath: pendingDir.path)) ?? []).contains { $0.hasSuffix(".json") }
     }
 
     static func pending() -> [(URL, PressRecord, [PressSamples.Sample])] {

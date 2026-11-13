@@ -33,11 +33,14 @@ struct PilotView: View {
                         if on && !s.isActive { messageKey = "pilot_switch_needs_save"; return }
                         messageKey = nil
                         pilot.settings = s
+                        // Round 002, 9: unsaved edits are dropped; the fields show what the watch runs with.
+                        draft = draft.afterStudyModeChange(to: s)
                     }))
                 }
             }
-            if let messageKey {
-                Text(L(messageKey)).font(DS.font(13, .semibold)).foregroundStyle(DS.sageDeep)
+            // Round 002, 9: on but not complete (for example saved by an earlier build).
+            if let key = messageKey ?? settings.statusMessageKey {
+                Text(L(key)).font(DS.font(13, .semibold)).foregroundStyle(DS.sageDeep)
             }
 
             SageCard {

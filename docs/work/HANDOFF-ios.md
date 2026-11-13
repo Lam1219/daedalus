@@ -139,4 +139,39 @@ The review of `feature/home-pilot` at c361c93 asked for iOS fixes 15–24 and th
 - **18, partial motion.** On a watch where `CMSensorRecorder` isn't recording, a press file arrives after 10 minutes with `motion_partial: true`.
 - **20, backup.** After an iCloud backup of the iPhone, confirm in Settings → iCloud → Manage Storage → Backups that the Daedalus pilot folder isn't counted (best effort; the flag is set on both folders).
 
-Round 001 commits: `c361c93..ios/home-pilot` (87b56ee, plus this line).
+Round 001 commits: `c361c93..2836865` (87b56ee, 2836865).
+
+## Round 002 fixes
+
+The review of `c361c93..ca786c1` asked for iOS fixes 15, 9, 10, 12 and 13, a handoff note for 11, and optionally 14. The branch was fast-forwarded to ca786c1 first. No Python or Android files changed. As the round asks, the Python analysis is now the safety net for duplicates and for recovered or partial presses, so the platform changes stay small.
+
+**Tests.** The new tests are in `SharedTests/PilotRound2Test.swift` (6 tests).
+- They were written first and run against the code before the fixes: the suite didn't compile, because none of the new rules existed. Test 14 would also have failed on its assertions, since the old code kept a second copy as `a_2.json`.
+- They pass now.
+- Where a fix lives only in an app target, its rule moved into `Shared/` so a test reaches it.
+
+| # | What changed | Test |
+|---|---|---|
+| 15 (high) | **No session file for a study press.** A study press no longer writes an ordinary session CSV: `SessionRecorder.start(..., writesFile: Pilot.writesSessionCsv(studyPress:))`. Motion still runs and feeds the press file through `onSample`, but no file goes to the iPhone's session list or cloud backup. This is the iOS equivalent of Android's `HapticService.writesSessionCsv`. Outside a study press, including cues started from the iPhone in study mode, nothing changes. | `test15StudyPressWritesNoSessionCsv` |
+| 9 | **Switch and draft.** When study mode is turned on or off, unsaved edits are dropped and the fields show the saved settings (`PilotDraft.afterStudyModeChange`). When the switch is on but the saved settings aren't complete (for example saved by an earlier build), the screen shows `pilot_incomplete` (`PilotSettings.statusMessageKey`). | `test9IncompleteMessageWhenOnButNotActive`, `test9DraftResetsToSavedSettingsWhenStudyModeTurnsOn` |
+| 10 | **Off the main thread.** Writing waiting press files (decoding the pending JSON, querying `CMSensorRecorder`, writing) now runs in a detached utility task, one pass at a time. A pass that comes in during another is queued for after it. No pass runs while a press is running, including while its check-in is up: it is retried 30 s later. Opening the app checks for pending files by name only, with no decoding on the main thread. | `test10NoSealRetryWhileAPressRuns` (the rule). The threading itself is in the watch target. |
+| 12 | **Save on the first pulse.** The wrist pulse that sets the beat start saves the pending file. This includes the wrist's first pulse after a fallback from the earbuds, which before was saved only when the beat stopped. The save is queued just behind the pulse, so it doesn't delay it. | `test12FirstWristPulseIsReportedOnce` |
+| 13 | **Delete account.** `deleteAccount()` also deletes the pilot files on the iPhone (`PilotStore.deleteFiles()`), as "Delete all my data" already did. | App target (Supabase sign-in): not unit-testable |
+| 14 (optional, done) | **Identical copies.** When a received pilot file has the same name as one already there and identical bytes, it is dropped instead of being kept as `_2`. Files that differ are still both kept. Python removes the rest. | `test14IdenticalIncomingFileIsDropped` |
+| 11 (note) | **Install check below.** | — |
+
+**Install check after updating a phone set up with an earlier build (11).** Earlier builds stored no "Earbuds paired" answer, so it reads as "no" and the earbuds place is never drawn. Before the person goes home with the new build:
+1. The physio opens Profile → Home pilot and turns study mode off.
+2. The physio checks the person's own earbuds are paired with the iPhone and turns on "Earbuds paired with this iPhone".
+3. The physio taps Save.
+4. The physio turns study mode back on and checks the screen shows no warning line.
+
+**Validation run for round 002:**
+- `xcodegen`, then `xcodebuild test -project Daedalus.xcodeproj -scheme SharedTests -destination 'platform=macOS'`: **TEST SUCCEEDED**, 76 tests, 0 failures, 1 skipped (the sample-file writer, which runs only when its output folder is set).
+- `xcodebuild build -scheme Daedalus -destination 'generic/platform=iOS Simulator'`: **BUILD SUCCEEDED** (iPhone and watch), with only the existing `ProfileView.swift` warning.
+- The simulators weren't re-run this round.
+
+**Written, not run:**
+- **15.** In study mode, press "I'm stuck" on the watch, stop, and wait 2 minutes. Profile → Recorded sessions on the iPhone shows no new session, and the press file arrives under Home pilot. With study mode off, a press still adds a session as before.
+- **12.** Force-quit the watch app 1 s after an earbuds press that fell back to the wrist. The press file that arrives later has a non-null `beat_start_ms` and `place: "wrist"`.
+- **10.** With several waiting presses, the walking screen's pulses stay steady while a press file is being written.

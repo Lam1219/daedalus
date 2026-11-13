@@ -116,7 +116,8 @@ final class CueController: NSObject {
             recorder.onSample = nil
         }
         recorder.start(mode: mode, everySample: tremor || guarding,
-                       guardMode: guarding ? GuardRows.engineMode(mode) : nil)
+                       guardMode: guarding ? GuardRows.engineMode(mode) : nil,
+                       writesFile: Pilot.writesSessionCsv(studyPress: studyPress))
         startWorkout(walking: mode == "walking" || mode == GuardRows.walkGuard)
         // No rhythm in the tremor check or a guard: one tap to say it started.
         if tremor || guarding { WKInterfaceDevice.current().play(.start) }
@@ -410,13 +411,21 @@ final class SessionRecorder {
 
     /// `guardMode` makes this a guard session: the guard header, and every sample through the engine
     /// (with `everySample`).
-    func start(mode: String, everySample: Bool = false, guardMode: GuardEngine.Mode? = nil) {
-        let url = Self.sessionsDir.appendingPathComponent(CueDefaults.sessionFileName(mode: mode, start: .now))
+    /// `writesFile: false` (a home-pilot study press, round 002 fix 15): motion runs (for the press
+    /// file, through `onSample`) but no session CSV is written, so nothing reaches the iPhone's
+    /// session list or cloud backup.
+    func start(mode: String, everySample: Bool = false, guardMode: GuardEngine.Mode? = nil, writesFile: Bool = true) {
         let guarding = guardMode != nil
-        FileManager.default.createFile(atPath: url.path, contents: Data((guarding ? GuardRows.header : CueDefaults.csvHeader).utf8))
-        self.url = url
-        handle = try? FileHandle(forWritingTo: url)
-        handle?.seekToEndOfFile()
+        if writesFile {
+            let url = Self.sessionsDir.appendingPathComponent(CueDefaults.sessionFileName(mode: mode, start: .now))
+            FileManager.default.createFile(atPath: url.path, contents: Data((guarding ? GuardRows.header : CueDefaults.csvHeader).utf8))
+            self.url = url
+            handle = try? FileHandle(forWritingTo: url)
+            handle?.seekToEndOfFile()
+        } else {
+            url = nil
+            handle = nil
+        }
         heartRate = nil
         lastWrite = .distantPast
         motion = Motion()

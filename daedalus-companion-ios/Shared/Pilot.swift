@@ -148,6 +148,15 @@ enum Pilot {
 
     enum SealDecision: Equatable, Sendable { case wait, seal(partial: Bool) }
 
+    // MARK: Round 002 rules
+
+    /// 15: a study press records its motion only into the press file. It writes no ordinary
+    /// session CSV, which would reach the iPhone's session list and cloud backup.
+    static func writesSessionCsv(studyPress: Bool) -> Bool { !studyPress }
+
+    /// 10: the background retry that writes waiting press files doesn't run while a press runs.
+    static func sealRetryShouldRun(pressRunning: Bool) -> Bool { !pressRunning }
+
     /// When a waiting press file can be written. The press still running is never written (its
     /// file is updated when it ends); an orphan (the app was stopped mid-beat) is.
     static func sealDecision(nowMs: Int64, pressMs: Int64, recordedLastMs: Int64?, isCurrentPress: Bool) -> SealDecision {
@@ -198,7 +207,14 @@ enum PilotFiles {
     static func moveNew(_ file: URL, into dir: URL, name: String) throws -> URL {
         for n in 1...1000 {
             let url = candidate(dir, name, n)
-            if FileManager.default.fileExists(atPath: url.path) { continue }
+            if FileManager.default.fileExists(atPath: url.path) {
+                // Round 002, 14: the same file delivered twice (identical bytes) is kept once.
+                if FileManager.default.contentsEqual(atPath: url.path, andPath: file.path) {
+                    try? FileManager.default.removeItem(at: file)
+                    return url
+                }
+                continue
+            }
             do {
                 try FileManager.default.moveItem(at: file, to: url)
                 return url
@@ -256,9 +272,13 @@ struct PressBeat: Equatable, Sendable {
         return true
     }
 
-    /// A wrist pulse played: the first one is the beat start of a wrist press.
-    mutating func wristPulse(atMs ms: Int64) {
-        if wristPlays && beatStartMs == nil { beatStartMs = ms }
+    /// A wrist pulse played: the first one is the beat start of a wrist press. True when this
+    /// pulse set the start (12: the caller saves the pending file then).
+    @discardableResult
+    mutating func wristPulse(atMs ms: Int64) -> Bool {
+        guard wristPlays && beatStartMs == nil else { return false }
+        beatStartMs = ms
+        return true
     }
 
     mutating func stop() {
@@ -321,6 +341,10 @@ struct PilotSettings: Equatable, Sendable {
     /// 16: the code, seed, start date and earbuds check can't change while study mode is on.
     var fieldsLocked: Bool { enabled }
 
+    /// Round 002, 9: the switch is on but the saved settings aren't complete (for example saved
+    /// by an earlier build): the pilot screen says so.
+    var statusMessageKey: String? { enabled && !isActive ? "pilot_incomplete" : nil }
+
     /// Study mode runs only when the switch is on and the settings are complete.
     var isActive: Bool {
         enabled && !participant.trimmingCharacters(in: .whitespaces).isEmpty
@@ -369,6 +393,10 @@ struct PilotDraft: Equatable, Sendable {
               v >= 0, v < Pilot.maxSeed else { return nil }
         return v
     }
+
+    /// Round 002, 9: when study mode turns on or off, unsaved edits are dropped and the fields
+    /// show the saved settings (which are what the watch runs with).
+    func afterStudyModeChange(to saved: PilotSettings) -> PilotDraft { PilotDraft(saved) }
 
     /// `base` with this draft's fields, or nil when the code, seed or date isn't valid.
     func applied(to base: PilotSettings) -> PilotSettings? {
