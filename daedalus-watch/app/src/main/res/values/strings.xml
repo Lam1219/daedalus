@@ -71,4 +71,18 @@
     <string name="mode_walk_guard">Walk guard</string>
     <string name="mode_rest_guard">Rest guard</string>
     <string name="guard_notif_text">Learning your patterns · no automatic cues yet</string>
+
+    <!-- Home pilot (study mode, set on the phone) -->
+    <string name="pilot_watching">Home pilot on</string>
+    <string name="pilot_place_wrist">On your wrist</string>
+    <string name="pilot_place_earbuds">In your earbuds</string>
+    <string name="pilot_place_pocket">Phone in your pocket</string>
+    <string name="pilot_checkin_title">Did the pace help?</string>
+    <string name="pilot_checkin_helped">It helped</string>
+    <string name="pilot_checkin_not_helped">It didn’t help</string>
+    <string name="pilot_checkin_moving">I was already moving</string>
+    <string name="pilot_checkin_not_felt">I didn’t feel it</string>
+    <string name="pilot_checkin_channel">Pilot questions</string>
+    <string name="pilot_pocket_title">Phone in your front pocket?</string>
+    <string name="pilot_pocket_sub">Take it with you in your front trouser pocket.</string>
 </resources>

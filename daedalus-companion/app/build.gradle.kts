@@ -46,6 +46,9 @@ android {
         jvmTarget = "17"
     }
 
+    // Code shared by the phone and watch apps (home pilot rules, press files, the click player).
+    sourceSets["main"].java.srcDir("../../daedalus-shared/src/main/java")
+
     buildFeatures {
         compose = true
         buildConfig = true

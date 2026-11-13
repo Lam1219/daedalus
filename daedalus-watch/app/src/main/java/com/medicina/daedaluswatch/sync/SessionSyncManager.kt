@@ -29,6 +29,8 @@ class SessionSyncManager(private val context: Context) {
 
     companion object {
         const val CHANNEL_PATH = "/session/file"
+        /** Home pilot files (com.medicina.shared.pilot.PilotLink.FILE_PATH). */
+        const val PILOT_FILE_PATH = "/pilot/file"
         const val CONTROL_PATH = "/session/control"
         /** Files being sent right now, shared by every instance, so no file is sent twice at once. */
         private val inFlight: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet()
@@ -95,7 +97,30 @@ class SessionSyncManager(private val context: Context) {
         }
     }
 
-    private suspend fun transferAndPurgeFileInternal(csvFile: File, mode: String) {
+    /**
+     * Home pilot: sends finished press files and past days' battery logs to the phone, which keeps
+     * them on the device for "Export pilot files" (never uploaded). The watch deletes its copy once
+     * the phone confirms. Today's battery log is still being written, so it waits for tomorrow.
+     */
+    fun syncPilotFiles() {
+        scope.launch {
+            val dir = File(context.filesDir, "pilot")
+            val today = java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.US).format(java.util.Date())
+            val files = dir.listFiles()?.filter {
+                it.isFile && !it.name.endsWith(".part") &&
+                    (it.name.startsWith("pilot_") || (it.name.startsWith("battery_") && !it.name.endsWith("_$today.csv")))
+            }.orEmpty()
+            for (f in files) transferAndPurgeFileInternal(f, "pilot", channelPath = PILOT_FILE_PATH, messagePath = PILOT_FILE_PATH, notifyComplete = false)
+        }
+    }
+
+    private suspend fun transferAndPurgeFileInternal(
+        csvFile: File,
+        mode: String,
+        channelPath: String = CHANNEL_PATH,
+        messagePath: String = "/session/file",
+        notifyComplete: Boolean = true,
+    ) {
         if (!csvFile.exists()) {
             Log.e("SessionSync", "File does not exist: ${csvFile.name}")
             return
@@ -116,7 +141,7 @@ class SessionSyncManager(private val context: Context) {
 
             // 1. ChannelClient stream: works for any size.
             try {
-                val channel = channelClient.openChannel(phoneNode.id, "$CHANNEL_PATH/${csvFile.name}").await()
+                val channel = channelClient.openChannel(phoneNode.id, "$channelPath/${csvFile.name}").await()
                 channelClient.getOutputStream(channel).await().use { it.write(fileBytes); it.flush() }
                 channelClient.close(channel).await()
                 Log.i("SessionSync", "ChannelClient sent ${csvFile.name}, waiting for the phone")
@@ -129,7 +154,7 @@ class SessionSyncManager(private val context: Context) {
             if (!transferSuccess && fileBytes.size <= MESSAGE_LIMIT) {
                 try {
                     val header = "$mode|${csvFile.name}|${fileBytes.size}|".toByteArray(Charsets.UTF_8)
-                    messageClient.sendMessage(phoneNode.id, "/session/file", header + fileBytes).await()
+                    messageClient.sendMessage(phoneNode.id, messagePath, header + fileBytes).await()
                     Log.i("SessionSync", "MessageClient sent ${csvFile.name}, waiting for the phone")
                     transferSuccess = withTimeoutOrNull(ACK_TIMEOUT_MS) { ack.await() } != null
                 } catch (e: Exception) {
@@ -143,7 +168,7 @@ class SessionSyncManager(private val context: Context) {
                 Log.i("SessionSync", "File transferred successfully and purged: ${csvFile.name}, deleted=$deleted")
 
                 // Notify phone that transfer is complete
-                val nodes = nodeClient.connectedNodes.await()
+                val nodes = if (notifyComplete) nodeClient.connectedNodes.await() else emptyList()
                 for (node in nodes) {
                     val message = "complete|$mode|${csvFile.name}|${fileBytes.size}".toByteArray()
                     messageClient.sendMessage(node.id, CONTROL_PATH, message)

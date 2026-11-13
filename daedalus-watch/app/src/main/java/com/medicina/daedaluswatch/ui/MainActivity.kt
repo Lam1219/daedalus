@@ -27,6 +27,11 @@ import com.medicina.daedaluswatch.sensor.StandWatchService
 import com.medicina.daedaluswatch.sensor.GuardSession
 import com.medicina.daedaluswatch.sensor.TremorAnalyzer
 import com.medicina.daedaluswatch.sync.SessionSyncManager
+import com.medicina.daedaluswatch.pilot.PilotPhoneLink
+import com.medicina.daedaluswatch.pilot.PilotPresses
+import com.medicina.daedaluswatch.pilot.PilotStore
+import com.medicina.shared.pilot.CheckIn
+import com.medicina.shared.pilot.Place
 import java.util.Locale
 import kotlin.math.cos
 import kotlin.math.PI
@@ -47,6 +52,8 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     private lateinit var screenCue: View
     private lateinit var screenTremorCheck: View
     private lateinit var screenTremorResult: View
+    private lateinit var screenCheckin: View
+    private lateinit var tvWalkPlace: TextView
 
     private lateinit var tvHomeStatus: TextView
     private lateinit var dotHomeStatus: View
@@ -83,7 +90,10 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         setContentView(R.layout.activity_main)
 
         checkAndRequestPermissions()
-        SessionSyncManager(this).syncAllPendingFiles()
+        SessionSyncManager(this).apply {
+            syncAllPendingFiles()
+            syncPilotFiles() // home pilot files left by an earlier failed transfer
+        }
         // Resume stand-up detection if it was switched on from the phone.
         StandWatchService.startIfEnabled(this)
 
@@ -93,6 +103,8 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         screenCue = findViewById(R.id.screen_cue)
         screenTremorCheck = findViewById(R.id.screen_tremor_check)
         screenTremorResult = findViewById(R.id.screen_tremor_result)
+        screenCheckin = findViewById(R.id.screen_checkin)
+        tvWalkPlace = findViewById(R.id.tv_walk_place)
         tvHomeStatus = findViewById(R.id.tv_home_status)
         dotHomeStatus = findViewById(R.id.dot_home_status)
         tvHomeHr = findViewById(R.id.tv_home_hr)
@@ -130,11 +142,22 @@ class MainActivity : ComponentActivity(), SensorEventListener {
             startService(Intent(this, HapticService::class.java).setAction(action))
         }
 
+        // Home pilot: one tap answers the check-in shown after a beat stops.
+        mapOf(
+            R.id.btn_checkin_helped to CheckIn.HELPED,
+            R.id.btn_checkin_not_helped to CheckIn.NOT_HELPED,
+            R.id.btn_checkin_moving to CheckIn.ALREADY_MOVING,
+            R.id.btn_checkin_not_felt to CheckIn.NOT_FELT,
+        ).forEach { (id, answer) -> findViewById<View>(id).setOnClickListener { PilotPresses.answer(this, answer) } }
+
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
     }
 
     override fun onResume() {
         super.onResume()
+        isVisible = true
+        // Home pilot: the person may be about to press; get the phone's earbuds and steps now.
+        if (PilotStore.active(this)) PilotPhoneLink.query(this)
         lastPhoneCheckMs = 0L
         handler.post(frame)
         // Live heart rate for the home screen while it's visible.
@@ -146,6 +169,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
 
     override fun onPause() {
         super.onPause()
+        isVisible = false
         handler.removeCallbacks(frame)
         sensorManager?.unregisterListener(this)
     }
@@ -165,13 +189,18 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     }
 
     private fun show(screen: View) {
-        listOf(screenHome, screenWalk, screenBreathe, screenCue, screenTremorCheck, screenTremorResult).forEach {
+        listOf(screenHome, screenWalk, screenBreathe, screenCue, screenTremorCheck, screenTremorResult, screenCheckin).forEach {
             it.visibility = if (it === screen) View.VISIBLE else View.GONE
         }
     }
 
     private fun render() {
         val now = System.currentTimeMillis()
+        // Home pilot: the one-tap check-in after a beat stops comes first.
+        if (PilotPresses.checkinFor != null) {
+            show(screenCheckin)
+            return
+        }
         if (!HapticService.isServiceRunning) {
             val tremor = HapticService.lastTremorResult
             if (tremor != null && now - HapticService.lastTremorResultAtMs < TREMOR_RESULT_MS) {
@@ -220,6 +249,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
                 // Interim guard screen (T13 brings the real one). "I'm stuck" inside a guard shows the walking rhythm.
                 if (HapticService.guardCueActive) {
                     show(screenWalk)
+                    tvWalkPlace.visibility = View.GONE
                     tvWalkRate.text = bpm.toString()
                     val beatMs = 60_000f / bpm.coerceAtLeast(1)
                     val phase = ((now - HapticService.startedAtMs) % beatMs.toLong()) / beatMs
@@ -252,6 +282,16 @@ class MainActivity : ComponentActivity(), SensorEventListener {
             else -> {
                 show(screenWalk)
                 tvWalkRate.text = bpm.toString()
+                // Home pilot: where this press plays its beat, in small text.
+                val place = PilotPresses.currentPlace
+                tvWalkPlace.visibility = if (place != null) View.VISIBLE else View.GONE
+                if (place != null) tvWalkPlace.setText(
+                    when (place) {
+                        Place.WRIST -> R.string.pilot_place_wrist
+                        Place.EARBUDS -> R.string.pilot_place_earbuds
+                        Place.POCKET -> R.string.pilot_place_pocket
+                    }
+                )
                 // Dot swells on each beat, then settles.
                 val beatMs = 60_000f / bpm.coerceAtLeast(1)
                 val phase = ((now - HapticService.startedAtMs) % beatMs.toLong()) / beatMs
@@ -309,9 +349,12 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     }
 
     private fun startWalkingCue() {
+        val pressMs = System.currentTimeMillis()
         if (HapticService.isServiceRunning) return
         val intent = Intent(this, HapticService::class.java).apply {
             action = HapticService.ACTION_START
+            // The tap's own time: in study mode this cue is a pilot press, timed from here.
+            putExtra(HapticService.EXTRA_PRESS_MS, pressMs)
             putExtra(HapticService.EXTRA_BPM, CueRates.get(this@MainActivity, "walking"))
             putExtra(HapticService.EXTRA_MODE, "walking")
         }
@@ -342,9 +385,13 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         }
     }
 
-    private companion object {
-        const val PHONE_CHECK_MS = 15_000L
+    companion object {
+        private const val PHONE_CHECK_MS = 15_000L
         /** The tremor result screen goes back to home on its own after this long. */
-        const val TREMOR_RESULT_MS = 2 * 60 * 1000L
+        private const val TREMOR_RESULT_MS = 2 * 60 * 1000L
+
+        /** On screen now; otherwise a pilot check-in also opens over the watch face. */
+        @Volatile var isVisible = false
+            private set
     }
 }

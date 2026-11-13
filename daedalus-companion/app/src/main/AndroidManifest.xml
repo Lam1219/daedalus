@@ -25,6 +25,13 @@
     <!-- Wear OS communication -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
+    <!-- Home pilot (study mode): the phone counts steps, vibrates the pace in the pocket and
+         plays it in the earbuds, from a foreground service that runs while study mode is on. -->
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
+
     <!-- Storage for file export -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
@@ -91,6 +98,20 @@
                 <action android:name="android.intent.action.TIMEZONE_CHANGED" />
                 <action android:name="android.intent.action.TIME_SET" />
                 <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Home pilot: steps, movement, earbuds, and the pocket / earbud beat -->
+        <service
+            android:name=".pilot.PilotPhoneService"
+            android:exported="false"
+            android:foregroundServiceType="health" />
+        <receiver
+            android:name=".pilot.PilotBootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
 

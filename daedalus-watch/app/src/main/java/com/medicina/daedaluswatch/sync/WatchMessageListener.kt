@@ -8,6 +8,12 @@ import com.medicina.daedaluswatch.haptics.CueRates
 import com.medicina.daedaluswatch.haptics.HapticService
 import com.medicina.daedaluswatch.sensor.StandWatchService
 import com.medicina.daedaluswatch.sensor.TremorAnalyzer
+import com.medicina.daedaluswatch.pilot.PilotPhoneLink
+import com.medicina.daedaluswatch.pilot.PilotStore
+import com.medicina.shared.pilot.BeatMessage
+import com.medicina.shared.pilot.PhoneStatus
+import com.medicina.shared.pilot.PilotLink
+import com.medicina.shared.pilot.PilotSettings
 
 private const val TAG = "WatchMessageListener"
 
@@ -28,6 +34,28 @@ class WatchMessageListener : WearableListenerService() {
             // The phone saved this session file; the watch can delete its copy.
             SessionSyncManager.onAck(String(messageEvent.data, Charsets.UTF_8))
             return
+        }
+        when (messageEvent.path) {
+            PilotLink.SETTINGS_PATH -> {
+                val s = PilotSettings.decode(String(messageEvent.data, Charsets.UTF_8)) ?: return
+                PilotStore.phoneNodeId = messageEvent.sourceNodeId
+                PilotStore.setSettings(this, s)
+                Log.i(TAG, "Pilot settings: on=${s.enabled}, valid=${s.isValid}")
+                // Starts or stops the motion ring and the pocket check with study mode.
+                StandWatchService.refresh(this)
+                return
+            }
+            PilotLink.STATUS_PATH -> {
+                val s = PhoneStatus.decode(String(messageEvent.data, Charsets.UTF_8)) ?: return
+                PilotStore.onPhoneStatus(s, System.currentTimeMillis(), messageEvent.sourceNodeId)
+                StandWatchService.onPhoneStatus(s)
+                return
+            }
+            PilotLink.BEAT_PATH -> {
+                val m = BeatMessage.decode(String(messageEvent.data, Charsets.UTF_8)) ?: return
+                PilotPhoneLink.onBeatMessage(m, System.currentTimeMillis())
+                return
+            }
         }
         if (messageEvent.path == "/session/control") {
             val dataStr = String(messageEvent.data, Charsets.UTF_8)

@@ -11,7 +11,7 @@ One press file is JSON, written by the watch app (version pilot-1.0):
       "earbuds_connected": true, "phone_carried": true,
       "pace_spm": 104,
       "press_ms": 1794570000000,       # epoch ms
-      "beat_start_ms": 1794570000400,  # when the beat actually began playing
+      "beat_start_ms": 1794570000400,  # when the beat actually began playing, or null if never confirmed
       "beat_stop_ms": 1794570009000,   # null if the app stopped before it could write this
       "checkin": "helped" | "not_helped" | "already_moving" | "not_felt" | null,
       "samples": {                     # the watch's motion, from 30 s before to 60 s after the press
@@ -51,6 +51,7 @@ GAIT_HALF_MS = 2000            # half the 4 s gait window
 # A 4 s gait window still reads as walking for about 1 s after the steps stop, so the last
 # walking window ends about 1 s late. Measured on synthetic walks (tests); the filmed walk re-checks it.
 STOP_LAG_MS = 1000
+GAIT_WIN_MS = 4000              # less motion than one gait window can't be timed
 MIN_PRESSES_PER_PLACE = 3      # a person counts for a place comparison with at least this many
 
 # Thresholds from docs/product/plan.md § Measures.
@@ -77,8 +78,14 @@ def load_press(path: Path) -> dict:
 
 
 def press_timing(d: dict) -> PressTiming:
-    s = d["samples"]
-    t = np.asarray(s["t_ms"], dtype=float)
+    """Timings for one press. A press with too little motion, or with no confirmed beat start,
+    keeps its check-in but has no timings (None), rather than being dropped or guessed."""
+    s = d.get("samples") or {}
+    t_raw = s.get("t_ms") or []
+    beat = d.get("beat_start_ms")
+    if len(t_raw) < 2 or (t_raw[-1] - t_raw[0]) < GAIT_WIN_MS:
+        return PressTiming(d["participant"], d["press_index"], d["place"], d.get("checkin"), None, None)
+    t = np.asarray(t_raw, dtype=float)
     acc = np.asarray(s["acc"], dtype=float)
     gyr = np.zeros_like(acc) if s.get("gyr") is None else np.asarray(s["gyr"], dtype=float)
     tu, ax, ay, az, gx, gy, gz = resample_uniform(t, *acc, *gyr)
@@ -86,7 +93,9 @@ def press_timing(d: dict) -> PressTiming:
     walking = [w.context in WALKING for w in windows]
     ends = [w.t_end_ms for w in windows]
 
-    press, beat = d["press_ms"], d["beat_start_ms"]
+    press = d["press_ms"]
+    if beat is None:
+        return PressTiming(d["participant"], d["press_index"], d["place"], d.get("checkin"), None, None)
     stop_ms = None
     for e, wk in zip(ends, walking):
         if e <= press and wk:
