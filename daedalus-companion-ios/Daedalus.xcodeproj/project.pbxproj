@@ -32,6 +32,7 @@
 		5387B7EB7E1D10FDBB5203C2 /* manrope_semibold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 48CC127CC7FB9AD883E5409D /* manrope_semibold.ttf */; };
 		5789D3C4A71942FC1FB25092 /* StreamFeatures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4872EFD37E4A66ED8199C445 /* StreamFeatures.swift */; };
 		58B9764ED049FE590207C08D /* GuardEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2497345E8AB604C3CDC15CF9 /* GuardEngine.swift */; };
+		61D055F62F50254D9F0C678A /* PilotRound3Test.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F4DD6482B42D43800036190 /* PilotRound3Test.swift */; };
 		61F09CF93724F2E102C32EAC /* MedScheduleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE98915962602BDAFA647BC6 /* MedScheduleView.swift */; };
 		67B26F00376804AA6C9373A9 /* GuardRows.swift in Sources */ = {isa = PBXBuildFile; fileRef = 501EBF997F7EC67B547EE46E /* GuardRows.swift */; };
 		67C435D1EC4829B15F74786E /* FogDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DB004787E58EF63D34225D1 /* FogDetector.swift */; };
@@ -134,6 +135,7 @@
 		48CC127CC7FB9AD883E5409D /* manrope_semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = manrope_semibold.ttf; sourceTree = "<group>"; };
 		4A0DB3DE9769F7837F7FA71D /* CloudBackup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudBackup.swift; sourceTree = "<group>"; };
 		4E30DD3AE97D04D9F87B29D9 /* Daedalus.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Daedalus.entitlements; sourceTree = "<group>"; };
+		4F4DD6482B42D43800036190 /* PilotRound3Test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PilotRound3Test.swift; sourceTree = "<group>"; };
 		501EBF997F7EC67B547EE46E /* GuardRows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuardRows.swift; sourceTree = "<group>"; };
 		5163B22452A74F992C4097FB /* TremorAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TremorAnalyzer.swift; sourceTree = "<group>"; };
 		5455FE85B2C87525564076E2 /* Pilot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pilot.swift; sourceTree = "<group>"; };
@@ -230,6 +232,7 @@
 				FFF7E4974DE0B30EB5146377 /* PilotGoldenTest.swift */,
 				402411736AE82BD6C35641B1 /* PilotRound1Test.swift */,
 				E1DA4BDA21ABE9D4BDF4585C /* PilotRound2Test.swift */,
+				4F4DD6482B42D43800036190 /* PilotRound3Test.swift */,
 				E56E092CF5F1E59889B96D21 /* PilotRulesTest.swift */,
 				682F792BA04FECBE5145CE92 /* PressFileTest.swift */,
 			);
@@ -604,6 +607,7 @@
 				CA0CC21DA155430C19B6CB3D /* PilotGoldenTest.swift in Sources */,
 				B5CFD5F675FC8D7C3DDA53E9 /* PilotRound1Test.swift in Sources */,
 				AEE54AA87BF8B8C0D59C107D /* PilotRound2Test.swift in Sources */,
+				61D055F62F50254D9F0C678A /* PilotRound3Test.swift in Sources */,
 				E4314BA646526766A1B22728 /* PilotRulesTest.swift in Sources */,
 				4F6389175E3F129C8D3BDDAB /* PressFile.swift in Sources */,
 				4D8A746785E0FAEEDF9FB83C /* PressFileTest.swift in Sources */,

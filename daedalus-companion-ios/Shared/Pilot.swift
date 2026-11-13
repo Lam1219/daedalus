@@ -272,13 +272,20 @@ struct PressBeat: Equatable, Sendable {
         return true
     }
 
+    /// The pending press file has been saved once (`PilotController.pressStarted`).
+    private(set) var pendingSaved = false
+
+    mutating func pendingWasSaved() { pendingSaved = true }
+
     /// A wrist pulse played: the first one is the beat start of a wrist press. True when this
-    /// pulse set the start (12: the caller saves the pending file then).
+    /// pulse set the start after the pending file was first saved without one, that is, the
+    /// fallback case (round 002 fix 12, narrowed in round 003 fix 9): the caller saves then. A
+    /// direct wrist press sets its start before that first save, which already carries it.
     @discardableResult
     mutating func wristPulse(atMs ms: Int64) -> Bool {
         guard wristPlays && beatStartMs == nil else { return false }
         beatStartMs = ms
-        return true
+        return pendingSaved
     }
 
     mutating func stop() {

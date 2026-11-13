@@ -49,6 +49,7 @@ final class PilotRound2Test: XCTestCase {
 
     func test12FirstWristPulseIsReportedOnce() {
         var b = PressBeat(drawn: .earbuds, pressIndex: 3)
+        b.pendingWasSaved()                        // pressStarted saved it, with no start yet (round 003)
         XCTAssertFalse(b.wristPulse(atMs: 100))    // silent wrist while waiting: nothing to save
         _ = b.phoneFailed()
         XCTAssertTrue(b.wristPulse(atMs: 1_100))   // the fallback's first pulse: save now

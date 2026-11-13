@@ -140,7 +140,10 @@ final class PilotController {
 
     /// 19: right after the beat started, the press is saved as a pending file, so a crash or a
     /// suspension mid-beat still leaves a press file (written later as an orphan).
-    func pressStarted() { savePendingNow() }
+    func pressStarted() {
+        savePendingNow()
+        beat?.pendingWasSaved()   // round 003, 9: from now on a newly set start needs its own save
+    }
 
     private func savePendingNow() {
         guard var press else { return }
@@ -216,9 +219,10 @@ final class PilotController {
     }
 
     /// A wrist pulse of this press played (the first is the wrist's beat start).
-    /// Round 002, 12: the pulse that sets the start (also the wrist's first pulse after a fallback)
-    /// saves the pending file, so a crash right after keeps the start time. The save is queued
-    /// behind the pulse itself, which is played right after this call.
+    /// Round 002, 12, narrowed in round 003, 9: only the wrist's first pulse after a fallback saves
+    /// the pending file (its start came after `pressStarted`'s save), so a crash right after keeps
+    /// the start time. A direct wrist press does no second save: `pressStarted` already wrote its
+    /// start. The save is queued behind the pulse itself, which is played right after this call.
     func wristBeatPlayed(atMs ms: Int64) {
         guard beat?.wristPulse(atMs: ms) == true else { return }
         Task { @MainActor [weak self] in self?.savePendingNow() }
