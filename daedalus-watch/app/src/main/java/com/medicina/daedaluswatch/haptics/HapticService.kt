@@ -129,6 +129,10 @@ class HapticService : Service() {
         const val MAX_SESSION_MS = 60 * 60 * 1000L
         /** B6: in study mode a cue stops by itself after 10 minutes instead. */
         const val STUDY_MAX_CUE_MS = Pilot.STUDY_MAX_CUE_S * 1000L
+
+        /** B6: 10 minutes for a cue in study mode; guards and everything outside study mode keep the hour. */
+        fun sessionLimitMs(study: Boolean, mode: String) =
+            if (study && !GuardSession.isGuard(mode)) STUDY_MAX_CUE_MS else MAX_SESSION_MS
         private const val NOTIFICATION_ID = 1
         private const val CHANNEL_ID = "daedalus_haptic_channel"
 
@@ -563,10 +567,6 @@ class HapticService : Service() {
     /** Called once with the time of the first wrist pulse (beat_start_ms for the wrist). */
     @Volatile private var firstPulse: ((Long, String) -> Unit)? = null
     private var clickPlayer: ClickBeatPlayer? = null
-
-    /** B6: 10 minutes for a cue in study mode; guards and everything outside study mode keep the hour. */
-    private fun sessionLimitMs(study: Boolean, mode: String) =
-        if (study && !GuardSession.isGuard(mode)) STUDY_MAX_CUE_MS else MAX_SESSION_MS
 
     /** Plays a press's beat on the player the draw chose (or the wrist, when that fails). */
     private val beatOutput = object : BeatOutput {
