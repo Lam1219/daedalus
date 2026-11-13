@@ -5,13 +5,20 @@ import SwiftUI
 /// clinic visit; everything is sent to the watch over the existing link.
 struct PilotView: View {
     @State private var pilot = PilotStore.shared
-    @State private var participant = ""
-    @State private var seedText = ""
-    @State private var enrolment = Date.now
+    /// 16: edits to the code, seed, start date and earbuds check stay here until Save.
+    @State private var draft = PilotDraft(PilotSettings())
+    @State private var messageKey: String?
     @State private var newReminder = Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: .now) ?? .now
     @State private var files: [URL] = []
 
     private var settings: PilotSettings { pilot.settings }
+    private var locked: Bool { settings.fieldsLocked }
+
+    private var enrolmentDate: Binding<Date> {
+        Binding(get: {
+            Pilot.enrolmentComponents(draft.enrolment).flatMap { Calendar.current.date(from: $0) } ?? .now
+        }, set: { draft.enrolment = Pilot.enrolmentText($0) })
+    }
 
     var body: some View {
         ScreenScroll {
@@ -19,29 +26,56 @@ struct PilotView: View {
 
             SageCard(padding: .card()) {
                 ListRow(title: L("pilot_switch_title"), subtitle: L("pilot_switch_sub"), icon: "testtube.2") {
-                    SageToggle(isOn: Binding(get: { settings.enabled }, set: { pilot.settings.enabled = $0 }))
+                    SageToggle(isOn: Binding(get: { settings.enabled }, set: { on in
+                        // Study mode starts only from saved, valid settings.
+                        var s = settings
+                        s.enabled = on
+                        if on && !s.isActive { messageKey = "pilot_switch_needs_save"; return }
+                        messageKey = nil
+                        pilot.settings = s
+                    }))
                 }
             }
-            if settings.enabled && !settings.isActive {
-                Text(L("pilot_incomplete")).font(DS.font(13, .semibold)).foregroundStyle(DS.sageDeep)
+            if let messageKey {
+                Text(L(messageKey)).font(DS.font(13, .semibold)).foregroundStyle(DS.sageDeep)
             }
 
             SageCard {
                 Text(L("pilot_participant")).font(DS.section).foregroundStyle(DS.ink)
-                TextField(L("pilot_participant_hint"), text: $participant)
+                TextField(L("pilot_participant_hint"), text: $draft.participant)
                     .textInputAutocapitalization(.characters).autocorrectionDisabled()
                     .font(DS.font(17)).frame(minHeight: 44)
-                    .onChange(of: participant) { _, v in pilot.settings.participant = v.trimmingCharacters(in: .whitespaces) }
                 Text(L("pilot_seed")).font(DS.section).foregroundStyle(DS.ink).padding(.top, 12)
-                TextField(L("pilot_seed_hint"), text: $seedText)
+                TextField(L("pilot_seed_hint"), text: $draft.seedText)
                     .keyboardType(.numberPad).font(DS.font(17)).frame(minHeight: 44)
-                    .onChange(of: seedText) { _, v in
-                        if let seed = Int64(v), seed >= 0, seed < Pilot.maxSeed { pilot.settings.seed = seed } else { pilot.settings.seed = -1 }
-                    }
-                DatePicker(L("pilot_enrolment"), selection: $enrolment, displayedComponents: .date)
+                DatePicker(L("pilot_enrolment"), selection: enrolmentDate, displayedComponents: .date)
                     .font(DS.font(16)).frame(minHeight: 44).padding(.top, 12)
-                    .onChange(of: enrolment) { _, d in pilot.settings.enrolment = Pilot.enrolmentText(d) }
+                // 8: iOS can't tell earbuds from a speaker; the physio checks the person's own earbuds.
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(L("pilot_earbuds_paired")).font(DS.font(16, .semibold)).foregroundStyle(DS.ink)
+                        Text(L("pilot_earbuds_paired_sub")).font(DS.font(13)).foregroundStyle(DS.muted)
+                    }
+                    Spacer()
+                    SageToggle(isOn: $draft.earbudsPaired)
+                }
+                .padding(.top, 12)
+                if locked {
+                    Text(L("pilot_locked")).font(DS.font(13)).foregroundStyle(DS.muted).padding(.top, 12)
+                } else {
+                    Button {
+                        if let s = draft.applied(to: settings) {
+                            pilot.settings = s
+                            draft = PilotDraft(s)
+                            messageKey = "pilot_saved"
+                        } else {
+                            messageKey = "pilot_invalid"
+                        }
+                    } label: { Text(L("pilot_save")) }
+                        .buttonStyle(PillButtonStyle()).disabled(draft == PilotDraft(settings)).padding(.top, 12)
+                }
             }
+            .disabled(locked)
 
             SageCard {
                 HStack {
@@ -92,13 +126,8 @@ struct PilotView: View {
         }
         .navigationTitle(L("pilot_title"))
         .onAppear {
-            participant = settings.participant
-            seedText = settings.seed >= 0 ? String(settings.seed) : ""
-            if let c = Pilot.enrolmentComponents(settings.enrolment), let d = Calendar.current.date(from: c) {
-                enrolment = d
-            } else {
-                pilot.settings.enrolment = Pilot.enrolmentText(enrolment)
-            }
+            draft = PilotDraft(settings)
+            if Pilot.enrolmentComponents(draft.enrolment) == nil { draft.enrolment = Pilot.enrolmentText(.now) }
             files = PilotStore.files()
         }
         .task(id: pilot.filesReceived) { files = PilotStore.files() }

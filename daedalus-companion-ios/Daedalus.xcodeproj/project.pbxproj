@@ -58,6 +58,7 @@
 		A76894378796ACFC2A57C679 /* StreamFeatures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4872EFD37E4A66ED8199C445 /* StreamFeatures.swift */; };
 		ADFEC5C4818C5C167C90C878 /* Pilot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5455FE85B2C87525564076E2 /* Pilot.swift */; };
 		AEDF68C94B44D64DBCB11E34 /* HealthData.swift in Sources */ = {isa = PBXBuildFile; fileRef = C777DC18C33DC287833A4911 /* HealthData.swift */; };
+		B5CFD5F675FC8D7C3DDA53E9 /* PilotRound1Test.swift in Sources */ = {isa = PBXBuildFile; fileRef = 402411736AE82BD6C35641B1 /* PilotRound1Test.swift */; };
 		B6A909ACAC3AE3B7408A20CE /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7290F1FBACD782140136A03E /* Models.swift */; };
 		B7AC7E959A9EAC3F79F39B39 /* PressFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96D390C29B472EE3C96985EC /* PressFile.swift */; };
 		B83B4EB0BE01A06723E30674 /* TremorStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57DE24248AD40D1FCF842A08 /* TremorStream.swift */; };
@@ -126,6 +127,7 @@
 		2FB34ACE4A9297B33034FB71 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		314194FF54534658FF7CFD44 /* CheckInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckInView.swift; sourceTree = "<group>"; };
 		37638DCE1ECA226E98C9DBCB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		402411736AE82BD6C35641B1 /* PilotRound1Test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PilotRound1Test.swift; sourceTree = "<group>"; };
 		4183DA03665BBD2AD94DDC8A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		4872EFD37E4A66ED8199C445 /* StreamFeatures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamFeatures.swift; sourceTree = "<group>"; };
 		48CC127CC7FB9AD883E5409D /* manrope_semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = manrope_semibold.ttf; sourceTree = "<group>"; };
@@ -224,6 +226,7 @@
 				2AEC50A494094517DEBB9799 /* GoldenVectorsTest.swift */,
 				9F39B169B2B6D2EEAEA9DDB4 /* GuardRowsTest.swift */,
 				FFF7E4974DE0B30EB5146377 /* PilotGoldenTest.swift */,
+				402411736AE82BD6C35641B1 /* PilotRound1Test.swift */,
 				E56E092CF5F1E59889B96D21 /* PilotRulesTest.swift */,
 				682F792BA04FECBE5145CE92 /* PressFileTest.swift */,
 			);
@@ -596,6 +599,7 @@
 				FB3F70CC00F32D0707B99493 /* GuardRowsTest.swift in Sources */,
 				D3A4258FF6FFFC062BFA3977 /* Pilot.swift in Sources */,
 				CA0CC21DA155430C19B6CB3D /* PilotGoldenTest.swift in Sources */,
+				B5CFD5F675FC8D7C3DDA53E9 /* PilotRound1Test.swift in Sources */,
 				E4314BA646526766A1B22728 /* PilotRulesTest.swift in Sources */,
 				4F6389175E3F129C8D3BDDAB /* PressFile.swift in Sources */,
 				4D8A746785E0FAEEDF9FB83C /* PressFileTest.swift in Sources */,

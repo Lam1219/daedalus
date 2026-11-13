@@ -30,9 +30,6 @@ final class PilotController {
     static let checkinTimeout: Duration = .seconds(30)
     /// A cached "earbuds connected" from the iPhone counts for this long.
     static let earbudsFresh: TimeInterval = 5 * 60
-    /// The press file is written once the 60 s after the press are over, plus a margin for the
-    /// background recorder to catch up.
-    static let sealDelayMs: Int64 = Int64(Pilot.bufferAfterS + 30) * 1000
 
     @ObservationIgnored private let defaults = UserDefaults.standard
     @ObservationIgnored private var press: PressRecord?
@@ -72,10 +69,12 @@ final class PilotController {
     /// When the app comes to the front: keep the background recorder running, refresh the
     /// iPhone's earbuds state, and write press files whose motion is complete.
     func appBecameActive() {
+        // 19: presses left waiting (also an orphan from a crash mid-beat) are written even if
+        // study mode was turned off since.
+        if !PressStore.pending().isEmpty { sealDuePresses() }
         guard isStudy else { return }
         armRecorder()
         refreshEarbuds()
-        sealDuePresses()
         scheduleNextReminder()
     }
 
@@ -107,7 +106,9 @@ final class PilotController {
 
     private var earbudsConnected: Bool {
         guard let earbuds, Date.now.timeIntervalSince(earbuds.at) < Self.earbudsFresh else { return false }
-        return earbuds.connected && WCSession.default.isReachable
+        // 8: only when the physio confirmed earbuds are paired (iOS can't tell them from a speaker).
+        return Pilot.earbudsAvailable(paired: settings.earbudsPaired, headphoneRoute: earbuds.connected)
+            && WCSession.default.isReachable
     }
 
     // MARK: A press
@@ -129,15 +130,28 @@ final class PilotController {
                                       earbudsConnected: ear, phoneCarried: carried)
         press = PressRecord(participant: settings.participant, pressIndex: index, dayIndex: day, place: drawn,
                             earbudsConnected: ear, phoneCarried: carried, paceSpm: pace, pressMs: nowMs)
-        beat = PressBeat(drawn: drawn)
+        beat = PressBeat(drawn: drawn, pressIndex: index)
         currentPlace = drawn
         armRecorder()
-        if drawn != .wrist { startPhoneBeat(pace: pace) }
+        if drawn != .wrist { startPhoneBeat(pace: pace, press: index) }
         // startPhoneBeat may already have fallen back (iPhone out of reach): then the wrist plays now.
         return beat?.wristPlays ?? true
     }
 
-    private func startPhoneBeat(pace: Int) {
+    /// 19: right after the beat started, the press is saved as a pending file, so a crash or a
+    /// suspension mid-beat still leaves a press file (written later as an orphan).
+    func pressStarted() { savePendingNow() }
+
+    private func savePendingNow() {
+        guard var press else { return }
+        if let beat {
+            press.place = beat.place
+            press.beatStartMs = beat.beatStartMs
+        }
+        PressStore.savePending(press, live: live.snapshot())
+    }
+
+    private func startPhoneBeat(pace: Int, press: Int64) {
         let t0 = Self.nowMs()
         let session = WCSession.default
         fallbackTask?.cancel()
@@ -148,41 +162,57 @@ final class PilotController {
         }
         // The iPhone is out of reach: the wrist plays now, with no wait.
         guard session.activationState == .activated, session.isReachable else { fallBack(); return }
-        let message: [String: Any] = [WatchKey.command: WatchKey.beatStart, WatchKey.rate: pace]
+        let message: [String: Any] = [WatchKey.command: WatchKey.beatStart, WatchKey.rate: pace,
+                                      WatchKey.press: NSNumber(value: press)]
         session.sendMessage(message, replyHandler: { reply in
             let t1 = Self.nowMs()
-            Task { @MainActor in PilotController.shared.phoneReplied(reply, t0: t0, t1: t1) }
+            Task { @MainActor in PilotController.shared.phoneReplied(reply, press: press, t0: t0, t1: t1) }
         }, errorHandler: { _ in
-            Task { @MainActor in PilotController.shared.fallBack() }
+            Task { @MainActor in PilotController.shared.fallBack(forPress: press) }
         })
     }
 
-    private func phoneReplied(_ reply: [String: Any], t0: Int64, t1: Int64) {
+    /// 21: the reply names its press; one for a press that isn't current is ignored (and that
+    /// press's beat on the iPhone is stopped).
+    private func phoneReplied(_ reply: [String: Any], press sent: Int64, t0: Int64, t1: Int64) {
+        let replyPress = (reply[WatchKey.press] as? NSNumber)?.int64Value ?? sent
         guard reply[WatchKey.ok] as? Bool == true,
               let start = (reply[WatchKey.beatStartMs] as? NSNumber)?.int64Value,
               let r0 = (reply[WatchKey.r0] as? NSNumber)?.int64Value,
               let r1 = (reply[WatchKey.r1] as? NSNumber)?.int64Value
-        else { fallBack(); return }
+        else { fallBack(forPress: replyPress); return }
         let atMs = Pilot.beatStartOnWatchClock(t0: t0, t1: t1, r0: r0, r1: r1, beatStartPhoneMs: start)
-        guard var beat, beat.phoneStarted(atMs: atMs) else {
-            // Too late: the wrist already took over, or the press ended. Silence the iPhone.
-            sendBeatStop()
+        guard var beat, beat.phoneStarted(atMs: atMs, forPress: replyPress) else {
+            // Too late, or another press: the wrist already plays. Silence that press on the iPhone.
+            sendBeatStop(press: replyPress)
             return
         }
         fallbackTask?.cancel(); fallbackTask = nil
         self.beat = beat
+        savePendingNow()
     }
 
     /// The iPhone couldn't start or keep the beat: the wrist plays at once. A press whose beat
     /// never started on the iPhone is recorded as a wrist press; one that lost its earbuds midway
-    /// keeps the place where its beat started.
-    func fallBack() {
+    /// keeps the place where its beat started. `forPress`: the press an iPhone message is about
+    /// (nil for the watch's own timeout); a message about another press is ignored (21).
+    func fallBack(forPress press: Int64? = nil) {
+        guard var beat, beat.phoneFailed(forPress: press) else { return }
         fallbackTask?.cancel(); fallbackTask = nil
-        guard var beat, beat.phoneFailed() else { return }
         self.beat = beat
         currentPlace = beat.place
-        sendBeatStop()
+        sendBeatStop(press: beat.pressIndex)
         CueController.shared.fallBackToWrist()
+    }
+
+    /// 24: Pause and resume reach a beat the iPhone plays.
+    func pauseChanged(paused: Bool) {
+        guard let beat, beat.phonePlaying else { return }
+        let session = WCSession.default
+        guard session.activationState == .activated else { return }
+        let message: [String: Any] = [WatchKey.command: paused ? WatchKey.beatPause : WatchKey.beatResume,
+                                      WatchKey.press: NSNumber(value: beat.pressIndex)]
+        if session.isReachable { session.sendMessage(message, replyHandler: nil) } else { session.transferUserInfo(message) }
     }
 
     /// A wrist pulse of this press played (the first is the wrist's beat start).
@@ -201,7 +231,8 @@ final class PilotController {
         press.beatStartMs = beat.beatStartMs
         press.beatStopMs = Self.nowMs()
         self.press = press
-        if phoneWasAsked { sendBeatStop() }
+        PressStore.savePending(press, live: live.snapshot())   // 19: the stop is on disk at once
+        if phoneWasAsked { sendBeatStop(press: beat.pressIndex) }
         currentPlace = nil
         let today = Pilot.enrolmentText(.now)
         if defaults.string(forKey: "pilotCheckinDay") != today {
@@ -234,32 +265,56 @@ final class PilotController {
         currentPlace = nil
         PressStore.savePending(press, live: live.snapshot())
         sealDuePresses()
-        let due = press.pressMs + Self.sealDelayMs - Self.nowMs()
-        if due > 0 {
-            Task { [weak self] in
-                try? await Task.sleep(for: .milliseconds(due + 500))
-                self?.sealDuePresses()
-            }
+    }
+
+    /// 17: the stop goes now when the iPhone is reachable, and otherwise through queued delivery
+    /// (`transferUserInfo`), which the iPhone gets when it can. It names its press (21), so a late
+    /// stop never stops a newer beat.
+    private func sendBeatStop(press: Int64) {
+        let session = WCSession.default
+        guard session.activationState == .activated else { return }
+        let message: [String: Any] = [WatchKey.command: WatchKey.beatStop, WatchKey.press: NSNumber(value: press)]
+        if session.isReachable {
+            session.sendMessage(message, replyHandler: nil, errorHandler: { _ in
+                WCSession.default.transferUserInfo(message)
+            })
+        } else {
+            session.transferUserInfo(message)
         }
     }
 
-    private func sendBeatStop() {
-        let session = WCSession.default
-        guard session.activationState == .activated, session.isReachable else { return }
-        session.sendMessage([WatchKey.command: WatchKey.beatStop], replyHandler: nil)
-    }
+    @ObservationIgnored private var sealRetry: Task<Void, Never>?
 
-    /// Writes every waiting press whose 60 s after are over, and sends it to the iPhone.
+    /// Writes each waiting press once the background recorder covers press + 60 s (18), or after
+    /// `Pilot.sealGiveUpMs` with what there is, marked `motion_partial`. The running press is never
+    /// written; an orphan (the app stopped mid-beat) is (19). Retries every 30 s while presses wait.
     func sealDuePresses() {
         let now = Self.nowMs()
-        for (url, record, liveSamples) in PressStore.pending() where now >= record.pressMs + Self.sealDelayMs {
+        var waiting = false
+        for (url, record, liveSamples) in PressStore.pending() {
+            let current = press.map { $0.pressIndex == record.pressIndex && $0.pressMs == record.pressMs } ?? false
             let from = Date(timeIntervalSince1970: Double(record.pressMs - Int64(Pilot.bufferBeforeS) * 1000) / 1000)
             let to = Date(timeIntervalSince1970: Double(record.pressMs + Int64(Pilot.bufferAfterS) * 1000) / 1000)
-            var full = record
-            full.samples = PressSamples.merge(recorded: Self.recorded(from: from, to: to), live: liveSamples, pressMs: record.pressMs)
-            if let file = PressStore.write(full) {
-                try? FileManager.default.removeItem(at: url)
-                PhoneLink.shared.send(pilotFile: file)
+            let recorded = current || now < record.pressMs + Int64(Pilot.bufferAfterS) * 1000 ? [] : Self.recorded(from: from, to: to)
+            switch Pilot.sealDecision(nowMs: now, pressMs: record.pressMs, recordedLastMs: recorded.map(\.tMs).max(),
+                                      isCurrentPress: current) {
+            case .wait:
+                waiting = true
+            case let .seal(partial):
+                var full = record
+                full.samples = PressSamples.merge(recorded: recorded, live: liveSamples, pressMs: record.pressMs)
+                full.motionPartial = partial
+                if let file = PressStore.write(full) {
+                    try? FileManager.default.removeItem(at: url)
+                    PhoneLink.shared.send(pilotFile: file)
+                }
+            }
+        }
+        if waiting && sealRetry == nil {
+            sealRetry = Task { [weak self] in
+                try? await Task.sleep(for: .seconds(30))
+                self?.sealRetry = nil
+                self?.sealDuePresses()
             }
         }
     }
@@ -358,22 +413,19 @@ final class LiveAccRing: @unchecked Sendable {
 /// Press files on the watch: Documents/pilot/pending (metadata and live motion waiting for the
 /// 60 s after the press) and Documents/pilot (finished, until the iPhone has them).
 enum PressStore {
+    /// Excluded from backup (20).
     static var dir: URL {
-        let d = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("pilot")
-        try? FileManager.default.createDirectory(at: d, withIntermediateDirectories: true)
-        return d
+        PilotFiles.directory(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("pilot"))
     }
 
-    static var pendingDir: URL {
-        let d = dir.appendingPathComponent("pending")
-        try? FileManager.default.createDirectory(at: d, withIntermediateDirectories: true)
-        return d
-    }
+    static var pendingDir: URL { PilotFiles.directory(dir.appendingPathComponent("pending")) }
 
+    /// The working copy of one press while it waits; each update replaces only that press's own
+    /// pending file (its name carries the press index and press_ms).
     static func savePending(_ record: PressRecord, live: [PressSamples.Sample]) {
         var r = record
         r.samples = PressSamples(tMs: live.map(\.tMs), ax: live.map(\.ax), ay: live.map(\.ay), az: live.map(\.az))
-        try? r.json().write(to: pendingDir.appendingPathComponent(r.fileName))
+        try? r.json().write(to: pendingDir.appendingPathComponent(r.fileName), options: .atomic)
     }
 
     static func pending() -> [(URL, PressRecord, [PressSamples.Sample])] {
@@ -386,9 +438,10 @@ enum PressStore {
         }
     }
 
+    /// A finished press file. Never replaces an existing one (15): a clash keeps both.
     static func write(_ record: PressRecord) -> URL? {
-        let url = dir.appendingPathComponent(record.fileName)
-        do { try record.json().write(to: url); return url } catch { return nil }
+        guard let data = try? record.json() else { return nil }
+        return try? PilotFiles.writeNew(data, in: dir, name: record.fileName)
     }
 
     static func finished() -> [URL] {

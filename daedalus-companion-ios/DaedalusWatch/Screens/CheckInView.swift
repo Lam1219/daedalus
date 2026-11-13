@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Home pilot (B5): after a study beat stops, one tap: four large answers, scrollable with the
 /// Digital Crown. Closes itself after `PilotController.checkinTimeout` with no answer (null).
+/// "I'm stuck" comes first (23): a new freeze never has to scroll past the question.
 struct CheckInView: View {
     private let answers: [(Pilot.CheckIn, String)] = [
         (.helped, "hand.thumbsup"), (.notHelped, "hand.thumbsdown"),
@@ -11,6 +12,15 @@ struct CheckInView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 6) {
+                // A new press closes this check-in unanswered.
+                Button { CueController.shared.start(mode: "walking", press: true) } label: {
+                    Label(L("im_stuck"), systemImage: "figure.walk")
+                        .font(.system(size: 15, weight: .semibold)).foregroundStyle(WS.ink)
+                        .frame(maxWidth: .infinity, minHeight: 48)
+                        .background(WS.raised, in: Capsule())
+                }
+                .buttonStyle(.plain)
+                .padding(.bottom, 4)
                 Text(L("pilot_checkin_title")).font(.system(size: 15, weight: .semibold)).foregroundStyle(WS.ink)
                     .multilineTextAlignment(.center)
                 ForEach(answers, id: \.0) { answer, icon in
@@ -24,11 +34,6 @@ struct CheckInView: View {
                     }
                     .buttonStyle(.plain)
                 }
-                // "I'm stuck" always works: a new press closes this check-in unanswered.
-                Button(L("im_stuck")) { CueController.shared.start(mode: "walking", press: true) }
-                    .font(.system(size: 15, weight: .semibold)).foregroundStyle(WS.ink)
-                    .buttonStyle(.plain).frame(maxWidth: .infinity, minHeight: 48).background(WS.raised, in: Capsule())
-                    .padding(.top, 4)
             }
         }
     }

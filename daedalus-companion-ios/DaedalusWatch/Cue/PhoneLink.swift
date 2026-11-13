@@ -74,8 +74,10 @@ final class PhoneLink: NSObject {
         case WatchKey.stop:
             CueController.shared.stop()
         case WatchKey.beatLost:
-            // Home pilot: the earbuds went away mid-beat; the wrist takes over at once.
-            PilotController.shared.fallBack()
+            // Home pilot: the earbuds went away mid-beat; the wrist takes over at once
+            // (only if the message is about the current press, 21).
+            let press = (message[WatchKey.press] as? NSNumber)?.int64Value ?? -1
+            PilotController.shared.fallBack(forPress: press)
         default:
             apply(context: message)
         }

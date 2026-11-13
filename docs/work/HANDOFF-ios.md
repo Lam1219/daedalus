@@ -98,4 +98,45 @@ What the simulator run checked:
 
 ## Commit range
 
-`0812fae..ios/home-pilot`: cac1f71, 9ab9a00, 0ebd011, 739c9be (handoff), and the commit adding the tests for the two press-file rules.
+First build: `0812fae..d5a3af6` (cac1f71, 9ab9a00, 0ebd011, 739c9be, d5a3af6). Merged into `feature/home-pilot` as 4a915d1.
+
+## Round 001 fixes
+
+The review of `feature/home-pilot` at c361c93 asked for iOS fixes 15–24 and the iOS part of 8. The branch was fast-forwarded to c361c93 first. No Python or Android files changed.
+
+**Tests.** The new tests are in `SharedTests/PilotRound1Test.swift` (17 tests), plus updated key and name checks in `PressFileTest`.
+- They were written first and run against the code before the fixes. They failed: none of the new rules or helpers existed, so the suite didn't compile.
+- They pass now.
+- The fixes that only live in the app targets (the audio player, WatchConnectivity, SwiftUI) can't run on the Mac test host. Their decisions moved into `Shared/` so a test reaches them; the rest is listed per fix below.
+
+| # | What changed | Test |
+|---|---|---|
+| 15 | **File names.** Press files are named `press_<code>_<index>_<press_ms>.json`, as on Android. **No replacing.** The watch writes finished files and the iPhone moves received ones with `PilotFiles.writeNew` / `moveNew`. Neither ever replaces a file: a clash keeps both, the new one as `<name>_2.json`. Session CSVs keep their old behaviour. | `test15FileNameCarriesPressMs`, `test15WritingNeverReplacesAnExistingFile`, `test15MovingIntoTheFolderKeepsBoth` |
+| 16 | **Save and lock.** On the iPhone pilot screen, the code, seed, start date and the earbuds check are edited in a draft (`PilotDraft`). They apply only with **Save**, and only when all are valid. Otherwise the screen says what to check. The seed must be digits from 0 to 2^31 − 1, and an invalid seed is never stored, so it is never sent to the watch. The fields are locked while study mode is on ("Turn study mode off to change these"). Study mode can be switched on only from saved, valid settings. Reminder times still apply at once. | `test16InvalidSeedIsNeverApplied`, `test16DraftNeedsCodeAndDate`, `test16FieldsLockWhileStudyModeIsOn` |
+| 17 | **Phone limit.** The iPhone's beat stops by itself after `Pilot.phoneBeatLimitS` (the study's 10 minutes). **Queued stop.** When the iPhone isn't reachable, or the message fails, the watch's stop goes through `transferUserInfo`. The iPhone handles it in `didReceiveUserInfo`. | `test17PhoneBeatLimitIsTheStudyLimit`. The timer itself runs in the app target: not run here. |
+| 18 | **Waiting for motion.** A press file is written only once the background recorder's last sample reaches press + 60 s (`Pilot.sealDecision`). The watch retries every 30 s while it is open, and each time it becomes active. After 10 minutes it writes what there is, with `motion_partial: true`. Files that are complete carry `motion_partial: false`. | `test18WaitsForTheRecorderThenFallsBackMarked`, `test18PartialMotionIsRecordedInTheFile` |
+| 19 | **Saved at the press.** The pending press is saved right after the first pulse (`pressStarted`). It is updated when the iPhone confirms, when the beat stops, and after the check-in. The press still running is never written. An orphan, left by a crash or a suspension mid-beat, is written as an ordinary press file the next time the app opens, even if study mode was turned off since. | `test19OrphanedPressIsSealedButTheRunningOneIsNot`, `test19PendingAtThePressReadsBackWithNoBeatYet` |
+| 20 | **No backup.** The pilot folders on the iPhone (`Documents/pilot`) and the watch (`Documents/pilot`, `pilot/pending`) are created through `PilotFiles.directory`, which sets `isExcludedFromBackup`. | `test20PilotFolderIsExcludedFromBackup` |
+| 21 | **Press index on every message.** Beat start, reply, stop, pause, resume and lost all carry `press`. `PressBeat` ignores a confirmation or loss for another press. The iPhone stops, pauses or resumes only the press its beat belongs to, so a late queued stop can't stop a newer beat. A stop with no press (an older watch build) still stops. | `test21StaleReplyDoesNotConfirmTheCurrentPress`, `test21StaleLostDoesNotMoveTheCurrentPress`, `test21PhoneStopsOnlyItsOwnPress` |
+| 22 | **Measured beat start.** The iPhone replies only after the first click has rendered, with no prediction. It polls `AVAudioPlayerNode.lastRenderTime` and `playerTime(forNodeTime:)` every 5 ms until the player's sample time is ≥ 0, for at most 600 ms. If nothing renders in time it replies "no", and the wrist plays. Frame 0's host time = render host time − sampleTime / sampleRate. That is converted to wall-clock ms against `mach_absolute_time()` and `Date.now`. **Output latency.** `AVAudioSession.outputLatency` is then added; it includes the Bluetooth route's latency as iOS reports it. The render timestamp marks when the buffer leaves for the output hardware, so `ioBufferDuration` is no longer added. The iPhone's reply time (`r1`) is taken after the wait, so the clock-offset formula stays correct. | `test22FirstClickTimeFromTheRenderTimestamp` (the conversion). The render wait needs a device: see the manual checks below. |
+| 23 | **"I'm stuck" first.** It is now the first button on the check-in screen, above the question and the four answers. | UI only: not unit-testable |
+| 24 | **Pause and resume.** These on the watch now send `beatPause` / `beatResume` (with the press) for a beat the iPhone plays. The iPhone pauses and resumes its player for that press only. Note that the walking screen has no pause button on Apple Watch (only Stop), so today this path is only reachable if one is added. | Covered by the press check in 21; the player call is in the app target |
+| 8 (iOS) | **"Earbuds paired with this iPhone".** A yes/no set by the physio at set-up and saved with the other fields. It defaults to "no" and is synced to the watch. With "no", the iPhone reports no earbuds, refuses `beatStart`, and the watch never draws the earbuds place (`Pilot.earbudsAvailable`). | `test8EarbudsNeedThePairedCheck` |
+
+**Validation run for round 001:**
+- `xcodegen`, then `xcodebuild test -project Daedalus.xcodeproj -scheme SharedTests -destination 'platform=macOS'`: **TEST SUCCEEDED**, 70 tests, 0 failures. The sample-file writer ran, with `TEST_RUNNER_PILOT_PRESS_OUT` set.
+- The two sample files, now named `press_P03_00012_1794570028000.json` and `press_P03_00013_1794570200000.json` and carrying `motion_partial`, were read by the `pilot_analysis.py` on c361c93:
+  - press 12: timings 3.42 s and 4.98 s;
+  - press 13: no motion and a null beat start, so empty timings, with its check-in kept.
+- `xcodebuild build -scheme Daedalus -destination 'generic/platform=iOS Simulator'`: **BUILD SUCCEEDED** (iPhone and watch).
+- `make_strings.py` was re-run for the 7 new iPhone strings (EN and FR). The watch catalog also picked up the Android watch strings merged on c361c93.
+- The simulators weren't re-run for this round.
+
+**Written, not run (add to the manual checks above):**
+- **22, render-timed start.** With AirPods, film the first click and the watch together. Check `beat_start_ms` against the audible click, then repeat with the iPhone's speaker route blocked (earbuds only).
+- **17, stop out of reach.** Start an earbuds press, take the iPhone out of range, press Stop. The beat stops when the iPhone is back in range, or by itself at 10 minutes.
+- **19, crash mid-beat.** Force-quit the watch app mid-beat. Reopen it after 2 minutes: a press file arrives on the iPhone, with a null `beat_stop_ms` and a null check-in.
+- **18, partial motion.** On a watch where `CMSensorRecorder` isn't recording, a press file arrives after 10 minutes with `motion_partial: true`.
+- **20, backup.** After an iCloud backup of the iPhone, confirm in Settings → iCloud → Manage Storage → Backups that the Daedalus pilot folder isn't counted (best effort; the flag is set on both folders).
+
+Round 001 commit: see the git log on `ios/home-pilot` after d5a3af6.

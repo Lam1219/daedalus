@@ -3499,6 +3499,125 @@
         }
       }
     },
+    "pilot_activity_needed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow physical activity so the phone can tell when you carry it."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autorisez l’activité physique pour que le téléphone sache quand vous le portez."
+          }
+        }
+      }
+    },
+    "pilot_code": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pilot code (not a name)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code du pilote (pas un nom)"
+          }
+        }
+      }
+    },
+    "pilot_code_error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letters and numbers only, such as P03"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lettres et chiffres seulement, par exemple P03"
+          }
+        }
+      }
+    },
+    "pilot_delete": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete pilot files"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer les fichiers du pilote"
+          }
+        }
+      }
+    },
+    "pilot_delete_confirm": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete every pilot file on this phone? Export them first. This can’t be undone."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer tous les fichiers du pilote sur ce téléphone ? Exportez-les d’abord. C’est définitif."
+          }
+        }
+      }
+    },
+    "pilot_earbuds_paired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Earbuds paired with this iPhone"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Écouteurs jumelés à cet iPhone"
+          }
+        }
+      }
+    },
+    "pilot_earbuds_paired_sub": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn on only after checking the person’s own earbuds are paired. An iPhone can’t tell earbuds from a speaker."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activez seulement après avoir vérifié que les écouteurs de la personne sont jumelés. Un iPhone ne distingue pas des écouteurs d’un haut-parleur."
+          }
+        }
+      }
+    },
     "pilot_enrolment": {
       "extractionState": "manual",
       "localizations": {
@@ -3529,6 +3648,57 @@
           "stringUnit": {
             "state": "translated",
             "value": "Exporter les fichiers de l’essai"
+          }
+        }
+      }
+    },
+    "pilot_export_chooser": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send pilot files"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Envoyer les fichiers du pilote"
+          }
+        }
+      }
+    },
+    "pilot_files": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pilot files on this phone"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fichiers du pilote sur ce téléphone"
+          }
+        }
+      }
+    },
+    "pilot_files_note": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Press files stay on your phone and watch. They are never uploaded."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les fichiers restent sur votre téléphone et votre montre. Ils ne sont jamais envoyés en ligne."
           }
         }
       }
@@ -3584,6 +3754,40 @@
         }
       }
     },
+    "pilot_intro": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only for the three-week home pilot. Leave this off unless your physiotherapist set it up with you."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seulement pour le pilote à domicile de trois semaines. Laissez désactivé sauf si votre physiothérapeute l’a réglé avec vous."
+          }
+        }
+      }
+    },
+    "pilot_invalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the pilot code, the seed (a number from 0 to 2147483647) and the start date."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérifiez le code de l’essai, la graine (un nombre de 0 à 2147483647) et la date de début."
+          }
+        }
+      }
+    },
     "pilot_iphone_note": {
       "extractionState": "manual",
       "localizations": {
@@ -3614,6 +3818,91 @@
           "stringUnit": {
             "state": "translated",
             "value": "Seulement pour les personnes qui participent à l’essai à domicile. Votre physiothérapeute le règle avec vous lors de la visite."
+          }
+        }
+      }
+    },
+    "pilot_locked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn study mode off to change these."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Désactivez le mode essai pour modifier ces réglages."
+          }
+        }
+      }
+    },
+    "pilot_not_sent": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The watch isn’t connected. It gets the settings next time it is."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La montre n’est pas connectée. Elle recevra les réglages à la prochaine connexion."
+          }
+        }
+      }
+    },
+    "pilot_notif_channel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home pilot"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pilote à domicile"
+          }
+        }
+      }
+    },
+    "pilot_notif_text": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready to play the pace in your pocket or earbuds"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prêt à jouer le rythme dans votre poche ou vos écouteurs"
+          }
+        }
+      }
+    },
+    "pilot_notif_title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home pilot on"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pilote à domicile activé"
           }
         }
       }
@@ -3652,6 +3941,23 @@
         }
       }
     },
+    "pilot_pocket": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pocket reminder"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rappel de poche"
+          }
+        }
+      }
+    },
     "pilot_pocket_card": {
       "extractionState": "manual",
       "localizations": {
@@ -3682,6 +3988,47 @@
           "stringUnit": {
             "state": "translated",
             "value": "À ces heures, votre montre vous tapote si votre iPhone ne vous a pas suivi."
+          }
+        }
+      }
+    },
+    "pilot_presses_count": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld press"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld presses"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld appui"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld appuis"
+                }
+              }
+            }
           }
         }
       }
@@ -3754,6 +4101,40 @@
         }
       }
     },
+    "pilot_save": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrer"
+          }
+        }
+      }
+    },
+    "pilot_saved": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved. Your watch gets it in a moment."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistré. Votre montre le reçoit dans un instant."
+          }
+        }
+      }
+    },
     "pilot_seed": {
       "extractionState": "manual",
       "localizations": {
@@ -3771,6 +4152,23 @@
         }
       }
     },
+    "pilot_seed_error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A whole number from 0 to 2147483647"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un nombre entier de 0 à 2147483647"
+          }
+        }
+      }
+    },
     "pilot_seed_hint": {
       "extractionState": "manual",
       "localizations": {
@@ -3784,6 +4182,57 @@
           "stringUnit": {
             "state": "translated",
             "value": "Un nombre de 0 à 2147483647"
+          }
+        }
+      }
+    },
+    "pilot_sent": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sent to the watch"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Envoyé à la montre"
+          }
+        }
+      }
+    },
+    "pilot_switch": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Study mode"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mode étude"
+          }
+        }
+      }
+    },
+    "pilot_switch_needs_save": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save the pilot code, seed and start date first."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrez d’abord le code, la graine et la date de début."
           }
         }
       }
