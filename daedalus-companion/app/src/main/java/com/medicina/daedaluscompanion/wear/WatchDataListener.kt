@@ -6,6 +6,13 @@ import com.google.android.gms.wearable.*
 import com.medicina.daedaluscompanion.data.CloudBackup
 import com.medicina.daedaluscompanion.data.TremorAnalyzer
 import com.medicina.daedaluscompanion.ui.screens.sessionsDir
+import com.medicina.daedaluscompanion.pilot.PilotFiles
+import com.medicina.daedaluscompanion.pilot.PilotPhoneService
+import com.medicina.shared.pilot.AudioRoutes
+import com.medicina.shared.pilot.BeatMessage
+import com.medicina.shared.pilot.PhoneStatus
+import com.medicina.shared.pilot.PilotLink
+import com.medicina.shared.pilot.PilotSettings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -146,6 +153,11 @@ class WatchDataListener : WearableListenerService() {
     override fun onChannelOpened(channel: ChannelClient.Channel) {
         Log.i(TAG, "Channel opened: path=${channel.path}")
         val fileName = channel.path.substringAfterLast("/")
+        // Home pilot files stay on this phone only: no session list, no cloud backup.
+        if (channel.path.startsWith(PilotLink.FILE_PATH + "/")) {
+            serviceScope.launch { receivePilotFile(channel, fileName) }
+            return
+        }
         if (fileName.endsWith(".csv") || fileName.contains("session")) {
             serviceScope.launch {
                 receiveChannelFile(channel, fileName)
@@ -174,6 +186,9 @@ class WatchDataListener : WearableListenerService() {
         Log.i(TAG, "Message received: path=${messageEvent.path}, size=${messageEvent.data.size}")
 
         when {
+            messageEvent.path == PilotLink.QUERY_PATH || messageEvent.path == PilotLink.BEAT_PATH || messageEvent.path == PilotLink.FILE_PATH -> {
+                handlePilotMessage(messageEvent)
+            }
             messageEvent.path.startsWith("/session/file") || messageEvent.path.startsWith("/session_file") || messageEvent.path == "/session" -> {
                 handleSessionFileMessage(messageEvent)
             }
@@ -245,6 +260,54 @@ class WatchDataListener : WearableListenerService() {
             SessionState.stopSession(mode, pathFileName, data.size.toLong())
             return
         }
+    }
+
+    // ------------------------------------------------------------------ home pilot
+
+    private suspend fun receivePilotFile(channel: ChannelClient.Channel, fileName: String) {
+        val channelClient = Wearable.getChannelClient(this)
+        try {
+            val bytes = channelClient.getInputStream(channel).await().use { it.readBytes() }
+            channelClient.close(channel).await()
+            PilotFiles.save(applicationContext, fileName, bytes)
+            acknowledge(channel.nodeId, File(fileName).name)
+            Log.i(TAG, "Pilot file saved: $fileName (${bytes.size} bytes)")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed receiving pilot file $fileName: ${e.message}", e)
+        }
+    }
+
+    /** Status queries and beats go to the running pilot service; small files are saved. */
+    private fun handlePilotMessage(e: MessageEvent) {
+        val now = System.currentTimeMillis()
+        val text = { String(e.data, Charsets.UTF_8) }
+        val service = PilotPhoneService.instance
+        when (e.path) {
+            PilotLink.QUERY_PATH -> if (service != null) service.onQuery(text(), e.sourceNodeId) else reply(
+                e.sourceNodeId, PilotLink.STATUS_PATH,
+                // Study mode off on this phone, or its service couldn't start: no steps, no movement known.
+                PhoneStatus(AudioRoutes.headphonesConnected(this), null, null, text()).encode(),
+            )
+            PilotLink.BEAT_PATH -> {
+                val m = BeatMessage.decode(text()) ?: return
+                if (service != null) service.onBeat(m, e.sourceNodeId, now)
+                else if (m is BeatMessage.Start) reply(e.sourceNodeId, PilotLink.BEAT_PATH, BeatMessage.Failed(m.pressId, "service_off").encode())
+            }
+            PilotLink.FILE_PATH -> {
+                // mode|fileName|size|bytes, as the watch's session files.
+                val d = e.data
+                val pipes = d.indices.filter { d[it] == '|'.code.toByte() }.take(3)
+                if (pipes.size < 3) return
+                val name = d.sliceArray(pipes[0] + 1 until pipes[1]).toString(Charsets.UTF_8)
+                runCatching { PilotFiles.save(applicationContext, name, d.sliceArray(pipes[2] + 1 until d.size)) }
+                    .onSuccess { acknowledge(e.sourceNodeId, File(name).name) }
+                    .onFailure { Log.w(TAG, "Pilot file $name not saved: ${it.message}") }
+            }
+        }
+    }
+
+    private fun reply(nodeId: String, path: String, payload: String) {
+        Wearable.getMessageClient(this).sendMessage(nodeId, path, payload.toByteArray(Charsets.UTF_8))
     }
 
     private fun handleSessionControlMessage(messageEvent: MessageEvent) {
@@ -357,6 +420,22 @@ class WatchDataClient(context: Context) {
                 Log.e(TAG, "Failed sending cue rate to watch ${node.displayName}: ${e.message}")
             }
         }
+    }
+
+    /** Home pilot settings (study mode, code, seed, enrolment date, pocket reminder) to the watch. */
+    suspend fun sendPilotSettings(settings: PilotSettings): Boolean {
+        val nodes = connectedNodes()
+        val bytes = settings.encode().toByteArray(Charsets.UTF_8)
+        var sent = false
+        for (node in nodes) {
+            try {
+                messageClient.sendMessage(node.id, PilotLink.SETTINGS_PATH, bytes).await()
+                sent = true
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed sending pilot settings to watch ${node.displayName}: ${e.message}")
+            }
+        }
+        return sent
     }
 
     /** Turn automatic stand-up detection on the watch on or off. */

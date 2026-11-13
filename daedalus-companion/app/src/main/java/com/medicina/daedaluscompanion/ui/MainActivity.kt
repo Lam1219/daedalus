@@ -28,6 +28,8 @@ import com.medicina.daedaluscompanion.auth.AuthState
 import com.medicina.daedaluscompanion.utils.DaedalusApplication
 import kotlinx.coroutines.launch
 import com.medicina.daedaluscompanion.data.MedReminders
+import com.medicina.daedaluscompanion.pilot.PilotPhoneService
+import com.medicina.daedaluscompanion.pilot.PilotPrefs
 import com.medicina.daedaluscompanion.ui.screens.*
 
 /** AppCompatActivity so the in-app language switch (AppCompatDelegate) works below Android 13. */
@@ -40,6 +42,11 @@ class MainActivity : AppCompatActivity() {
         val auth = (application as DaedalusApplication).auth
         // Keep dose reminder alarms in step with the schedule.
         MedReminders.reschedule(this)
+        // Home pilot: keep the phone's service and the watch's settings in step (no-op while never set).
+        PilotPhoneService.refresh(this)
+        PilotPrefs.settings(this).takeIf { it.participant.isNotEmpty() }?.let { s ->
+            lifecycleScope.launch { runCatching { (application as DaedalusApplication).watchClient.sendPilotSettings(s) } }
+        }
         lifecycleScope.launch { auth.refreshIfNeeded() }
         handleAuthCallback(intent)
         val openMeds = intent?.getStringExtra(MedReminders.EXTRA_OPEN_TAB) == "meds"
@@ -83,7 +90,7 @@ private enum class Tab(@StringRes val label: Int, val icon: ImageVector) {
     PROFILE(R.string.nav_profile, Icons.Outlined.Person),
 }
 
-private enum class SubScreen { NONE, CALIBRATION, SESSIONS, SCHEDULE, DATA }
+private enum class SubScreen { NONE, CALIBRATION, SESSIONS, SCHEDULE, DATA, PILOT }
 
 @Composable
 fun DaedalusApp(startOnMeds: Boolean = false) {
@@ -128,6 +135,7 @@ fun DaedalusApp(startOnMeds: Boolean = false) {
                 sub == SubScreen.SESSIONS -> SessionsScreen(onBack = { sub = SubScreen.NONE })
                 sub == SubScreen.SCHEDULE -> MedScheduleScreen(onBack = { sub = SubScreen.NONE })
                 sub == SubScreen.DATA -> DataScreen(onBack = { sub = SubScreen.NONE })
+                sub == SubScreen.PILOT -> PilotScreen(onBack = { sub = SubScreen.NONE })
                 else -> when (tab) {
                     Tab.TODAY -> HomeScreen(
                         onOpenCues = { tab = Tab.CUES },
@@ -142,6 +150,7 @@ fun DaedalusApp(startOnMeds: Boolean = false) {
                         onOpenSessions = { sub = SubScreen.SESSIONS },
                         onOpenSchedule = { sub = SubScreen.SCHEDULE },
                         onOpenData = { sub = SubScreen.DATA },
+                        onOpenPilot = { sub = SubScreen.PILOT },
                     )
                 }
             }

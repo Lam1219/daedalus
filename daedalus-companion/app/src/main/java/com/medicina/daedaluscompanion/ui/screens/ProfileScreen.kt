@@ -42,7 +42,7 @@ import kotlinx.coroutines.launch
 import java.util.Locale
 
 @Composable
-fun ProfileScreen(onOpenCalibration: () -> Unit, onOpenSessions: () -> Unit, onOpenSchedule: () -> Unit, onOpenData: () -> Unit) {
+fun ProfileScreen(onOpenCalibration: () -> Unit, onOpenSessions: () -> Unit, onOpenSchedule: () -> Unit, onOpenData: () -> Unit, onOpenPilot: () -> Unit = {}) {
     val context = LocalContext.current
     val app = (context as? Activity)?.application as? DaedalusApplication ?: return
     val scope = rememberCoroutineScope()
@@ -289,7 +289,9 @@ fun ProfileScreen(onOpenCalibration: () -> Unit, onOpenSessions: () -> Unit, onO
             )
             ListRow(stringResource(R.string.profile_calibration), stringResource(R.string.profile_calibration_sub), Icons.Outlined.Tune, showDivider = true, onClick = onOpenCalibration)
             ListRow(stringResource(R.string.profile_sessions), pluralStringResource(R.plurals.profile_sessions_count, sessionCount, sessionCount), Icons.Outlined.FolderOpen, showDivider = true, onClick = onOpenSessions)
-            ListRow(stringResource(R.string.data_title), stringResource(R.string.data_row_sub), Icons.Outlined.Shield, onClick = onOpenData)
+            ListRow(stringResource(R.string.data_title), stringResource(R.string.data_row_sub), Icons.Outlined.Shield, showDivider = true, onClick = onOpenData)
+            // Home pilot: a plainly labelled section, off unless set up for the pilot.
+            ListRow(stringResource(R.string.pilot_title), pilotRowSubtitle(context), Icons.Outlined.Science, onClick = onOpenPilot)
         }
 
         Text(

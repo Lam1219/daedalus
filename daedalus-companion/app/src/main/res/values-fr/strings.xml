@@ -376,4 +376,36 @@
     <string name="data_delete_account_sub">Supprime votre compte, tout ce qui y est enregistré et vos données sur ce téléphone.</string>
     <string name="data_delete_account_confirm">Votre compte et toutes vos données, sur ce téléphone et dans votre compte, seront supprimés définitivement. Vous devrez créer un nouveau compte pour utiliser Daedalus avec un compte. Cette action est irréversible.</string>
     <string name="data_delete_account_button">Supprimer le compte</string>
+
+    <!-- Pilote à domicile (mode étude). Désactivé par défaut ; seulement pour le pilote de trois semaines. -->
+    <string name="pilot_title">Pilote à domicile</string>
+    <string name="pilot_row_off">Désactivé</string>
+    <string name="pilot_row_on">Activé · %1$s</string>
+    <string name="pilot_intro">Seulement pour le pilote à domicile de trois semaines. Laissez désactivé sauf si votre physiothérapeute l’a réglé avec vous.</string>
+    <string name="pilot_switch">Mode étude</string>
+    <string name="pilot_switch_sub">Chaque « Je suis bloqué·e » joue le rythme au poignet, dans vos écouteurs ou dans votre poche</string>
+    <string name="pilot_code">Code du pilote (pas un nom)</string>
+    <string name="pilot_code_error">Lettres et chiffres seulement, par exemple P03</string>
+    <string name="pilot_seed">Graine</string>
+    <string name="pilot_seed_error">Un nombre entier de 0 à 2147483647</string>
+    <string name="pilot_enrolment">Date d’inscription</string>
+    <string name="pilot_locked">Désactivez le mode étude pour modifier ces réglages.</string>
+    <string name="pilot_pocket">Rappel de poche</string>
+    <string name="pilot_pocket_sub">Quand vous vous levez, la montre vous demande si le téléphone est dans votre poche avant</string>
+    <string name="pilot_sent">Envoyé à la montre</string>
+    <string name="pilot_not_sent">La montre n’est pas connectée. Elle recevra les réglages à la prochaine connexion.</string>
+    <string name="pilot_activity_needed">Autorisez l’activité physique pour que le téléphone sache quand vous le portez.</string>
+    <string name="pilot_files">Fichiers du pilote sur ce téléphone</string>
+    <plurals name="pilot_presses_count">
+        <item quantity="one">%d appui</item>
+        <item quantity="other">%d appuis</item>
+    </plurals>
+    <string name="pilot_files_note">Les fichiers restent sur votre téléphone et votre montre. Ils ne sont jamais envoyés en ligne.</string>
+    <string name="pilot_export">Exporter les fichiers du pilote</string>
+    <string name="pilot_export_chooser">Envoyer les fichiers du pilote</string>
+    <string name="pilot_delete">Supprimer les fichiers du pilote</string>
+    <string name="pilot_delete_confirm">Supprimer tous les fichiers du pilote sur ce téléphone ? Exportez-les d’abord. C’est définitif.</string>
+    <string name="pilot_notif_channel">Pilote à domicile</string>
+    <string name="pilot_notif_title">Pilote à domicile activé</string>
+    <string name="pilot_notif_text">Prêt à jouer le rythme dans votre poche ou vos écouteurs</string>
 </resources>

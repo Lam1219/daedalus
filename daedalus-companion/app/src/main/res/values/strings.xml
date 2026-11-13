@@ -372,4 +372,36 @@
     <string name="data_delete_account_sub">Deletes your account, everything saved in it and your data on this phone.</string>
     <string name="data_delete_account_confirm">Your account and all your data, on this phone and in your account, will be permanently deleted. You’ll need to create a new account to use Daedalus with an account again. This can’t be undone.</string>
     <string name="data_delete_account_button">Delete account</string>
+
+    <!-- Home pilot (study mode). Off by default; only for the three-week home pilot. -->
+    <string name="pilot_title">Home pilot</string>
+    <string name="pilot_row_off">Off</string>
+    <string name="pilot_row_on">On · %1$s</string>
+    <string name="pilot_intro">Only for the three-week home pilot. Leave this off unless your physiotherapist set it up with you.</string>
+    <string name="pilot_switch">Study mode</string>
+    <string name="pilot_switch_sub">Each “I’m stuck” plays the pace on your wrist, in your earbuds or in your pocket</string>
+    <string name="pilot_code">Pilot code (not a name)</string>
+    <string name="pilot_code_error">Letters and numbers only, such as P03</string>
+    <string name="pilot_seed">Seed</string>
+    <string name="pilot_seed_error">A whole number from 0 to 2147483647</string>
+    <string name="pilot_enrolment">Enrolment date</string>
+    <string name="pilot_locked">Turn study mode off to change these.</string>
+    <string name="pilot_pocket">Pocket reminder</string>
+    <string name="pilot_pocket_sub">After you stand up, the watch asks if the phone is in your front pocket</string>
+    <string name="pilot_sent">Sent to the watch</string>
+    <string name="pilot_not_sent">The watch isn’t connected. It gets the settings next time it is.</string>
+    <string name="pilot_activity_needed">Allow physical activity so the phone can tell when you carry it.</string>
+    <string name="pilot_files">Pilot files on this phone</string>
+    <plurals name="pilot_presses_count">
+        <item quantity="one">%d press</item>
+        <item quantity="other">%d presses</item>
+    </plurals>
+    <string name="pilot_files_note">Press files stay on your phone and watch. They are never uploaded.</string>
+    <string name="pilot_export">Export pilot files</string>
+    <string name="pilot_export_chooser">Send pilot files</string>
+    <string name="pilot_delete">Delete pilot files</string>
+    <string name="pilot_delete_confirm">Delete every pilot file on this phone? Export them first. This can’t be undone.</string>
+    <string name="pilot_notif_channel">Home pilot</string>
+    <string name="pilot_notif_title">Home pilot on</string>
+    <string name="pilot_notif_text">Ready to play the pace in your pocket or earbuds</string>
 </resources>
