@@ -146,7 +146,7 @@ details summary{cursor:pointer;font-weight:700}
   <ul class="summary">
     <li><b class="n">1</b><span><b>The first release is cut to the freeze loop:</b> start the beat, set your own pace, and see your week with your doses and last night's sleep beside the times you got stuck. You can share it with your physio and neurologist. Breathing stays because it is built. The Fine motor and Calm vibration modes move behind a setting, and dyskinesia waits. <i>Doses and sleep are your decision of 2026-11-13.</i></span></li>
     <li><b class="n">2</b><span><b>The beat can also play as sound in earbuds,</b> because the only head-to-head study found a vibrating metronome worked worse than a sound one, and no study has tested the wrist alone.</span></li>
-    <li><b class="n">3</b><span><b>Before more building, a three-week home test with the prototype</b> checks the plan's weakest point. Most freezes last under 10 seconds, so the question is whether someone who is frozen can start the beat before the freeze is over.</span></li>
+    <li><b class="n">3</b><span><b>Before more building, a three-week home pilot with the prototype</b> checks the plan's weakest point. Most freezes last under 10 seconds, so the question is whether someone who is frozen can start the beat before the freeze is over.</span></li>
     <li><b class="n">4</b><span><b>The "wellness" route looks weak in both countries.</b> Plan R1 as a Class I device in Canada and ask Health Canada to classify it, instead of relying on a wellness opinion.</span></li>
     <li><b class="n">5</b><span><b>The reachable market is smaller than assumed.</b> The only figures found say about 1 in 5 older adults wears a smartwatch. They are from 2019–20 and not specific to Parkinson's. That would put about 9,000 Canadians who freeze within reach without new hardware. The interviews will measure the real share.</span></li>
     <li><b class="n">6</b><span><b>Platform facts change the build.</b> On Apple Watch the cue must open the app to start, the current workout-session approach is an App Review risk, and all-day recording can only be scored afterwards. The data program needs an independent ethics board either way.</span></li>
@@ -157,7 +157,7 @@ details summary{cursor:pointer;font-weight:700}
   </div>
   <div class="callout">
     <strong>Where this stands</strong>
-    <p class="small">You took all seven decisions on 2026-11-13 (section 8): direction A, with the field test and interviews before any new feature. The plan is in <code class="mono">docs/product/plan.md</code>.</p>
+    <p class="small">You took all seven decisions on 2026-11-13 (section 8): direction A, with the home pilot and interviews before any new feature. The plan is in <code class="mono">docs/product/plan.md</code>.</p>
   </div>
 </header>
 
@@ -202,6 +202,7 @@ details summary{cursor:pointer;font-weight:700}
     <tr><td class="id">E34</td><td>A dose can be logged with the time it was actually taken, not the time of the press.</td><td><span class="tag k-own">owner</span> decision</td><td>The owner, 2026-11-13</td></tr>
     <tr><td class="id">E35</td><td>Most freezes last 1–10 seconds; some last 10–30 s, and a few last minutes. The long ones are often broken only by a deliberate cue or help from someone.</td><td><span class="tag k-obs">observed</span></td><td><a href="https://www.apdaparkinson.org/what-is-parkinsons/symptoms/freezing-of-gait/">APDA</a>; <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC6238568/">PMC6238568</a> (shared by the owner, 2026-11-13)</td></tr>
     <tr><td class="id">E36</td><td>Freezes can't be scheduled, so a clinic course can't be relied on to produce them.</td><td><span class="tag k-own">owner</span></td><td>The owner, 2026-11-13</td></tr>
+    <tr><td class="id">E37</td><td>No ethics board application for the pilot. It runs as a product pilot by the company, with no condition that withholds the beat. Its results guide product decisions only and can't be published or used as clinical evidence.</td><td><span class="tag k-own">owner</span> decision</td><td>The owner, 2026-11-13. Whether this needs no board is my reading of TCPS 2 and App Store rule 5.1.3, for the consultant to confirm</td></tr>
     <tr><td class="id">E24</td><td>Canada first, both watch platforms, Supabase in Canada.</td><td><span class="tag k-own">owner</span></td><td>Business case; AGENTS.md</td></tr>
     <tr><td class="id">E25</td><td>R1 can launch as wellness, free, through clinics.</td><td><span class="tag k-own">owner</span> assertion</td><td>Business case. A hypothesis sourced only to the owner; E12 weakens it</td></tr>
     <tr><td class="id">E26</td><td>People who freeze can press a button on the watch while frozen.</td><td><span class="tag k-asm">assumption</span></td><td>No source found; E6 cuts against it</td></tr>
@@ -265,7 +266,7 @@ details summary{cursor:pointer;font-weight:700}
   </div>
   <div class="panel">
     <h3>Value curve</h3>
-    <p class="small muted">0 = none, 4 = strong. Scores are my judgement from the sources in sections 1 and 2. Daedalus's line is a target for R1, not a measurement, so it flatters Daedalus until the field test measures it.</p>
+    <p class="small muted">0 = none, 4 = strong. Scores are my judgement from the sources in sections 1 and 2. Daedalus's line is a target for R1, not a measurement, so it flatters Daedalus until the pilot measures it.</p>
     <div class="legend" aria-hidden="true">
       <span><i style="background:var(--c-dae);height:5px"></i>Daedalus R1 (target)</span>
       <span><i style="background:var(--c-own)"></i>Own tricks</span>
@@ -334,7 +335,7 @@ details summary{cursor:pointer;font-weight:700}
     <p class="small muted">Impact = what a person who freezes would notice. Effort = build and approval cost, judged from the code and the research. Items outside R1 are marked R2 or "after the gate".</p>
     <div class="tbl" style="border:0;background:transparent"><div class="ie">
       <div class="ax y">High impact</div>
-      <div class="cell first"><span class="lbl">Do first</span><span class="chip">Home field test with the prototype (needs ethics approval)</span><span class="chip">20 interviews</span><span class="chip">Beat from a control or watch face, auto-stop</span><span class="chip">Earbud sound beat</span><span class="chip">Adjustable dose time</span></div>
+      <div class="cell first"><span class="lbl">Do first</span><span class="chip">Three-week home pilot with the prototype</span><span class="chip">20 interviews</span><span class="chip">Beat from a control or watch face, auto-stop</span><span class="chip">Earbud sound beat</span><span class="chip">Adjustable dose time</span></div>
       <div class="cell"><span class="chip">Pace set-up walk with the physio</span><span class="chip">My week, shared as PDF</span><span class="chip">Doses and sleep beside the presses</span></div>
       <div class="cell"><span class="chip">Automatic cues (after the home false-alarm gate)</span></div>
       <div class="ax y">Medium</div>
@@ -531,7 +532,7 @@ details summary{cursor:pointer;font-weight:700}
     <tr><td class="id">D6</td><td>Free pilot for the first 100, price shown (CAD 9.99/month)</td><td>Yes</td></tr>
     <tr><td class="id">D7</td><td>Hallway tests and interviews first; new features paused</td><td>Yes</td></tr>
     </tbody></table></div>
-  <p class="small muted">What would reopen them: D1, D2 and D5 if the field test fails H1, H2 or H3; D4 when Health Canada answers; D6 if the interviews or the pilot reject the price (H5); D3 if the business case's tremor evidence changes. The options below are kept as they were offered.</p>
+  <p class="small muted">What would reopen them: D1, D2 and D5 if the pilot fails H1 or H3; D4 when Health Canada answers; D6 if the interviews or the pilot reject the price (H5); D3 if the business case's tremor evidence changes. The options below are kept as they were offered.</p>
   <div class="callout"><strong>Already decided by you</strong><p class="small">2026-11-13: the dose report stays in the first version, with sleep added where the watch has it (E28). It shows logged doses, presses and recorded sleep; detected symptoms join in R2. Also 2026-11-13: a dose can be logged with the time it was actually taken, not only the time of the press (E34, screen 7).</p></div>
   <p>Each has my recommendation first. Your picks stay in this browser; press "Copy my choices" and paste them in the chat so they are written into the record.</p>
   <form id="dec" class="stack" onsubmit="return false">
@@ -560,7 +561,7 @@ details summary{cursor:pointer;font-weight:700}
     </fieldset>
 
     <fieldset><legend>D5 · Earbud sound in R1</legend>
-      <label class="opt"><input type="radio" name="d5" value="Yes, wrist and earbuds" id="d5a"><span class="on"><b>Yes, wrist and earbuds</b><span>Recommended. In the one small head-to-head study (20 people, E3), sound beat vibration. Little to build, and the field test compares the two.</span></span></label>
+      <label class="opt"><input type="radio" name="d5" value="Yes, wrist and earbuds" id="d5a"><span class="on"><b>Yes, wrist and earbuds</b><span>Recommended. In the one small head-to-head study (20 people, E3), sound beat vibration. Little to build, and the pilot compares the two.</span></span></label>
       <label class="opt"><input type="radio" name="d5" value="Wrist only for now" id="d5b"><span class="on"><b>Wrist only for now</b><span>Simpler; bets everything on an untested cue site.</span></span></label>
     </fieldset>
 
@@ -593,7 +594,7 @@ details summary{cursor:pointer;font-weight:700}
     <thead><tr><th>ID</th><th>Hypothesis</th><th>Rests on</th><th>Status</th><th>Last evidence</th></tr></thead>
     <tbody>
     <tr><td class="id">H1</td><td><b>Someone who is frozen can start the beat before the freeze is over.</b></td><td>E26, E35</td><td><span class="tag st-untested">untested</span></td><td>E6 suggests some cannot; most freezes last under 10 s (E35)</td></tr>
-    <tr><td class="id">H2</td><td>A beat at their own pace gets people walking sooner than their own tricks.</td><td>E2, E3, E5</td><td><span class="tag st-untested">untested</span></td><td>Evidence is for leg, foot and sound cues</td></tr>
+    <tr><td class="id">H2</td><td>A beat at their own pace gets people walking sooner than their own tricks.</td><td>E2, E3, E5</td><td><span class="tag st-untested">untested</span></td><td>Evidence is for leg, foot and sound cues. Not tested by the pilot (no ethics board, so no no-beat condition); it moves to the R3 controlled trial</td></tr>
     <tr><td class="id">H3</td><td>Earbud sound works at least as well as the wrist pulse.</td><td>E3</td><td><span class="tag st-untested">untested</span></td><td>One study, 20 people</td></tr>
     <tr><td class="id">H4</td><td>Enough people who freeze already wear a smartwatch.</td><td>E19, E20</td><td><span class="tag st-weak">weakened</span></td><td>About 1 in 5 older adults (E19)</td></tr>
     <tr><td class="id">H5</td><td>People will pay about CAD 10 a month without a prescription.</td><td>E8, E21</td><td><span class="tag st-untested">untested</span></td><td>—</td></tr>
@@ -613,7 +614,7 @@ details summary{cursor:pointer;font-weight:700}
   <div class="tbl"><table>
     <thead><tr><th>Tests</th><th>Who takes part</th><th>What they do</th><th>What is observed</th><th>The result that changes the recommendation</th></tr></thead>
     <tbody>
-    <tr><td class="id">H1, H2, H3</td><td>12 people who freeze at least daily (10 to finish), after ethics approval. Freezes can't be scheduled (E36), so the test runs at home</td><td>One clinic visit to set the pace and practise, then three weeks at home with the prototype. Every press is a trial. In weeks 2–3 each press randomly gets the wrist beat, the earbud beat, or a single buzz as control (press again for the beat). One tap after each: helped, didn't help, or already moving.</td><td>Seconds from walking stopping to the beat starting; seconds from press to steady steps, measured by the watch around each press; check-in answers</td><td>The median is over 4 s, or more than half the check-ins say "already moving" → cue before the freeze, and bring automatic detection forward (H1). The beat is no faster than the control for 7 of 10 → stop the cue direction (H2). Earbuds are faster for most → lead with sound (H3).</td></tr>
+    <tr><td class="id">H1, H3</td><td>12 people who freeze at least daily (10 to finish), through a private physio practice. A product pilot, with no ethics board (E37). Freezes can't be scheduled (E36), so it runs at home</td><td>One clinic visit to set the pace and practise, then three weeks at home with the prototype. Every press is a trial and every press gets a beat. In weeks 2–3, with earbuds connected, each press randomly plays on the wrist or in the earbuds. One tap after each: helped, didn't help, or already moving.</td><td>Seconds from walking stopping to the beat starting; seconds from press to steady steps, measured by the watch around each press; check-in answers</td><td>The median is over 4 s, or more than half the check-ins say "already moving" → cue before the freeze, and bring automatic detection forward (H1). Earbuds are faster for most → lead with sound (H3). H2 is not decided here.</td></tr>
     <tr><td class="id">H4, H5, H6</td><td>20 interviews: 8–10 people who freeze with carers, 5 physios, 5 neurologists</td><td>"Walk me through your last freeze." Then show the five screens and the price.</td><td>Watch ownership; what they did last time; whether they would pay CAD 10 a month; whether physios would offer it</td><td>Fewer than 4 of 10 people who freeze own a smartwatch → reconsider the segment, or a cheap watch bundled through clinics.</td></tr>
     <tr><td class="id">H9, H10, H11</td><td>The first pilot users who log doses and wear the watch at night; 5 neurologists</td><td>Use R1 for 4 weeks. Neurologists are shown screen 6 with each patient's own data at a routine visit.</td><td>Presses by hours since the last dose; presses on days after nights under 6 h against longer nights, within each person; what the neurologist says or changes</td><td>No difference by dose timing or sleep in most people, and no neurologist would use it → keep it as a log, and drop the comparisons from the screen.</td></tr>
     </tbody></table></div>
@@ -625,15 +626,16 @@ details summary{cursor:pointer;font-weight:700}
     <tr><td class="mono">2026-11-13</td><td>Owner decision: the dose report stays in R1, and sleep is added.</td><td>The owner</td><td class="id">H9, H10, H11</td></tr>
     <tr><td class="mono">2026-11-13</td><td>Owner decision: a dose's time can be adjusted. Today's apps record the time of the press (E33), which would skew "time since last dose" for any dose logged late.</td><td>The owner; the code</td><td class="id">H9</td></tr>
     <tr><td class="mono">2026-11-13</td><td>Owner took D1–D7: direction A, press-only cue, Fine motor and Calm behind a setting, Class I route, wrist and earbuds, free pilot with price shown, tests before building.</td><td>The owner</td><td class="id">H1–H8</td></tr>
-    <tr><td class="mono">2026-11-13</td><td>Owner: freezes can't be planned, and most last 1–10 s. The clinic hallway test became a three-week home field test with a random condition per press; H1 now asks whether the beat arrives before the freeze ends. Details in <code class="mono">docs/product/plan.md</code>.</td><td>The owner; E35</td><td class="id">H1, H2, H3</td></tr></tbody>
+    <tr><td class="mono">2026-11-13</td><td>Owner: freezes can't be planned, and most last 1–10 s. The clinic hallway test became a three-week home field test with a random condition per press; H1 now asks whether the beat arrives before the freeze ends. Details in <code class="mono">docs/product/plan.md</code>.</td><td>The owner; E35</td><td class="id">H1, H2, H3</td></tr>
+    <tr><td class="mono">2026-11-13</td><td>Owner: no ethics board application. The home test becomes a product pilot: every press gets a beat, wrist or earbuds at random. H2 moves to the R3 controlled trial; pilot results are for product decisions only.</td><td>The owner; E37</td><td class="id">H2</td></tr></tbody>
   </table></div>
 </section>
 
 <section id="next">
   <div class="eyebrow">After your picks</div>
   <h2>What happens next</h2>
-  <p>The field test needs a physio or clinic partner, which is not signed yet and is first on the business case's 90-day list, and an ethics board's approval. The business case puts the interviews at CAD 5–10k.</p>
-  <p>Your decisions are recorded in section 8, and this page is the brief for direction A. The plan for the field test and interviews (D7) is <code class="mono">docs/product/plan.md</code>. It opens with the assumptions you need to check and lists the prototype changes the test needs. Sessions with people, and anything touching Supabase, run only with your go. The narrowed R1 build waits for the results.</p>
+  <p>The pilot needs a private physio practice as partner, not yet signed, and the regulatory consultant's confirmation that it needs no ethics board. The business case puts the interviews at CAD 5–10k.</p>
+  <p>Your decisions are recorded in section 8, and this page is the brief for direction A. The plan for the home pilot and interviews (D7) is <code class="mono">docs/product/plan.md</code>. It opens with the assumptions you need to check and lists the prototype changes the test needs. Sessions with people, and anything touching Supabase, run only with your go. The narrowed R1 build waits for the results.</p>
   <p class="small muted">Record kept in <code class="mono">docs/product/proposal.html</code>. Earlier record: the Nov 11 business case in <code class="mono">Documentation/</code>.</p>
 </section>
 

@@ -1,6 +1,8 @@
-# Plan: home field test and interviews (D7)
+# Plan: home pilot and interviews (D7)
 
-Written 2026-11-13 from the accepted proposal (`docs/product/proposal.html`, direction A), and revised the same day. The owner's point: freezing can't be planned, so a clinic course with three trials per condition can't be relied on. This plan covers only what the test needs. New features stay paused until it reports (D7).
+Written 2026-11-13 from the accepted proposal (`docs/product/proposal.html`, direction A), and revised twice the same day:
+- **Freezes can't be scheduled.** A clinic course with three trials per condition can't be relied on.
+- **No ethics board application.** The test therefore runs as a product pilot, with no condition that withholds the beat. This plan covers only what the test needs. New features stay paused until it reports (D7).
 
 ## Why the design changed
 
@@ -8,19 +10,28 @@ Written 2026-11-13 from the accepted proposal (`docs/product/proposal.html`, dir
 - **Most freezes last 1–10 seconds** ([APDA](https://www.apdaparkinson.org/what-is-parkinsons/symptoms/freezing-of-gait/); [review, PMC6238568](https://pmc.ncbi.nlm.nih.gov/articles/PMC6238568/)). If pressing and starting the beat takes 3–5 s, many freezes end before the beat starts. The first question is therefore not only *can* they press, but whether the beat arrives *in time*.
 - **So the test goes to where the freezes happen.** People use the prototype at home for three weeks. Every press is a trial, the watch measures the timings, and each press randomly gets one of the conditions. That gives dozens of real freezes per person instead of three staged ones.
 
+## What the pilot can and cannot answer
+
+- **It can answer H1** (does the beat arrive before the freeze ends) **and H3** (wrist or earbuds).
+- **It cannot answer H2** (does the beat get people walking sooner than they would without it). Answering H2 needs a condition that gives some presses no beat, and withholding help at random is what makes this research. H2 moves to the R3 controlled trial, which the business case always planned with ethics approval.
+- **Its results guide product decisions only.** They can't be published or used as clinical evidence in a Health Canada file, because consent for research and an ethics review can't be added afterwards. If you may want either, an ethics board is needed from the start.
+
 ## Key assumptions for the owner to check first
 
-1. **This is research, so it needs an ethics board.** Randomizing what people get at home and recording their motion goes beyond a usability session. Use the partner clinic's research ethics board, or a commercial one. Plan 6–10 weeks for approval. **You decide** which board.
+1. **A product pilot by a private company needs no ethics board. This is my reading, not legal advice; ask the regulatory consultant to confirm, at the same time as the Class I question (D4).**
+   - **Canada:** the research ethics policy (TCPS 2) binds institutions that take federal research funding, and their staff. A private company evaluating its own product with its users isn't bound, as long as no hospital or university researcher runs it.
+   - **Who the partner is:** the physio partner must be a **private practice**, not a hospital or university clinic. Those usually require their own ethics review of anything their staff do with patients beyond normal care.
+   - **No academic co-authors and no grant money** tied to the pilot. Either would bring TCPS 2 in.
+   - **Apple:** App Store rule 5.1.3 requires an ethics board for apps doing health research. The pilot build goes out as an ad hoc build installed on registered devices (up to 100 Apple Watches), not through the App Store or TestFlight's external review. On Android it uses the Play Console's internal testing track, which has no review. Neither route puts the build in front of App Review.
+   - **Health Canada:** as a planned Class I device (D4), supplying it for a pilot should need no investigational testing authorization. Confirm that with the consultant too.
 2. **Only frequent freezers take part:** people who say they freeze at least once a day. With rare freezers three weeks yields too few events. This favours people later in the disease, which is the segment anyway.
-3. **The control condition.** Showing that the beat helps (H2) needs presses that get no beat. Two options:
-   - **(a) Recommended:** 1 press in 4, chosen at random, gives a single short buzz and no beat. The person uses their own trick and can press again at once to get the beat. This is the business case's planned sham, and it's the cleaner comparison.
-   - **(b) Gentler:** a first week where presses only log the moment and give no beat, then two weeks with the beat. This is weaker, because people change over time.
-
-   **You decide.** The ethics board may decide for you.
+3. **No control condition.** Every press gives a beat. The only thing that varies is where it plays, wrist or earbuds. Comparing two working versions of a feature is ordinary product testing (A/B).
+   - **Consent:** written in plain language, separate from the app's terms. It says what is recorded, where it's stored (Canada), who sees it, that the pilot is not a medical treatment, and how to leave and delete the data.
+   - **Quebec's Law 25** requires express consent for health data from Quebec residents. It's simplest to recruit outside Quebec for this pilot, or to have the privacy adviser check the consent.
 4. **On iPhone, the phone plays the sound.** On Apple Watch, sound to earbuds needs a headphone picker each time, and connected earbuds may silence the watch's own vibration. So the earbud beat plays from the phone in the pocket, to earbuds paired with it. On Wear OS the watch plays it, which gets checked on the device first.
 5. **The beat starts from the app's own screen, which stays on the watch face.** A one-press start from the watch face isn't built. People keep Daedalus as the app that shows when they raise their wrist, a watch setting on both platforms. The time from raising the wrist to pressing is part of what's measured.
 6. **Devices are lent.** Participants without a compatible watch get a loaner (an Apple Watch with iPhone, or a Galaxy Watch). The business case budgets CAD 15–30k for devices. **You decide** whether to lend devices or recruit only watch owners. Owners-only is cheaper but slower to recruit (H4).
-7. **12 people, so 10 finish.** Within-person comparisons over many presses make 10 enough to see a clear direction. They are not a powered trial, and H2 and H3 come out as a direction, not proof.
+7. **12 people, so 10 finish.** Within-person comparisons over many presses make 10 enough to see a clear direction. They are not a powered trial, and H3 comes out as a direction, not proof.
 
 ## How it runs
 
@@ -31,7 +42,7 @@ Written 2026-11-13 from the accepted proposal (`docs/product/proposal.html`, dir
 
 **Three weeks at home:**
 - **Week 1 (learning):** every press gives the beat, alternating wrist and earbuds, so people get used to both.
-- **Weeks 2–3 (randomized):** each press randomly gets the wrist beat, the earbud beat (only when earbuds are connected), or the control from assumption 3.
+- **Weeks 2–3:** when earbuds are connected, each press randomly plays the beat on the wrist or in the earbuds. Without earbuds it plays on the wrist.
 - **After each beat stops, one tap on the watch:** "It helped", "It didn't help" or "I was already moving". At most 6 questions a day; after that, presses are logged without asking.
 - **A weekly 5-minute call with the physio:** problems, anything annoying or embarrassing, and the "very disappointed" question in week 3.
 
@@ -42,7 +53,7 @@ Written 2026-11-13 from the accepted proposal (`docs/product/proposal.html`, dir
 | Hypothesis | Measure | Changes the recommendation if |
 |---|---|---|
 | **H1:** a frozen person can start the beat in time | Seconds from walking stopping to the beat starting (from the motion buffer); share of check-ins answering "I was already moving" | The median is over 4 s, or more than half the check-ins say "already moving" → a press can't reach most freezes. Move to cues that start before a freeze (on standing up, or a beat that runs for the first seconds of every walk) and bring automatic detection forward |
-| **H2:** the beat gets people walking sooner | Seconds from press to steady steps, beat against control, within each person | The beat is no faster than the control for 7 of 10 people → the rhythm itself isn't helping. Stop the cue direction (R3) and lead with the dose-and-sleep report |
+| **H2:** the beat gets people walking sooner | Not measured in the pilot; it needs a no-beat condition. Reported only as a description: seconds from press to steady steps, and the check-in answers | — (deferred to the R3 controlled trial) |
 | **H3:** sound works at least as well as the wrist | The same measure, wrist against earbuds, within each person, plus preference | Earbuds are faster for most people → sound leads, and the wrist is the trigger |
 | **H4–H6, H11** | The interviews (below) | As in proposal § 9 |
 
@@ -54,38 +65,38 @@ Also reported, without thresholds: presses per day, freezes the person didn't pr
 |---|---|---|---|
 | B1 | **Sound beat on iPhone.** A watch press makes the iPhone play a click at the person's pace through the current route (earbuds), stopping with the watch cue. | `DaedalusWatch/Cue/PhoneLink.swift`, `CueController.swift`; a beat player in `Daedalus/` | Clicks start within 1 s of the press, timing drift stays under 20 ms over 2 min (unit test on the scheduler), checked on a real iPhone with AirPods |
 | B2 | **Sound beat on Wear OS.** The watch plays to its connected earbuds; without them, the phone plays it. | `daedalus-watch/.../haptics/HapticService.kt`; `sync/` | Same, on a Galaxy Watch with Galaxy Buds |
-| B3 | **Random condition per press.** Week 1 alternates; weeks 2–3 draw wrist, earbuds or control, with the schedule seeded per person and logged. The control is a single buzz. | `CueController` / `HapticService`, with the schedule shared from Python golden vectors | Over 1,000 simulated presses the draw matches the planned shares within 3%, and a press without earbuds never draws "earbuds" |
+| B3 | **Wrist or earbuds per press.** Week 1 alternates; weeks 2–3 draw at random when earbuds are connected, seeded per person and logged. No press ever goes without a beat. | `CueController` / `HapticService`, with the schedule shared from Python golden vectors | Over 1,000 simulated presses the draw is 50/50 within 3%; a press without earbuds always plays on the wrist; no draw yields silence |
 | B4 | **Motion buffer around each press.** Keeps 30 s of motion rolling and saves from 30 s before to 60 s after a press, instead of all-day recording. | `SessionRecorder` (iOS), `SessionDataLogger` (Android) | One file per press. Battery over a 14-hour day is measured on both watches before the study starts |
 | B5 | **One-tap check-in** after the beat stops, at most 6 a day. | Watch cue screens on both platforms | Its answer is saved in that press's file; the 7th press of the day doesn't ask |
 | B6 | **Lift the one-hour session limit for study mode.** The cue still stops on Stop, and after 10 minutes at most. | `CueController.maxSessionDuration`; Android equivalent | A 10-minute beat stops by itself; outside study mode nothing changes |
-| B7 | **Analysis.** Reads the press files, finds when walking stopped and when steps resumed (reusing the kit's cadence features), and prints H1–H3 against the thresholds. | `python_scripts/field_test.py`; tests beside the kit's | Golden press files give the expected timings and verdicts. Agreement with the filmed walk within 1 s is reported |
+| B7 | **Analysis.** Reads the press files, finds when walking stopped and when steps resumed (reusing the kit's cadence features), and prints H1 and H3 against the thresholds, and H2's description. | `python_scripts/field_test.py`; tests beside the kit's | Golden press files give the expected timings and verdicts. Agreement with the filmed walk within 1 s is reported |
 | B8 | **Upload to a separate study store.** Press files go over Wi-Fi to a study bucket, never to the production tables. | Supabase: a separate project or bucket for the study, chosen with you | Nothing from study mode reaches production tables. Setting it up touches Supabase and needs your go |
 
 Not built for the test: a one-press start from the watch face, auto-stop when walking resumes, the calibration walk, Fine motor and Calm behind a setting (D3), the adjustable dose time, the doses-and-sleep screen. They go in the R1 build after the test.
 
 ## Interviews (in parallel, no build needed)
 
-20 one-on-one interviews: 8–10 people who freeze with their carers, 5 physios, 5 neurologists. Each opens with "Walk me through your last freeze: how long did it last, and what got you going?" Then show screens 1–7 and the CAD 9.99 price. Record watch ownership (H4), price reaction (H5), whether physios would offer it (H6) and what neurologists make of the doses-and-sleep screen (H11). The guide goes in `docs/product/interview-guide.md` before the first interview. The interviews can start before the ethics approval; the field test can't.
+20 one-on-one interviews: 8–10 people who freeze with their carers, 5 physios, 5 neurologists. Each opens with "Walk me through your last freeze: how long did it last, and what got you going?" Then show screens 1–7 and the CAD 9.99 price. Record watch ownership (H4), price reaction (H5), whether physios would offer it (H6) and what neurologists make of the doses-and-sleep screen (H11). The guide goes in `docs/product/interview-guide.md` before the first interview. The interviews can start right away.
 
 ## Timeline (estimates)
 
 | Weeks | What |
 |---|---|
-| 0–2 | Build B1–B7. Partner clinic signed. Ethics submission. Interviews start |
-| 2–10 | Ethics review. Battery test. Dry run with a healthy volunteer. Interviews finish |
-| 10–16 | Recruit 12 people; clinic visits; three weeks at home each, overlapping |
-| 16–17 | Analysis and readout to the proposal page |
+| 0–3 | Build B1–B7. Sign a private physio practice. The consultant confirms no ethics board and no investigational authorization. Consent sheet written. Interviews start |
+| 3–4 | Battery test. Dry run with a healthy volunteer. Ad hoc and internal-testing builds |
+| 4–10 | Recruit 12 people; clinic visits; three weeks at home each, overlapping. Interviews finish |
+| 10–11 | Analysis and readout to the proposal page |
 
 ## Tests and checks
 
 - Unit tests for B1–B3, B5–B7 run in the normal gate (AGENTS.md § 1.3).
 - B1, B2, B4 and B5 are checked on real devices, since simulators have no haptics or Bluetooth audio.
-- **Nothing touches production Supabase or real users' data.** B8 sets up a separate study store only with your go. Sessions with people start only after ethics approval and your go.
+- **Nothing touches production Supabase or real users' data.** B8 sets up a separate study store only with your go. Sessions with people start only after the consultant's confirmation and your go.
 
 ## Acceptance
 
 - B1–B8 merged behind the study switch, with a fresh independent review clean.
-- Ethics approval in hand.
+- The consultant's written confirmation that the pilot needs no ethics board or investigational authorization, and the consent sheet approved by you.
 - Battery over a 14-hour day measured on both watches.
 - A dry run with a healthy volunteer produces correct press files.
-- After the field test, the proposal page shows H1–H3 results, with hypothesis statuses and the recommendation updated.
+- After the pilot, the proposal page shows H1 and H3 results and H2's description, with hypothesis statuses and the recommendation updated.
