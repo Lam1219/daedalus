@@ -1,3 +1,4 @@
+import AVFoundation
 import Foundation
 import HealthKit
 import Observation
@@ -27,6 +28,59 @@ final class WatchLink: NSObject {
         guard WCSession.isSupported() else { return }
         WCSession.default.delegate = self
         WCSession.default.activate()
+        // Home pilot: tell the watch when earbuds come and go (study mode only), and hand the
+        // beat back to the wrist when they go mid-beat.
+        PhoneBeatPlayer.shared.onLost = { [weak self] in self?.sendBeatLost() }
+        NotificationCenter.default.addObserver(forName: AVAudioSession.routeChangeNotification, object: nil, queue: .main) { _ in
+            MainActor.assumeIsolated { WatchLink.shared.sendEarbuds() }
+        }
+    }
+
+    // MARK: Home pilot
+
+    /// Sends the pilot settings (study switch, participant, seed, enrolment day, reminder times).
+    func sendPilot() {
+        let session = WCSession.default
+        guard session.activationState == .activated, session.isPaired else { return }
+        var context = session.applicationContext
+        context[WatchKey.pilot] = PilotStore.shared.settings.dictionary
+        if PilotStore.shared.settings.isActive { context[WatchKey.earbuds] = PhoneBeatPlayer.earbudsConnected }
+        try? session.updateApplicationContext(context)
+    }
+
+    private func sendEarbuds() {
+        guard PilotStore.shared.settings.isActive else { return }
+        let session = WCSession.default
+        guard session.activationState == .activated, session.isPaired else { return }
+        let connected = PhoneBeatPlayer.earbudsConnected
+        var context = session.applicationContext
+        context[WatchKey.earbuds] = connected
+        try? session.updateApplicationContext(context)
+        if session.isReachable { session.sendMessage([WatchKey.earbuds: connected], replyHandler: nil) }
+    }
+
+    private func sendBeatLost() {
+        let session = WCSession.default
+        guard session.activationState == .activated, session.isReachable else { return }
+        session.sendMessage([WatchKey.command: WatchKey.beatLost], replyHandler: nil)
+    }
+
+    /// Messages from the watch that need an answer (study mode only).
+    private func reply(to message: [String: Any], receivedMs r0: Int64) async -> [String: Any] {
+        let pilot = PilotStore.shared.settings
+        switch message[WatchKey.command] as? String {
+        case WatchKey.pilotQuery:
+            return [WatchKey.earbuds: pilot.isActive && PhoneBeatPlayer.earbudsConnected]
+        case WatchKey.beatStart:
+            guard pilot.isActive, let pace = message[WatchKey.rate] as? Int,
+                  let start = PhoneBeatPlayer.shared.start(pace: pace) else { return [WatchKey.ok: false] }
+            return [WatchKey.ok: true, WatchKey.beatStartMs: NSNumber(value: start), WatchKey.r0: NSNumber(value: r0),
+                    WatchKey.r1: NSNumber(value: Int64(Date.now.timeIntervalSince1970 * 1000))]
+        case WatchKey.pocketQuery:
+            return [WatchKey.steps: pilot.isActive ? await PilotStore.shared.stepsLastMinute() : 0]
+        default:
+            return [:]
+        }
     }
 
     /// Sends the rates chosen on the Cues screen; the watch keeps them for "I'm stuck".
@@ -94,12 +148,12 @@ extension WatchLink: WCSessionDelegate {
         Task { @MainActor in
             self.update(from: session)
             self.apply(status: status)
-            self.sendRates()
+            self.sendRates(); self.sendPilot()
         }
     }
 
     nonisolated func sessionWatchStateDidChange(_ session: WCSession) {
-        Task { @MainActor in self.update(from: session); self.sendRates() }
+        Task { @MainActor in self.update(from: session); self.sendRates(); self.sendPilot() }
     }
 
     nonisolated func sessionReachabilityDidChange(_ session: WCSession) {
@@ -107,7 +161,21 @@ extension WatchLink: WCSessionDelegate {
     }
 
     nonisolated func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
-        Task { @MainActor in self.apply(status: message) }
+        Task { @MainActor in
+            if message[WatchKey.command] as? String == WatchKey.beatStop {
+                PhoneBeatPlayer.shared.stop()
+            } else {
+                self.apply(status: message)
+            }
+        }
+    }
+
+    /// Home pilot requests from the watch (earbuds state, start the sound beat, recent steps).
+    nonisolated func session(_ session: WCSession, didReceiveMessage message: [String: Any],
+                             replyHandler: @escaping ([String: Any]) -> Void) {
+        let r0 = Int64(Date.now.timeIntervalSince1970 * 1000)
+        nonisolated(unsafe) let message = message
+        Task { @MainActor in replyHandler(await self.reply(to: message, receivedMs: r0)) }
     }
 
     nonisolated func session(_ session: WCSession, didReceiveApplicationContext context: [String: Any]) {
@@ -118,7 +186,9 @@ extension WatchLink: WCSessionDelegate {
     nonisolated func session(_ session: WCSession, didReceive file: WCSessionFile) {
         // Only a plain file name, so nothing can be written outside the sessions folder.
         let name = URL(fileURLWithPath: (file.metadata?[WatchKey.fileName] as? String) ?? file.fileURL.lastPathComponent).lastPathComponent
-        let destination = LocalStore.sessionsDir.appendingPathComponent(name)
+        // Home pilot press files stay on this phone in their own folder: never backed up.
+        let pilot = file.metadata?[WatchKey.fileKind] as? String == WatchKey.pilotFile
+        let destination = (pilot ? PilotStore.dir : LocalStore.sessionsDir).appendingPathComponent(name)
         try? FileManager.default.removeItem(at: destination)
         do {
             try FileManager.default.moveItem(at: file.fileURL, to: destination)
@@ -126,6 +196,7 @@ extension WatchLink: WCSessionDelegate {
                 [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication], ofItemAtPath: destination.path
             )
             Task { @MainActor in
+                if pilot { PilotStore.shared.fileArrived(); return }
                 self.filesReceived += 1
                 CloudBackup.shared.syncSoon()
             }

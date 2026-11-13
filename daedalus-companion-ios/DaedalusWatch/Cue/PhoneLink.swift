@@ -31,6 +31,14 @@ final class PhoneLink: NSObject {
         WCSession.default.transferFile(file, metadata: [WatchKey.fileName: file.lastPathComponent])
     }
 
+    /// A finished home-pilot press file (kept on the iPhone apart from session files, never backed up).
+    func send(pilotFile file: URL) {
+        let session = WCSession.default
+        guard session.activationState == .activated,
+              !session.outstandingFileTransfers.contains(where: { $0.file.fileURL == file }) else { return }
+        session.transferFile(file, metadata: [WatchKey.fileName: file.lastPathComponent, WatchKey.fileKind: WatchKey.pilotFile])
+    }
+
     /// Re-sends finished files that aren't on their way yet (e.g. recorded before activation).
     private func resendPending() {
         let session = WCSession.default
@@ -40,11 +48,20 @@ final class PhoneLink: NSObject {
         for file in files where file.pathExtension == "csv" && !inFlight.contains(file.lastPathComponent) && file.lastPathComponent != recording {
             send(file: file)
         }
+        for file in PressStore.finished() where !inFlight.contains(file.lastPathComponent) {
+            send(pilotFile: file)
+        }
     }
 
     private func apply(context: [String: Any]) {
         if let rates = context[WatchKey.rates] as? [String: Int] {
             UserDefaults.standard.set(rates, forKey: WatchKey.rates)
+        }
+        if let pilot = context[WatchKey.pilot] as? [String: Any] {
+            PilotController.shared.apply(settings: PilotSettings(dictionary: pilot))
+        }
+        if let earbuds = context[WatchKey.earbuds] as? Bool {
+            PilotController.shared.phoneReported(earbuds: earbuds)
         }
     }
 
@@ -56,6 +73,9 @@ final class PhoneLink: NSObject {
             }
         case WatchKey.stop:
             CueController.shared.stop()
+        case WatchKey.beatLost:
+            // Home pilot: the earbuds went away mid-beat; the wrist takes over at once.
+            PilotController.shared.fallBack()
         default:
             apply(context: message)
         }

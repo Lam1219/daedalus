@@ -14,7 +14,7 @@ struct HomeView: View {
                 Circle().fill(link.phoneReachable ? WS.sage : WS.muted).frame(width: 6, height: 6)
                 Text(L("status_cues_on")).font(.system(size: 13)).foregroundStyle(WS.muted)
             }
-            Button { CueController.shared.start(mode: "walking") } label: {
+            Button { CueController.shared.start(mode: "walking", press: true) } label: {
                 VStack(spacing: 4) {
                     Image(systemName: "figure.walk").font(.system(size: 28, weight: .semibold))
                     Text(L("im_stuck")).font(.system(size: 17, weight: .semibold))
@@ -63,6 +63,7 @@ struct HomeView: View {
 /// Walking cue: a ring that pulses with each step, the rate, and Stop.
 struct WalkView: View {
     @State private var cue = CueController.shared
+    @State private var pilot = PilotController.shared
     @State private var pulse = false
 
     var body: some View {
@@ -76,6 +77,11 @@ struct WalkView: View {
                 Text("\(cue.rate)").font(.system(size: 40, weight: .semibold, design: .rounded)).foregroundStyle(WS.ink)
                 Text(L("unit_steps_min")).font(.system(size: 11)).foregroundStyle(WS.muted)
                 Text(L("hint_step")).font(.system(size: 11)).foregroundStyle(WS.soft)
+                // Home pilot: where this press plays its beat, in small text.
+                if cue.studyPress, let place = pilot.currentPlace {
+                    Text(L("pilot_place_\(place.rawValue)")).font(.system(size: 11)).foregroundStyle(WS.muted)
+                        .lineLimit(1).minimumScaleFactor(0.8)
+                }
             }
             .padding(.bottom, 26)
             VStack {
@@ -206,7 +212,7 @@ struct TremorResultView: View {
                     .buttonStyle(.plain).frame(maxWidth: .infinity, minHeight: 44).background(WS.sage, in: Capsule())
                     .padding(.top, 6)
                 // "I'm stuck" always works, even while a result is showing (starting a cue clears it).
-                Button(L("im_stuck")) { CueController.shared.start(mode: "walking") }
+                Button(L("im_stuck")) { CueController.shared.start(mode: "walking", press: true) }
                     .font(.headline).foregroundStyle(WS.ink)
                     .buttonStyle(.plain).frame(maxWidth: .infinity, minHeight: 44).background(WS.raised, in: Capsule())
             }

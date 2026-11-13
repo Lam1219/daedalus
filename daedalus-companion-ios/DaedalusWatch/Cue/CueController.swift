@@ -41,6 +41,10 @@ final class CueController: NSObject {
     private(set) var tremorEndsAt: Date?
     /// During a guard: "I'm stuck" started the walking rhythm inside it.
     private(set) var guardCueActive = false
+    /// Home pilot: this walking cue is a study press (`PilotController`).
+    private(set) var studyPress = false
+    /// Home pilot: the beat plays on the iPhone (earbuds), so the wrist stays silent.
+    @ObservationIgnored private var wristSilent = false
 
     @ObservationIgnored private let health = HKHealthStore()
     @ObservationIgnored private var session: HKWorkoutSession?
@@ -79,7 +83,9 @@ final class CueController: NSObject {
 
     // MARK: Start / stop
 
-    func start(mode: String, rate: Int? = nil) {
+    /// `press`: "I'm stuck" pressed on the watch. In study mode (home pilot) that press draws the
+    /// place its beat plays in; otherwise it is the same as any start.
+    func start(mode: String, rate: Int? = nil, press: Bool = false) {
         // "I'm stuck" during a guard: the walking rhythm starts inside the guard, which keeps recording.
         if isGuard && mode == "walking" {
             startGuardCue(rate: rate ?? savedRate(mode))
@@ -95,13 +101,26 @@ final class CueController: NSObject {
         let tremor = mode == TremorAnalyzer.mode
         let guarding = GuardRows.isGuard(mode)
         tremorEndsAt = tremor ? Date.now.addingTimeInterval(TremorAnalyzer.checkDuration) : nil
+        let pilot = PilotController.shared
+        studyPress = press && mode == "walking" && pilot.isStudy
+        wristSilent = false
+        if studyPress {
+            let ring = pilot.live
+            recorder.onSample = { ring.append($0) }
+            wristSilent = !pilot.beginPress(pace: self.rate)
+            // Home pilot (H1): the beat first. Starting the workout and the recorder takes a
+            // noticeable moment (about 0.7 s in the simulator), so a study press doesn't wait for it.
+            startCue()
+        } else {
+            recorder.onSample = nil
+        }
         recorder.start(mode: mode, everySample: tremor || guarding,
                        guardMode: guarding ? GuardRows.engineMode(mode) : nil)
         startWorkout(walking: mode == "walking" || mode == GuardRows.walkGuard)
         // No rhythm in the tremor check or a guard: one tap to say it started.
         if tremor || guarding { WKInterfaceDevice.current().play(.start) }
         if guarding { startBatteryLog() }
-        startCue()
+        if !studyPress { startCue() }
         startTimeout()
         PhoneLink.shared.sendStatus()
     }
@@ -132,6 +151,12 @@ final class CueController: NSObject {
             }
         }
         if let file { PhoneLink.shared.send(file: file) }
+        if studyPress {
+            studyPress = false
+            wristSilent = false
+            recorder.onSample = nil
+            PilotController.shared.endPress()
+        }
         self.mode = nil
         paused = false
         WKInterfaceDevice.current().play(tremor ? .success : .stop)
@@ -166,6 +191,13 @@ final class CueController: NSObject {
     }
 
     private static func nowMs() -> Int64 { Int64(Date.now.timeIntervalSince1970 * 1000) }
+
+    /// Home pilot: the iPhone couldn't play (or keep) the sound beat, so the wrist plays at once.
+    func fallBackToWrist() {
+        guard studyPress, wristSilent, mode == "walking" else { return }
+        wristSilent = false
+        if !paused { startCue() }
+    }
 
     // MARK: Guard battery log
 
@@ -209,7 +241,10 @@ final class CueController: NSObject {
     /// (the workout keeps the app running meanwhile).
     private func startTimeout() {
         timeoutTask?.cancel()
-        let limit: Duration = isTremorCheck ? .seconds(TremorAnalyzer.checkDuration) : Self.maxSessionDuration
+        // Home pilot (B6): in study mode a walking beat stops by itself after 10 minutes.
+        let study = mode == "walking" && PilotController.shared.isStudy
+        let limit: Duration = isTremorCheck ? .seconds(TremorAnalyzer.checkDuration)
+            : study ? .seconds(Pilot.studyMaxCueS) : Self.maxSessionDuration
         timeoutTask = Task { [weak self] in
             try? await Task.sleep(for: limit)
             guard !Task.isCancelled else { return }
@@ -247,10 +282,30 @@ final class CueController: NSObject {
             let interval = 60.0 / Double(max(rate, 1))
             // Walking: a crisp tap per step. Fine motor and calm: a softer, steady pulse.
             let haptic: WKHapticType = mode == "walking" ? .click : .directionUp
+            // Home pilot: a study press plays its first wrist pulse right here, not once the task
+            // gets the main actor (which `start` still holds while it starts the workout).
+            let playFirstNow = studyPress && !wristSilent
+            if playFirstNow {
+                PilotController.shared.wristBeatPlayed(atMs: Self.nowMs())
+                device.play(haptic)
+                beat += 1
+            }
             cueTask = Task { [weak self] in
                 var next = ContinuousClock.now
+                if playFirstNow {
+                    next = next.advanced(by: .seconds(interval))
+                    try? await Task.sleep(until: next, clock: .continuous)
+                }
                 while !Task.isCancelled {
-                    device.play(haptic)
+                    if let self, self.studyPress {
+                        // Home pilot: silent while the iPhone plays it; the first wrist pulse is the beat start.
+                        if !self.wristSilent {
+                            PilotController.shared.wristBeatPlayed(atMs: Self.nowMs())
+                            device.play(haptic)
+                        }
+                    } else {
+                        device.play(haptic)
+                    }
                     self?.beat += 1
                     // Schedule from the start time so the rhythm doesn't drift.
                     next = next.advanced(by: .seconds(interval))
@@ -327,6 +382,8 @@ final class SessionRecorder {
     struct Motion { var timesMs: [Int64] = [], gx: [Double] = [], gy: [Double] = [], gz: [Double] = [] }
 
     var heartRate: Int?
+    /// Home pilot: every motion sample's acceleration (m/s², wall-clock ms), on the motion queue.
+    var onSample: ((PressSamples.Sample) -> Void)?
     /// Filled while recording every sample; read after `stop()`.
     private(set) var motion = Motion()
     private let motionManager = CMMotionManager()
@@ -369,8 +426,15 @@ final class SessionRecorder {
 
         guard motionManager.isDeviceMotionAvailable else { return }
         motionManager.deviceMotionUpdateInterval = 1.0 / 50
+        let tap = onSample
         motionManager.startDeviceMotionUpdates(to: queue) { [weak self] data, _ in
             guard let self, let data else { return }
+            if let tap {
+                let at = Date.now.timeIntervalSince1970 - (ProcessInfo.processInfo.systemUptime - data.timestamp)
+                let a = data.userAcceleration, gr = data.gravity, g = 9.80665
+                tap(PressSamples.Sample(tMs: Int64((at * 1000).rounded()),
+                                        ax: (a.x + gr.x) * g, ay: (a.y + gr.y) * g, az: (a.z + gr.z) * g))
+            }
             let r = data.rotationRate
             let timeMs: Int64
             if everySample {

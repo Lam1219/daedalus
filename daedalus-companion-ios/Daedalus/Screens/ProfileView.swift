@@ -95,6 +95,16 @@ struct ProfileView: View {
             }
             .buttonStyle(.plain)
 
+            // Home pilot: off unless the physio turns it on at the clinic visit.
+            SageCard(padding: .card()) {
+                NavigationLink { PilotView() } label: {
+                    ListRow(title: L("pilot_title"),
+                            subtitle: L(PilotStore.shared.settings.isActive ? "pilot_row_on" : "pilot_row_off"),
+                            icon: "testtube.2") { chevron }
+                }
+            }
+            .buttonStyle(.plain)
+
             Text(L("disclaimer") + "\n" + L("version", Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""))
                 .font(DS.caption).foregroundStyle(DS.muted).multilineTextAlignment(.center).frame(maxWidth: .infinity)
         }

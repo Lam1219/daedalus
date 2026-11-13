@@ -3499,6 +3499,346 @@
         }
       }
     },
+    "pilot_enrolment": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start date"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Date de début"
+          }
+        }
+      }
+    },
+    "pilot_export": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export pilot files"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exporter les fichiers de l’essai"
+          }
+        }
+      }
+    },
+    "pilot_files_sub": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Files on this iPhone: %lld. They stay here until you export them."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fichiers sur cet iPhone : %lld. Ils restent ici jusqu’à leur export."
+          }
+        }
+      }
+    },
+    "pilot_files_title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pilot files"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fichiers de l’essai"
+          }
+        }
+      }
+    },
+    "pilot_incomplete": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add the pilot code, seed and start date to begin."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajoutez le code, la graine et la date de début pour commencer."
+          }
+        }
+      }
+    },
+    "pilot_iphone_note": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On iPhone the beat plays on your wrist or in your earbuds. A locked iPhone can’t vibrate in a pocket."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sur iPhone, le rythme joue au poignet ou dans vos écouteurs. Un iPhone verrouillé ne peut pas vibrer dans une poche."
+          }
+        }
+      }
+    },
+    "pilot_lead": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only for people taking part in the home pilot. Your physio sets this up with you at the clinic visit."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seulement pour les personnes qui participent à l’essai à domicile. Votre physiothérapeute le règle avec vous lors de la visite."
+          }
+        }
+      }
+    },
+    "pilot_participant": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pilot code"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code de l’essai"
+          }
+        }
+      }
+    },
+    "pilot_participant_hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For example P03 (never a name)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Par exemple P03 (jamais un nom)"
+          }
+        }
+      }
+    },
+    "pilot_pocket_card": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pocket reminder"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rappel de poche"
+          }
+        }
+      }
+    },
+    "pilot_pocket_sub": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "At these times your watch taps if your iPhone didn’t come along."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À ces heures, votre montre vous tapote si votre iPhone ne vous a pas suivi."
+          }
+        }
+      }
+    },
+    "pilot_reminder_add": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a time"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter une heure"
+          }
+        }
+      }
+    },
+    "pilot_reminder_remove": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retirer %@"
+          }
+        }
+      }
+    },
+    "pilot_row_off": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Désactivé"
+          }
+        }
+      }
+    },
+    "pilot_row_on": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On: your watch saves a file for each press"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activé : votre montre enregistre un fichier par appui"
+          }
+        }
+      }
+    },
+    "pilot_seed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seed"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Graine"
+          }
+        }
+      }
+    },
+    "pilot_seed_hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A number from 0 to 2147483647"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un nombre de 0 à 2147483647"
+          }
+        }
+      }
+    },
+    "pilot_switch_sub": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each press plays the beat on your wrist or in your earbuds, and your watch saves a short file about it."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chaque appui joue le rythme au poignet ou dans vos écouteurs, et votre montre enregistre un court fichier."
+          }
+        }
+      }
+    },
+    "pilot_switch_title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Study mode"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mode essai"
+          }
+        }
+      }
+    },
+    "pilot_title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home pilot"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Essai à domicile"
+          }
+        }
+      }
+    },
     "profile_calibration": {
       "extractionState": "manual",
       "localizations": {
