@@ -134,7 +134,8 @@ class BeatRunnerTest {
                     val clock = Clock()
                     val r = BeatRunner(out, clock::schedule)
                     r.start(plan, 100)
-                    clock.advance(1_000)
+                    // The longest wait for a first click: watch audio (round 001, #7).
+                    clock.advance(BeatRunner.WATCH_AUDIO_TIMEOUT_MS)
                     assertTrue("$plan $outcome: something plays", out.playing.isNotEmpty())
                     assertNotNull("$plan $outcome: beat start recorded", r.beatStartMs)
                     if (outcome != "ok") assertEquals(Place.WRIST, r.placeUsed)

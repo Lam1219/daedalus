@@ -19,6 +19,8 @@
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Restart stand-up detection and the pilot's motion ring after a reboot -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <!-- Stand-up prompt opens over the watch face -->
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
@@ -30,6 +32,8 @@
 
     <application
         android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
@@ -63,6 +67,16 @@
             android:taskAffinity=""
             android:theme="@style/Theme.DaedalusWatch.Prompt"
             android:turnScreenOn="true" />
+
+        <!-- After a reboot or an update: stand-up detection, the pilot's motion ring, unfinished presses -->
+        <receiver
+            android:name=".sensor.WatchBootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
 
         <!-- Services -->
         <service

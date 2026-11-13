@@ -82,6 +82,8 @@ object CloudBackup {
         if (!ok(app.auth.requestText("POST", "/rest/v1/rpc/delete_my_account", "{}".toByteArray(), token), "delete_my_account")) return false
         app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().remove("restored:$userId").apply()
         LocalStore(app).run { clearHealthData(); owner = null; cloudBackup = true }
+        // Home pilot press files are health data too (round 001, #10).
+        com.medicina.daedaluscompanion.pilot.PilotFiles.deleteAll(app)
         MedReminders.reschedule(app)
         app.auth.signOut()
         return true
@@ -106,6 +108,8 @@ object CloudBackup {
         val signedIn = owner(app) != null
         if (signedIn && !deleteUploadedLocked(app)) return false
         LocalStore(app).run { clearHealthData(); owner = null; cloudBackup = true }
+        // Home pilot press files are health data too (round 001, #10).
+        com.medicina.daedaluscompanion.pilot.PilotFiles.deleteAll(app)
         MedReminders.reschedule(app)
         if (signedIn) app.auth.signOut()
         return true

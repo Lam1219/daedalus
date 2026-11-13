@@ -31,6 +31,11 @@ object PilotPhoneLink {
         send(c, PilotLink.BEAT_PATH, BeatMessage.Stop(pressId).encode()) {}
     }
 
+    /** Round 001, #24: the person paused or resumed the cue; the phone's beat follows. */
+    fun pauseBeat(c: Context, pressId: String, paused: Boolean) {
+        send(c, PilotLink.BEAT_PATH, BeatMessage.Pause(pressId, paused).encode()) {}
+    }
+
     /** Asks the phone for fresh earbuds, steps and movement; the reply arrives on STATUS_PATH. */
     fun query(c: Context, queryId: String = System.currentTimeMillis().toString()) {
         send(c, PilotLink.QUERY_PATH, queryId) {}

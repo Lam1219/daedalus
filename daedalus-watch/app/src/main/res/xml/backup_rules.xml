@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 11 and below (round 001, #9). -->
+<full-backup-content>
+        <!-- Home pilot: press files and pilot settings never leave the watch except to the phone -->
+        <exclude domain="file" path="pilot/" />
+        <exclude domain="sharedpref" path="pilot.xml" />
+</full-backup-content>

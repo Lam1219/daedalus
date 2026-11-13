@@ -644,18 +644,43 @@
     </ScrollView>
 
     <!-- ===== Home pilot: one-tap check-in after the beat stops (closes by itself after 30 s) ===== -->
-    <LinearLayout
+    <!-- "I'm stuck" comes first: a freeze right after a beat must never wait for the question
+         (round 001, #6). Scrolls on the smallest watches. -->
+    <ScrollView
         android:id="@+id/screen_checkin"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:visibility="gone">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="vertical"
-        android:visibility="gone">
+        android:paddingVertical="16dp">
+
+        <TextView
+            android:id="@+id/btn_checkin_stuck"
+            style="@style/WatchText"
+            android:layout_width="wrap_content"
+            android:layout_height="52dp"
+            android:background="@drawable/bg_pill_sage"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:gravity="center"
+            android:minWidth="124dp"
+            android:paddingHorizontal="18dp"
+            android:text="@string/im_stuck"
+            android:textColor="@color/watch_ground"
+            android:textFontWeight="700"
+            android:textSize="16sp" />
 
         <TextView
             style="@style/WatchText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             android:layout_marginBottom="2dp"
             android:text="@string/pilot_checkin_title"
             android:textColor="@color/watch_muted"
@@ -737,5 +762,6 @@
                 android:textSize="13sp" />
         </LinearLayout>
     </LinearLayout>
+    </ScrollView>
 
 </FrameLayout>

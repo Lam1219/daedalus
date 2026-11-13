@@ -199,6 +199,7 @@ class PilotPhoneService : Service() {
     private var beatId: String? = null
     private var beatThread: Thread? = null
     @Volatile private var beating = false
+    @Volatile private var beatPaused = false
     private var clicks: ClickBeatPlayer? = null
     private var wakeLock: PowerManager.WakeLock? = null
     private val beatCap = Runnable { stopBeat(beatId ?: "") }
@@ -209,6 +210,8 @@ class PilotPhoneService : Service() {
             when (m) {
                 is BeatMessage.Start -> startBeat(m, receivedMs)
                 is BeatMessage.Stop -> stopBeat(m.pressId)
+                // Round 001, #24: pause and resume follow the watch; the beat keeps its timing.
+                is BeatMessage.Pause -> if (m.pressId == beatId) { beatPaused = m.paused; clicks?.paused = m.paused }
                 else -> Unit
             }
         }
@@ -217,6 +220,7 @@ class PilotPhoneService : Service() {
     private fun startBeat(m: BeatMessage.Start, receivedMs: Long) {
         stopBeat(beatId ?: "")
         beatId = m.pressId
+        beatPaused = false
         wakeLock = (getSystemService(POWER_SERVICE) as PowerManager)
             .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Daedalus:PilotBeat").apply { acquire(m.maxMs + 60_000) }
         main.postDelayed(beatCap, m.maxMs) // the watch's 10-minute limit, in case its stop never arrives
@@ -279,7 +283,7 @@ class PilotPhoneService : Service() {
             var k = 0L
             try {
                 while (beating) {
-                    play()
+                    if (!beatPaused) play()
                     if (k == 0L) started(System.currentTimeMillis(), "vibration")
                     k++
                     val wait = (t0 + k * periodNs - System.nanoTime()) / 1_000_000

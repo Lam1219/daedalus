@@ -58,6 +58,10 @@ sealed class BeatMessage {
     data class Stop(val pressId: String) : BeatMessage() {
         override fun encode() = "stop|$pressId"
     }
+    /** The person paused or resumed the cue on the watch (round 001, #24). */
+    data class Pause(val pressId: String, val paused: Boolean) : BeatMessage() {
+        override fun encode() = (if (paused) "pause|" else "resume|") + pressId
+    }
     /** The first click or pulse played at [startMs]; [receivedMs] and [sentMs] for [BeatClock]. */
     data class Started(val pressId: String, val receivedMs: Long, val startMs: Long, val sentMs: Long, val source: String) : BeatMessage() {
         override fun encode() = "started|$pressId|$receivedMs|$startMs|$sentMs|$source"
@@ -76,6 +80,8 @@ sealed class BeatMessage {
                     Start(p.getOrNull(1) ?: return null, player, p.getOrNull(3)?.toIntOrNull() ?: return null, p.getOrNull(4)?.toLongOrNull() ?: return null)
                 }
                 "stop" -> Stop(p.getOrNull(1) ?: return null)
+                "pause" -> Pause(p.getOrNull(1) ?: return null, true)
+                "resume" -> Pause(p.getOrNull(1) ?: return null, false)
                 "started" -> if (p.size < 6) null else Started(
                     p[1], p[2].toLongOrNull() ?: return null, p[3].toLongOrNull() ?: return null, p[4].toLongOrNull() ?: return null, p[5],
                 )
