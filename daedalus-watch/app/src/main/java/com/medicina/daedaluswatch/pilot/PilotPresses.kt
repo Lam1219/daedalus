@@ -85,6 +85,7 @@ object PilotPresses {
     /** Starts the beat of a press made at [pressMs]. Called by HapticService in study mode. */
     fun begin(c: Context, pressMs: Long, bpm: Int, output: BeatOutput): Press {
         val app = c.applicationContext
+        PilotFlags.pressStarted = true
         checkinFor?.let { answer(c, null) } // a new press closes an open check-in, unanswered
         val settings = PilotStore.settings(c)
         val index = PilotStore.takePressIndex(c)

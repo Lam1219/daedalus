@@ -10,3 +10,14 @@ import java.io.File
 fun pilotFolderExists(c: Context): Boolean = pilotFolderExists(c.filesDir)
 
 fun pilotFolderExists(filesDir: File): Boolean = File(filesDir, "pilot").isDirectory
+
+/**
+ * Round 005, #6: set by PilotPresses.begin, read by the watch screen every frame (no preferences
+ * read). A press that starts while the screen's own flag is stale still gets its check-in.
+ */
+object PilotFlags {
+    @Volatile var pressStarted = false
+
+    /** The screen looks at PilotPresses when study mode or pilot files were seen, or a press began. */
+    fun screenReadsPresses(pilotOn: Boolean) = pilotOn || pressStarted
+}
