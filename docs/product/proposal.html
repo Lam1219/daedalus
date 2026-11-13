@@ -1,0 +1,694 @@
+<title>Daedalus Revamp Proposal</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column (max 72rem) with wide tables and screens in their own scroll boxes.
+   Palette: the apps' own Sage tokens (DesignTokens.kt), extended with a dark set and four chart hues. */
+:root{
+  --ground:#F5F6F1; --surface:#FFFFFF; --tint:#E4EBDF; --track:#ECEFE9; --line:#D9DFD5;
+  --sage:#4E6447; --sage-deep:#34452F; --on-sage:#FFFFFF; --ink:#1E2620; --muted:#5F6B61;
+  --alert:#A15C2E; --alert-wash:#F6E9DF; --good:#3F6B4A; --good-wash:#E2EEE4; --warn:#8A6A12; --warn-wash:#F4ECD3;
+  --c-own:#7B847C; --c-laser:#A0741C; --c-parky:#4F6E9C; --c-cue1:#8B5A86; --c-dae:#4E6447;
+  --watch-bg:#000000; --watch-ink:#F2F5EF; --watch-sage:#A9C79F; --watch-dim:#8D978D;
+  --font:'Manrope',system-ui,-apple-system,'Segoe UI',sans-serif; --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --s7:48px; --s8:72px;
+  --r-s:6px; --r-m:8px; --r-l:14px; --r-pill:999px;
+  --t-xs:.75rem; --t-s:.875rem; --t-m:1rem; --t-l:1.25rem; --t-xl:1.75rem; --t-2xl:2.5rem;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --ground:#121713; --surface:#1A211C; --tint:#243022; --track:#222a23; --line:#2E3830;
+  --sage:#A9C79F; --sage-deep:#C8DCC1; --on-sage:#122014; --ink:#E7ECE4; --muted:#A3AFA4;
+  --alert:#E3A27A; --alert-wash:#3A2A1F; --good:#9CCBA6; --good-wash:#1F3325; --warn:#E0C26A; --warn-wash:#352E17;
+  --c-own:#A6AFA7; --c-laser:#D8A94E; --c-parky:#8FAEDB; --c-cue1:#C99BC4; --c-dae:#A9C79F; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --ground:#121713; --surface:#1A211C; --tint:#243022; --track:#222a23; --line:#2E3830;
+  --sage:#A9C79F; --sage-deep:#C8DCC1; --on-sage:#122014; --ink:#E7ECE4; --muted:#A3AFA4;
+  --alert:#E3A27A; --alert-wash:#3A2A1F; --good:#9CCBA6; --good-wash:#1F3325; --warn:#E0C26A; --warn-wash:#352E17;
+  --c-own:#A6AFA7; --c-laser:#D8A94E; --c-parky:#8FAEDB; --c-cue1:#C99BC4; --c-dae:#A9C79F; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--font);font-size:var(--t-m);line-height:1.6;overflow-wrap:anywhere}
+.wrap{max-width:72rem;margin:0 auto;padding-block:var(--s7) var(--s8);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:var(--s8)}
+h1,h2,h3{line-height:1.2;text-wrap:balance;margin:0}
+h1{font-size:var(--t-2xl);font-weight:800;letter-spacing:-.02em}
+h2{font-size:var(--t-xl);font-weight:800;letter-spacing:-.01em}
+h3{font-size:var(--t-l);font-weight:700}
+p{margin:0;max-width:68ch}
+a{color:var(--sage);text-underline-offset:2px}
+a:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--sage);outline-offset:2px;border-radius:4px}
+section{display:grid;gap:var(--s5);min-width:0}
+.eyebrow{font-size:var(--t-xs);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.lede{font-size:var(--t-l);color:var(--ink);max-width:62ch}
+.muted{color:var(--muted)}
+.small{font-size:var(--t-s)}
+.stack{display:grid;gap:var(--s3)}
+.row{display:flex;flex-wrap:wrap;gap:var(--s3);align-items:center}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:var(--s5);display:grid;gap:var(--s4);min-width:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,22rem),1fr));gap:var(--s4)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,17rem),1fr));gap:var(--s4)}
+.tag{display:inline-flex;align-items:center;gap:6px;border-radius:var(--r-pill);padding:2px 10px;font-size:var(--t-xs);font-weight:700;white-space:nowrap;border:1px solid transparent}
+.k-obs{background:var(--good-wash);color:var(--good);border-color:var(--good)}
+.k-own{background:var(--track);color:var(--ink);border-color:var(--line)}
+.k-inf{background:var(--warn-wash);color:var(--warn);border-color:var(--warn)}
+.k-asm{background:var(--alert-wash);color:var(--alert);border-color:var(--alert)}
+.st-untested{background:var(--track);color:var(--muted);border-color:var(--line)}
+.st-weak{background:var(--alert-wash);color:var(--alert);border-color:var(--alert)}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r-l);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:var(--t-s)}
+th,td{text-align:left;vertical-align:top;padding:10px 14px;border-bottom:1px solid var(--line)}
+th{font-size:var(--t-xs);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700;background:var(--track)}
+tr:last-child td{border-bottom:0}
+td.id,.mono{font-family:var(--mono);font-size:var(--t-xs);white-space:nowrap}
+td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+blockquote{margin:0;padding:var(--s3) var(--s4);border-left:3px solid var(--line);background:var(--surface);border-radius:0 var(--r-m) var(--r-m) 0}
+blockquote p{font-size:var(--t-m)}
+blockquote cite{display:block;font-style:normal;font-size:var(--t-xs);color:var(--muted);margin-top:4px}
+.callout{border:1px solid var(--line);background:var(--track);border-radius:var(--r-l);padding:var(--s4) var(--s5);display:grid;gap:var(--s2)}
+.callout.warn{background:var(--alert-wash);border-color:var(--alert)}
+.callout.warn strong{color:var(--alert)}
+.hero{display:grid;gap:var(--s5)}
+.summary{display:grid;gap:var(--s3);padding:0;margin:0;list-style:none}
+.summary li{display:grid;grid-template-columns:auto 1fr;gap:var(--s3);align-items:baseline}
+.summary li b.n{font-family:var(--mono);font-size:var(--t-s);color:var(--sage)}
+.dirs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,19rem),1fr));gap:var(--s4)}
+.dir{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:var(--s5);display:grid;gap:var(--s3);align-content:start}
+.dir.pick{border:2px solid var(--sage)}
+.dir ul{margin:0;padding-left:1.1em;display:grid;gap:4px;font-size:var(--t-s)}
+/* impact / effort grid */
+.ie{display:grid;grid-template-columns:auto repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,auto) auto;gap:6px;min-width:620px}
+.ie .ax{font-size:var(--t-xs);color:var(--muted);font-weight:700;letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;justify-content:center;text-align:center;padding:4px}
+.ie .ax.y{writing-mode:vertical-rl;transform:rotate(180deg)}
+.cell{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-m);padding:var(--s3);display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;min-height:96px}
+.cell.first{border:2px solid var(--sage);background:var(--tint)}
+.cell .lbl{width:100%;font-size:var(--t-xs);font-weight:700;color:var(--sage-deep);letter-spacing:.06em;text-transform:uppercase}
+.chip{font-size:var(--t-xs);font-weight:600;padding:3px 9px;border-radius:var(--r-pill);background:var(--track);border:1px solid var(--line);color:var(--ink)}
+.chip.cut{text-decoration:line-through;color:var(--muted)}
+/* screens */
+.screens{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,20rem),1fr));gap:var(--s5)}
+.shot{display:grid;gap:var(--s3);justify-items:center;align-content:start;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:var(--s5)}
+.shot .cap{justify-self:stretch;display:grid;gap:4px}
+.jobno{font-family:var(--mono);font-size:var(--t-xs);font-weight:500;background:var(--tint);color:var(--sage-deep);border-radius:var(--r-pill);padding:2px 9px;justify-self:start}
+.sample{font-size:var(--t-xs);color:var(--muted)}
+.watch{width:198px;height:240px;border-radius:52px;background:var(--watch-bg);border:8px solid #2b2f2c;box-shadow:0 0 0 2px #444a45;color:var(--watch-ink);display:grid;padding:20px 16px;position:relative;font-family:var(--font)}
+.watch .time{position:absolute;top:12px;right:22px;font-size:12px;color:var(--watch-dim);font-variant-numeric:tabular-nums}
+.watch .big{align-self:center;justify-self:center;width:150px;height:150px;border-radius:50%;background:var(--watch-sage);color:#0f1a10;display:grid;place-items:center;text-align:center;font-weight:800;font-size:20px;line-height:1.15}
+.watch .big small{display:block;font-weight:600;font-size:11px;margin-top:4px}
+.watch .w-row{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--watch-dim)}
+.watch .w-title{font-size:15px;font-weight:700}
+.watch .pulse{display:flex;gap:6px;justify-content:center;align-items:end;height:46px}
+.watch .pulse i{display:block;width:10px;border-radius:5px;background:var(--watch-sage)}
+.watch .w-btn{border-radius:22px;background:#2a302b;color:var(--watch-ink);font-size:13px;font-weight:700;text-align:center;padding:9px}
+.phone{width:290px;min-height:560px;border-radius:38px;border:9px solid #1f2420;background:var(--ground);color:var(--ink);padding:26px 16px 18px;display:grid;gap:12px;align-content:start;font-size:13px}
+.phone .p-title{font-size:20px;font-weight:800}
+.phone .p-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:8px}
+.phone .p-btn{background:var(--sage);color:var(--on-sage);border-radius:var(--r-m);text-align:center;font-weight:800;padding:13px;font-size:14px}
+.phone .p-btn2{border:1px solid var(--sage);color:var(--sage);border-radius:var(--r-m);text-align:center;font-weight:700;padding:11px;font-size:14px;background:var(--surface)}
+.phone .kv{display:flex;justify-content:space-between;gap:8px}
+.phone .kv b{font-variant-numeric:tabular-nums}
+.bars{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end;height:84px}
+.bars div{background:var(--sage);border-radius:4px 4px 0 0}
+.bars-x{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;font-size:10px;color:var(--muted);text-align:center}
+.hours{display:grid;grid-template-columns:repeat(12,1fr);gap:3px}
+.hours span{height:18px;border-radius:3px;background:var(--track)}
+.hours span.h1{background:var(--tint)} .hours span.h2{background:var(--watch-sage)} .hours span.h3{background:var(--sage)}
+/* decisions */
+fieldset{border:1px solid var(--line);border-radius:var(--r-l);background:var(--surface);padding:var(--s5);margin:0;display:grid;gap:var(--s3);min-width:0}
+legend{font-weight:800;font-size:var(--t-m);padding:0 6px}
+.opt{display:grid;grid-template-columns:auto 1fr;gap:var(--s3);align-items:start;padding:var(--s3);border:1px solid var(--line);border-radius:var(--r-m);cursor:pointer;min-height:44px}
+.opt:has(input:checked){border:2px solid var(--sage);background:var(--tint)}
+.opt input{width:20px;height:20px;margin:2px 0 0;accent-color:var(--sage)}
+.opt .on{display:grid;gap:2px}
+.opt .on b{font-weight:700}
+.opt .on span{font-size:var(--t-s);color:var(--muted)}
+.rec{font-size:var(--t-s)}
+.rec b{color:var(--sage-deep)}
+.btn{font:inherit;font-weight:800;border-radius:var(--r-m);padding:12px 18px;min-height:44px;cursor:pointer;border:1px solid var(--sage);background:var(--sage);color:var(--on-sage)}
+.btn.sec{background:var(--surface);color:var(--sage)}
+.btn:hover{filter:brightness(1.06)}
+textarea{width:100%;min-height:9rem;font-family:var(--mono);font-size:var(--t-xs);border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface);color:var(--ink);padding:var(--s3)}
+/* value curve */
+.chart{overflow-x:auto}
+.chart svg{display:block;min-width:640px;width:100%;height:auto}
+.legend{display:flex;flex-wrap:wrap;gap:var(--s4);font-size:var(--t-s)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.legend i{display:inline-block;width:22px;height:4px;border-radius:2px}
+.seg-bar{height:10px;border-radius:5px;background:var(--sage)}
+details summary{cursor:pointer;font-weight:700}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+
+<header class="hero">
+  <div class="eyebrow">Proposal · Daedalus · Updated 2026-11-13 · Status: reviewed by the owner on 2026-11-13; direction A accepted</div>
+  <h1>Narrow Daedalus to one job: getting unstuck, on the watch people already wear</h1>
+  <p class="lede">This revamp starts from the Nov 11 business case and keeps its core: freezing first, the cue on demand, automatic cues only once proven quiet. Six things change it.</p>
+  <ul class="summary">
+    <li><b class="n">1</b><span><b>The first release is cut to the freeze loop:</b> start the beat, set your own pace, and see your week with your doses and last night's sleep beside the times you got stuck. You can share it with your physio and neurologist. Breathing stays because it is built. The Fine motor and Calm vibration modes move behind a setting, and dyskinesia waits. <i>Doses and sleep are your decision of 2026-11-13.</i></span></li>
+    <li><b class="n">2</b><span><b>The beat can also play as sound in earbuds,</b> because the only head-to-head study found a vibrating metronome worked worse than a sound one, and no study has tested the wrist alone.</span></li>
+    <li><b class="n">3</b><span><b>Before more building, 10 hallway tests with the current prototype</b> check the plan's weakest point: whether someone who is frozen can start the cue at all.</span></li>
+    <li><b class="n">4</b><span><b>The "wellness" route looks weak in both countries.</b> Plan R1 as a Class I device in Canada and ask Health Canada to classify it, instead of relying on a wellness opinion.</span></li>
+    <li><b class="n">5</b><span><b>The reachable market is smaller than assumed.</b> The only figures found say about 1 in 5 older adults wears a smartwatch. They are from 2019–20 and not specific to Parkinson's. That would put about 9,000 Canadians who freeze within reach without new hardware. The interviews will measure the real share.</span></li>
+    <li><b class="n">6</b><span><b>Platform facts change the build.</b> On Apple Watch the cue must open the app to start, the current workout-session approach is an App Review risk, and all-day recording can only be scored afterwards. The data program needs an independent ethics board either way.</span></li>
+  </ul>
+  <div class="callout">
+    <strong>Words used on this page</strong>
+    <p class="small"><b>Business case</b>: the Nov 11, 2026 business case and development plan in <code class="mono">Documentation/</code>, the starting point. <b>Nov 10 cue design</b>: <code class="mono">Documentation/automatic-cues-design.md</code>, which the current code branch builds. <b>R1, R2, R3</b>: the business case's three releases. R1 is the first app people can get, with the cue started by a press. R2 adds freeze monitoring under a Health Canada licence. R3 adds automatic cueing after a controlled trial. <b>The guard</b>, or <b>shadow mode</b>: the freezing detector already on both watches. It runs silently, never cues, and only records what it would have done.</p>
+  </div>
+  <div class="callout">
+    <strong>Where this stands</strong>
+    <p class="small">You took all seven decisions on 2026-11-13 (section 8): direction A, with hallway tests and interviews before any new feature. Next comes a plan for those tests.</p>
+  </div>
+</header>
+
+<!-- 1. RESEARCH -->
+<section id="research">
+  <div class="eyebrow">1 · Research</div>
+  <h2>What the evidence says</h2>
+  <p>Every claim has a kind. <span class="tag k-obs">observed</span> is a published fact or something people said, with its source. <span class="tag k-own">owner</span> is your decision or assertion. <span class="tag k-inf">inference</span> is my reasoning from the evidence listed. <span class="tag k-asm">assumption</span> has no support yet. All sources read 2026-11-13 unless the business case is cited.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>#</th><th>Claim</th><th>Kind</th><th>Source</th></tr></thead>
+    <tbody>
+    <tr><td class="id">E1</td><td>About 43% of people with Parkinson's freeze, rising to about 70% after ten years.</td><td><span class="tag k-obs">observed</span></td><td><a href="https://link.springer.com/article/10.1007/s00415-020-10117-w">Tosserams 2020</a>; <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7398304/">Zhang 2020</a> (business case)</td></tr>
+    <tr><td class="id">E2</td><td>Every positive vibration-cue study for freezing cued the leg, foot or chest. We found none that tested the wrist alone.</td><td><span class="tag k-obs">observed</span></td><td>Business case § The evidence; no wrist study found in this round</td></tr>
+    <tr><td class="id">E3</td><td>In a 20-person study, a vibrating metronome disturbed walking more than a sound metronome at the same beat; a laser cane worked best.</td><td><span class="tag k-obs">observed</span></td><td><a href="https://clok.uclan.ac.uk/12695/3/12695_selfe.pdf">UCLan, Selfe et al.</a></td></tr>
+    <tr><td class="id">E4</td><td>Cues lose their effect once they stop being new.</td><td><span class="tag k-obs">observed</span></td><td><a href="https://www.parkinsons.org.uk/node/1005946">Parkinson's UK, freezing</a></td></tr>
+    <tr><td class="id">E5</td><td>People already have their own tricks: walking backwards, counting in a sing-song voice, not standing still.</td><td><span class="tag k-obs">observed</span></td><td>Parkinson's UK forum (quotes below)</td></tr>
+    <tr><td class="id">E6</td><td>During long freezes some people panic and lose the feel of their body.</td><td><span class="tag k-obs">observed</span></td><td><a href="https://forum.parkinsons.org.uk/t/freezing/25024">Carer, 2 Sep 2020</a></td></tr>
+    <tr><td class="id">E7</td><td>CUE1+ users switch it off when the buzz annoys them; CUE1+ is currently unavailable.</td><td><span class="tag k-obs">observed</span></td><td><a href="https://forum.parkinsons.org.uk/t/cue-1-by-charco/32021?page=4">Forum</a>; <a href="https://www.charconeurotech.com/">Charco site</a></td></tr>
+    <tr><td class="id">E8</td><td>Parky has 1.0★ from 2 US ratings, both about waiting for a prescription; plans from US$19.99 a month to $249 a year.</td><td><span class="tag k-obs">observed</span></td><td><a href="https://apps.apple.com/us/app/parky-for-parkinsons/id1530016683">US App Store</a></td></tr>
+    <tr><td class="id">E9</td><td>Foggy is a tap-started wrist cue, listed by the FDA as Class II and sold on prescription. Its product code could not be confirmed.</td><td><span class="tag k-obs">observed</span></td><td><a href="https://www.newswire.com/news/h2o-announces-fda-listing-of-apple-watch-based-cueing-feature-foggy-22294568">h2o release, 2024</a>; FDA database searched, no listing found</td></tr>
+    <tr><td class="id">E10</td><td>FDA's General Wellness guidance (6 Jan 2026) allows disease claims only as "may help living well with", resting on a healthy-lifestyle link.</td><td><span class="tag k-obs">observed</span></td><td><a href="https://www.fda.gov/media/90652/download">FDA guidance</a></td></tr>
+    <tr><td class="id">E11</td><td>Health Canada excludes only general-wellness software from device rules; status depends on how a product is labelled and marketed.</td><td><span class="tag k-obs">observed</span></td><td><a href="https://www.canada.ca/en/health-canada/services/drugs-health-products/medical-devices/application-information/guidance-documents/software-medical-device-guidance-document.html">Health Canada SaMD guidance</a></td></tr>
+    <tr><td class="id">E12</td><td>A stepping beat sold to people with Parkinson's for freezing is unlikely to pass as wellness in either country.</td><td><span class="tag k-inf">inference</span></td><td>From E9, E10, E11</td></tr>
+    <tr><td class="id">E13</td><td>A Class I device in Canada needs no device licence, and no establishment licence when sold only to end users. Those rules change on 14 Dec 2026.</td><td><span class="tag k-obs">observed</span></td><td><a href="https://www.canada.ca/en/health-canada/services/drugs-health-products/compliance-enforcement/establishment-licences/directives-guidance-documents-policies/guidance-medical-device-establishment-licensing-0016.html">MDEL guidance</a>; <a href="https://gazette.gc.ca/rp-pr/p2/2026/2026-06-17/html/sor-dors110-eng.html">SOR/2026-110</a></td></tr>
+    <tr><td class="id">E14</td><td>On Apple Watch a haptic session must start while the app is open. The "physical therapy" session type runs for an hour in the background.</td><td><span class="tag k-obs">observed</span></td><td><a href="https://developer.apple.com/documentation/watchkit/using-extended-runtime-sessions">Apple: extended runtime sessions</a></td></tr>
+    <tr><td class="id">E15</td><td>Today's iPhone cue runs on a workout session, which App Review may reject as a use outside its purpose (guideline 2.5.4).</td><td><span class="tag k-inf">inference</span></td><td><code class="mono">DaedalusWatch/Cue/CueController.swift</code>; <a href="https://developer.apple.com/app-store/review/guidelines/">App Review guidelines</a></td></tr>
+    <tr><td class="id">E16</td><td>Apple's all-day motion recorder keeps 50 Hz data for about 3 days, 12 hours per request, nothing while charging, so a silent model on Apple Watch can only score the day afterwards.</td><td><span class="tag k-obs">observed</span> + <span class="tag k-inf">inference</span></td><td><a href="https://developer.apple.com/documentation/coremotion/cmsensorrecorder/recordaccelerometer(forduration:)">Apple docs</a>; <a href="https://developer.apple.com/forums/thread/855012">Apple forum</a></td></tr>
+    <tr><td class="id">E17</td><td>App Store rule 5.1.3 requires an independent ethics board for apps doing health research.</td><td><span class="tag k-obs">observed</span></td><td><a href="https://developer.apple.com/app-store/review/guidelines/">App Review 5.1.3(iv)</a></td></tr>
+    <tr><td class="id">E18</td><td>Samsung's Health Sensor SDK still needs a partnership before an app that uses it can be distributed.</td><td><span class="tag k-obs">observed</span></td><td><a href="https://developer.samsung.com/health/sensor/faq.html">Samsung FAQ</a></td></tr>
+    <tr><td class="id">E19</td><td>About 14% of Americans 65+ used a wearable (2019–20); 18% of Canadians 65+ use a digital watch for health (2019). Both figures are old.</td><td><span class="tag k-obs">observed</span></td><td><a href="https://leadingage.org/frequent-use-of-wearable-devices-can-increase-physical-activity">LeadingAge/HINTS</a>; <a href="https://environics.ca/news/7-in-10-canadians-aged-65-and-over-feel-confident-about-technology-use-and-86-are-online-daily/">Environics/AGE-WELL</a></td></tr>
+    <tr><td class="id">E20</td><td>About 9,000 Canadians who freeze already wear a smartwatch. The business case's R2 break-even (830–3,300 patients) would need 9–37% of them.</td><td><span class="tag k-inf">inference</span></td><td>45,000 who freeze (business case) × about 20% (E19)</td></tr>
+    <tr><td class="id">E21</td><td>One person called a £179 Apple Watch "a big financial layout".</td><td><span class="tag k-obs">observed</span></td><td><a href="https://forum.parkinsons.org.uk/t/apple-watch-2026/49632">Forum, 11 Jul 2026</a></td></tr>
+    <tr><td class="id">E22</td><td>We found no Apple, Samsung or Google watch feature for freezing in 2026. Samsung and Google newsrooms were not searched directly.</td><td><span class="tag k-obs">observed</span> (partial)</td><td><a href="https://9to5mac.com/2026/06/08/watchos-27-apple-watch-update-details/">watchOS 27 coverage</a></td></tr>
+    <tr><td class="id">E23</td><td>The watch app today has four cue modes (Walking, Breathing, Fine motor, Calm), a tremor check, stand-up prompts and the guard in shadow mode.</td><td><span class="tag k-obs">observed</span></td><td><code class="mono">daedalus-watch/…/strings.xml</code></td></tr>
+    <tr><td class="id">E27</td><td>In a 30-person within-subject trial, open-loop wrist vibration did not change Parkinson's tremor. The only positive wearable tremor trial (n = 44) had no sham arm.</td><td><span class="tag k-obs">observed</span></td><td>Business case § Tremor (2025 <i>Clinical Neurophysiology</i> trial, citation still to confirm); <a href="https://www.frontiersin.org/journals/human-neuroscience/articles/10.3389/fnhum.2021.712621/full">Tabacof 2021</a></td></tr>
+    <tr><td class="id">E28</td><td>The dose report stays in the first version, because dose timing may change how often the person gets stuck. Add sleep where the watch has it, because a bad night makes symptoms worse.</td><td><span class="tag k-own">owner</span> decision</td><td>The owner, 2026-11-13</td></tr>
+    <tr><td class="id">E29</td><td>People with Parkinson's who freeze sleep worse and are sleepier by day than those who don't. The link may run both ways. No study found tests whether one bad night brings more freezes the next day.</td><td><span class="tag k-obs">observed</span></td><td><a href="https://macau.uni-kiel.de/receive/macau_mods_00006270">Systematic review, Sleep Medicine 2024</a>; <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11772505/">PPMI cohort 2024</a></td></tr>
+    <tr><td class="id">E30</td><td>Neurologists who adjusted treatment using a wrist-worn symptom report improved patients' scores more than standard care (TARGET-PD).</td><td><span class="tag k-obs">observed</span></td><td>Business case § Wearing-off, via <a href="https://neurologylive.com/view/personal-kinetigraph-shows-improvements-compared-to-standard-care-in-parkinson-disease">NeurologyLive</a> (paper still to confirm)</td></tr>
+    <tr><td class="id">E31</td><td>Apple Watch writes sleep stages (core, deep, REM) to HealthKit, which an app can read once the night's record is written after waking.</td><td><span class="tag k-obs">observed</span></td><td><a href="https://developer.apple.com/documentation/healthkit/hkcategoryvaluesleepanalysis">Apple: sleep analysis values</a>; <a href="https://developer.apple.com/forums/thread/804512">Apple forum</a></td></tr>
+    <tr><td class="id">E32</td><td>Galaxy Watch sleep reaches other apps through Samsung Health and Health Connect, with a sync delay. The person must allow it. Whether sleep stages come across is unconfirmed.</td><td><span class="tag k-obs">observed</span> (partial)</td><td><a href="https://developer.samsung.com/health/blog/en-us/managing-sleep-data-with-samsung-health-and-health-connect">Samsung developer blog</a>; <a href="https://developer.android.com/health-and-fitness/health-connect/features/sleep-sessions">Health Connect: sleep sessions</a></td></tr>
+    <tr><td class="id">E33</td><td>Both phone apps record a dose at the moment "Take" is pressed, including from a reminder notification, and offer no way to change that time afterwards.</td><td><span class="tag k-obs">observed</span></td><td><code class="mono">MedReminders.markTaken</code> (Android and iOS)</td></tr>
+    <tr><td class="id">E34</td><td>A dose can be logged with the time it was actually taken, not the time of the press.</td><td><span class="tag k-own">owner</span> decision</td><td>The owner, 2026-11-13</td></tr>
+    <tr><td class="id">E24</td><td>Canada first, both watch platforms, Supabase in Canada.</td><td><span class="tag k-own">owner</span></td><td>Business case; AGENTS.md</td></tr>
+    <tr><td class="id">E25</td><td>R1 can launch as wellness, free, through clinics.</td><td><span class="tag k-own">owner</span> assertion</td><td>Business case. A hypothesis sourced only to the owner; E12 weakens it</td></tr>
+    <tr><td class="id">E26</td><td>People who freeze can press a button on the watch while frozen.</td><td><span class="tag k-asm">assumption</span></td><td>No source found; E6 cuts against it</td></tr>
+    </tbody></table></div>
+
+  <h3>In their own words</h3>
+  <p class="small muted">All quotes are from the Parkinson's UK forum or the App Store, by people with Parkinson's or their carers. Reddit and HealthUnlocked blocked automated reading, so neither is represented. Four quotes were rechecked against their pages word for word.</p>
+  <div class="grid2">
+    <blockquote><p>“It’s worst in the house. doorways are real problems.”</p><cite><a href="https://forum.parkinsons.org.uk/t/freezing-gait/32257">Grabcsma, 25 May 2022</a></cite></blockquote>
+    <blockquote><p>“My dad has started freezing for longer periods and can’t feel his body so he panics and gets really upset”</p><cite><a href="https://forum.parkinsons.org.uk/t/freezing/25024">MissK (carer), 2 Sep 2020</a></cite></blockquote>
+    <blockquote><p>“Personally I don't find lines or counting very effective although counting with a sing song voice does sometimes work.”</p><cite><a href="https://forum.parkinsons.org.uk/t/freezing/25024">Tot, 6 Sep 2020</a></cite></blockquote>
+    <blockquote><p>“It took me a while to stop feeling embarrassed about getting “stuck”</p><cite><a href="https://forum.parkinsons.org.uk/t/gait-freezing-again/42038">Rabbit1, 18 Sep 2024</a></cite></blockquote>
+    <blockquote><p>“He does turn it off if the vibration annoys him and forgets to turn it on again.”</p><cite><a href="https://forum.parkinsons.org.uk/t/cue-1-by-charco/32021?page=4">Alisongs (carer), on CUE1, 30 Jan 2024</a></cite></blockquote>
+    <blockquote><p>“Down load a metronome and play back through earphones”</p><cite><a href="https://forum.parkinsons.org.uk/t/freezing-gait/32257">Welsh_JEFF, 22 May 2022</a></cite></blockquote>
+  </div>
+</section>
+
+<!-- 2. ALTERNATIVES -->
+<section id="alternatives">
+  <div class="eyebrow">2 · Alternatives</div>
+  <h2>What people who freeze use today</h2>
+  <p>The strongest competitor is free and already in people's heads. Competitors' own claims are treated only as how they position themselves.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Alternative</th><th>What it gives</th><th>Where it falls short</th><th>Price</th><th>Source</th></tr></thead>
+    <tbody>
+    <tr><td><b>Own tricks, a physio's strategies, or waiting</b></td><td>Free, always there. Counting, weight shift, stepping over a line, walking backwards.</td><td>Works differently for each person and fades with use (E4). People avoid shops instead.</td><td class="num">Free</td><td><a href="https://www.parkinson.ca/?p=55391">Parkinson Canada</a>; forum</td></tr>
+    <tr><td><b>Laser cane or walker</b> (U-Step)</td><td>A line to step over, always in view. Best cue in a small study (E3).</td><td>Bulky; hard to see outdoors; "too cumbersome for use at home".</td><td class="num">CAD ~1,300 walker; US$240 cane</td><td><a href="https://specialneedscomputers.ca/products/standard-u-step-neuro">Retailer</a></td></tr>
+    <tr><td><b>Metronome app with earphones</b></td><td>A free sound beat.</td><td>Must be started on the phone; step-detecting apps "cannot help you break out of freezes".</td><td class="num">Free</td><td><a href="https://techguide.parkinsons.org.uk/catalogue/rhythm">Parkinson's UK Tech Guide</a></td></tr>
+    <tr><td><b>Parky with Foggy</b> (h2o)</td><td>A wrist tap cue started from a watch face, plus tremor and dyskinesia monitoring.</td><td>Apple only, US prescription, not in Canada; reviews about prescription waits (E8).</td><td class="num">US$20/mo</td><td><a href="https://apps.apple.com/us/app/parky-for-parkinsons/id1530016683">App Store</a></td></tr>
+    <tr><td><b>Dedicated devices</b> (CUE1+, Path Finder, Skywalk)</td><td>Chest vibration, laser shoes, or automatic detection with laser or earphone cue.</td><td>£795–899 one-off; CUE1+ unavailable; skin irritation and buzz complaints.</td><td class="num">£795–899</td><td><a href="https://techguide.parkinsons.org.uk/catalogue/cue1plus">Tech Guide</a>; <a href="https://techguide.parkinsons.org.uk/catalogue/skywalk">Skywalk</a></td></tr>
+    </tbody></table></div>
+</section>
+
+<!-- 3. SEGMENT -->
+<section id="segment">
+  <div class="eyebrow">3 · Segment</div>
+  <h2>Who the first version is for</h2>
+  <p>People in Canada with Parkinson's who freeze, already wear an Apple Watch or Galaxy Watch, and are seen by a neurological physiotherapist. The physio sets their pace in clinic and is the main way people hear about Daedalus. Scores are my judgement on a 1–5 scale, not measurements. "Will pay" and "winnable" in particular have no direct evidence yet; the interviews test them (H5).</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Segment</th><th>Burning pain</th><th>Will pay</th><th>Winnable</th><th>Refers others</th><th>Total /20</th><th style="width:28%"></th></tr></thead>
+    <tbody>
+    <tr><td><b>People who freeze, own a smartwatch, see a neuro physio</b></td><td class="num">5</td><td class="num">3</td><td class="num">4</td><td class="num">4</td><td class="num"><b>16</b></td><td><div class="seg-bar" style="width:80%"></div></td></tr>
+    <tr><td>Carers of people who freeze</td><td class="num">4</td><td class="num">3</td><td class="num">3</td><td class="num">3</td><td class="num">13</td><td><div class="seg-bar" style="width:65%"></div></td></tr>
+    <tr><td>Neuro physiotherapy clinics, as buyer</td><td class="num">2</td><td class="num">2</td><td class="num">3</td><td class="num">5</td><td class="num">12</td><td><div class="seg-bar" style="width:60%"></div></td></tr>
+    <tr><td>Early, tremor-dominant Parkinson's (Parky's users)</td><td class="num">2</td><td class="num">2</td><td class="num">1</td><td class="num">2</td><td class="num">7</td><td><div class="seg-bar" style="width:35%"></div></td></tr>
+    </tbody></table></div>
+  <p class="small muted">The first segment is small: about 9,000 people in Canada (E20). That fits a first market and is too small for the business case's R2 break-even without the US.</p>
+</section>
+
+<!-- 4. VALUE PROPOSITION + CURVE -->
+<section id="value">
+  <div class="eyebrow">4 · Value proposition and value curve</div>
+  <h2>One press, your own pace, on the wrist or in your ears</h2>
+  <div class="grid3">
+    <div class="panel"><div class="eyebrow">Who</div><p>People with Parkinson's who freeze and already wear a smartwatch.</p></div>
+    <div class="panel"><div class="eyebrow">Why</div><p>Their feet stick at doorways, turns and when they start walking. They feel embarrassed and avoid shops.</p></div>
+    <div class="panel"><div class="eyebrow">What before</div><p>Their own tricks, which fade; a laser cane that stays at home; nothing at all outdoors.</p></div>
+    <div class="panel"><div class="eyebrow">How</div><p>One press on the watch starts a beat at their own walking pace, as a wrist pulse or a sound in their earbuds. It stops by itself once they are walking.</p></div>
+    <div class="panel"><div class="eyebrow">What after</div><p>They get going again quietly, in public too. They and their care team can see when they get stuck, next to their doses and how they slept.</p></div>
+    <div class="panel"><div class="eyebrow">Alternatives</div><p>Own tricks, laser cane, metronome app, Parky (not in Canada), CUE1+ (paused).</p></div>
+  </div>
+  <div class="panel">
+    <h3>Value curve</h3>
+    <p class="small muted">0 = none, 4 = strong. Scores are my judgement from the sources in sections 1 and 2. Daedalus's line is a target for R1, not a measurement, so it flatters Daedalus until the hallway tests measure it.</p>
+    <div class="legend" aria-hidden="true">
+      <span><i style="background:var(--c-dae);height:5px"></i>Daedalus R1 (target)</span>
+      <span><i style="background:var(--c-own)"></i>Own tricks</span>
+      <span><i style="background:var(--c-laser)"></i>Laser cane</span>
+      <span><i style="background:var(--c-parky)"></i>Parky with Foggy</span>
+      <span><i style="background:var(--c-cue1)"></i>CUE1+</span>
+    </div>
+    <div class="chart" id="vc" role="img" aria-label="Value curve comparing Daedalus R1 target with own tricks, laser cane, Parky with Foggy and CUE1+ across eight factors; table below gives the values"></div>
+    <details><summary class="small">The values as a table</summary><div class="tbl" id="vc-table" style="margin-top:8px"></div></details>
+  </div>
+</section>
+
+<!-- 5. RECOMMENDATION -->
+<section id="recommendation">
+  <div class="eyebrow">5 · Recommendation</div>
+  <h2>Three directions; I recommend A</h2>
+  <div class="dirs">
+    <article class="dir pick">
+      <div class="row"><span class="tag k-obs">Recommended</span></div>
+      <h3>A · The freeze loop, narrowed</h3>
+      <p class="small">For people who freeze and own a watch, through their physio. Daedalus does one job well: get unstuck.</p>
+      <div class="small"><b>The first version does</b></div>
+      <ul>
+        <li>Start the beat from the watch face, a control, the Action button or the app.</li>
+        <li>Play it as a wrist pulse or sound in earbuds, at the person's pace, stopping when they walk.</li>
+        <li>Set the pace with a one-minute walk, with the physio.</li>
+        <li>Show the week: presses by day and hour, shareable with the physio.</li>
+        <li>Let the person set the time a dose was actually taken, with "now" as the default, so a dose logged late still lands at the right time.</li>
+        <li>Put doses (from the existing "Take" button) and last night's sleep (from Apple Health or Health Connect) on the same timeline as the presses, shareable with the neurologist. Never suggest a dose.</li>
+        <li>Keep breathing, which is already built.</li>
+      </ul>
+      <div class="small"><b>It deliberately leaves out</b></div>
+      <ul>
+        <li>Automatic cues (the guard stays silent), detected symptoms in the dose report (R2), dyskinesia, posture. Fine motor and Calm stay in the app, behind a setting (D3).</li>
+      </ul>
+      <p class="small"><b>Trade-off:</b> less to show a clinic or investor, and more riding on one feature.</p>
+    </article>
+    <article class="dir">
+      <h3>B · A physio's home-practice tool</h3>
+      <p class="small">For neuro physiotherapists: they prescribe walking practice with a beat, the watch delivers sessions, and they see adherence.</p>
+      <ul>
+        <li>Fits better than A under an FDA policy that leaves alone apps helping people manage their own condition, such as home exercise.</li>
+        <li>Doesn't depend on pressing a button mid-freeze.</li>
+        <li>Clinics pay, but they score lowest on pain and willingness to pay.</li>
+      </ul>
+      <p class="small"><b>Trade-off:</b> it helps practice, not the freeze in the doorway, which is the person's real problem.</p>
+    </article>
+    <article class="dir">
+      <h3>C · Keep the broad companion</h3>
+      <p class="small">Today's app: four cue modes, tremor check, breathing, medication, then the dose report and dyskinesia.</p>
+      <ul>
+        <li>The most features, most of them built.</li>
+        <li>Competes head-on with Parky and StrivePD using the same Apple algorithm.</li>
+        <li>The Fine motor and Calm buzzes have no evidence behind them.</li>
+      </ul>
+      <p class="small"><b>Trade-off:</b> no specific, provable reason for anyone to choose it.</p>
+    </article>
+  </div>
+  <div class="callout">
+    <strong>Why A</strong>
+    <p class="small">Freezing is where the pain is (segment 1 scores highest). We found nothing on the watch for freezing in Canada, though Samsung's and Google's own news pages were not searched. A is mostly built, so the test that decides it is cheap. Its outcome is uncertain: if H1 fails, the press trigger changes (section 9). B's physio set-up is kept inside A as the way people start. C spreads the product thin where Parky already sits.</p>
+  </div>
+
+  <div class="panel">
+    <h3>What to build first: impact on people against cost</h3>
+    <p class="small muted">Impact = what a person who freezes would notice. Effort = build and approval cost, judged from the code and the research. Items outside R1 are marked R2 or "after the gate".</p>
+    <div class="tbl" style="border:0;background:transparent"><div class="ie">
+      <div class="ax y">High impact</div>
+      <div class="cell first"><span class="lbl">Do first</span><span class="chip">10 hallway tests with today's prototype</span><span class="chip">20 interviews</span><span class="chip">Beat from a control or watch face, auto-stop</span><span class="chip">Earbud sound beat</span><span class="chip">Adjustable dose time</span></div>
+      <div class="cell"><span class="chip">Pace set-up walk with the physio</span><span class="chip">My week, shared as PDF</span><span class="chip">Doses and sleep beside the presses</span></div>
+      <div class="cell"><span class="chip">Automatic cues (after the home false-alarm gate)</span></div>
+      <div class="ax y">Medium</div>
+      <div class="cell"><span class="chip">Beat on standing up (stand-up detection exists)</span><span class="chip">Breathing (built)</span></div>
+      <div class="cell"><span class="chip">Health Canada classification request</span><span class="chip">Move the Apple cue to a physical-therapy session</span></div>
+      <div class="cell"><span class="chip">Detected symptoms in the dose report (R2)</span><span class="chip">Data program with ethics board</span></div>
+      <div class="ax y">Low</div>
+      <div class="cell"><span class="chip">Posture reminders</span><span class="chip">Fine motor and Calm behind a setting</span></div>
+      <div class="cell"><span class="chip">Caregiver view</span></div>
+      <div class="cell"><span class="chip">Silent detector (guard, shadow)</span><span class="chip">Dyskinesia on Wear OS</span></div>
+      <div></div>
+      <div class="ax">Low effort</div><div class="ax">Medium effort</div><div class="ax">High effort</div>
+    </div></div>
+  </div>
+</section>
+
+<!-- 6. JOBS -->
+<section id="jobs">
+  <div class="eyebrow">6 · Jobs map</div>
+  <h2>Seven jobs, seven screens</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>#</th><th>Job, in the person's words</th><th>Screen</th><th>Its one question</th><th>Primary action</th></tr></thead>
+    <tbody>
+    <tr><td class="id">1</td><td>"When my feet stick, help me get going."</td><td>Watch: I'm stuck</td><td>How do I start the beat right now?</td><td>Press anywhere on the circle</td></tr>
+    <tr><td class="id">2</td><td>"Keep the beat until I'm walking, then leave me alone."</td><td>Watch: Beat on</td><td>Is it working, and will it stop by itself?</td><td>Stop (or nothing: it stops when walking)</td></tr>
+    <tr><td class="id">3</td><td>"Set the beat to the way I walk."</td><td>Phone: Set my pace</td><td>What pace suits me?</td><td>Start the one-minute walk</td></tr>
+    <tr><td class="id">4</td><td>"Show my physio how my week went."</td><td>Phone: My week</td><td>When did I get stuck this week?</td><td>Share with my physio</td></tr>
+    <tr><td class="id">5</td><td>"Show my neurologist whether my doses and my sleep line up with when I get stuck."</td><td>Phone: Doses and sleep</td><td>Do I get stuck more as a dose wears off, or after a bad night?</td><td>Share with my neurologist</td></tr>
+    <tr><td class="id">6</td><td>"Decide if I want to help build automatic cues."</td><td>Phone: Help the research</td><td>What happens to my data if I join?</td><td>Join, or Not now</td></tr>
+    <tr><td class="id">7</td><td>"Note when I really took my pill, even if I log it later."</td><td>Phone: Log a dose</td><td>When did I take it?</td><td>Save with that time</td></tr>
+    </tbody></table></div>
+</section>
+
+<!-- 7. SCREENS -->
+<section id="screens">
+  <div class="eyebrow">7 · Key screens</div>
+  <h2>The first version, screen by screen</h2>
+  <p class="small muted">Static, high-fidelity screens in the apps' Sage palette and Manrope type. All names and numbers are sample data. The watch is always shown dark, as watch faces are.</p>
+  <div class="screens">
+
+    <figure class="shot" style="margin:0">
+      <div class="watch">
+        <span class="time">10:42</span>
+        <div class="big">I’m stuck<small>Press anywhere</small></div>
+      </div>
+      <figcaption class="cap"><span class="jobno">Job 1</span><b>Watch: I'm stuck</b><span class="small">The whole circle is the button, for shaking hands. From a watch-face complication, a Control Center control or the Ultra's Action button, the goal is one press that opens the app with the beat already running. Apple requires the app to come to the front, so whether that stays one press must be checked on a real watch.</span><span class="sample">Sample data</span></figcaption>
+    </figure>
+
+    <figure class="shot" style="margin:0">
+      <div class="watch" style="align-content:space-between;padding-top:30px">
+        <span class="time">10:42</span>
+        <div class="w-row"><span class="w-title" style="color:var(--watch-ink)">Beat on</span><span>Wrist + earbuds</span></div>
+        <div class="pulse" aria-hidden="true"><i style="height:16px"></i><i style="height:40px"></i><i style="height:16px"></i><i style="height:40px"></i><i style="height:16px"></i></div>
+        <div style="text-align:center;font-size:24px;font-weight:800;font-variant-numeric:tabular-nums">104 <span style="font-size:11px;font-weight:600;color:var(--watch-dim)">steps/min</span></div>
+        <div class="w-row" style="justify-content:center">Stops when you’re walking</div>
+        <div class="w-btn">Stop</div>
+      </div>
+      <figcaption class="cap"><span class="jobno">Job 2</span><b>Watch: Beat on</b><span class="small">Shows the pace and where the beat plays ("earbuds" only if D5 is yes). The watch counts steps. After a few seconds of steady steps the beat stops by itself. If the person stays stuck, it keeps going until they press Stop.</span><span class="sample">Sample data: 104 steps a minute</span></figcaption>
+    </figure>
+
+    <figure class="shot" style="margin:0">
+      <div class="phone">
+        <div class="p-title">Set my pace</div>
+        <p style="margin:0;color:var(--muted)">Walk normally for one minute with your physio beside you. Daedalus counts your steps and sets your beat to match.</p>
+        <div class="p-card">
+          <div class="kv"><span>Last pace</span><b>104 steps/min</b></div>
+          <div class="kv"><span>Set on</span><b>4 Nov 2026</b></div>
+          <div class="kv"><span>Set with</span><b>Marie, physio</b></div>
+        </div>
+        <div class="p-card">
+          <div style="font-weight:700">Where the beat plays</div>
+          <div class="kv"><span>Wrist</span><b>On</b></div>
+          <div class="kv"><span>Earbuds when connected</span><b>On</b></div>
+        </div>
+        <div class="p-btn">Start the one-minute walk</div>
+        <div class="p-btn2">Set by hand</div>
+      </div>
+      <figcaption class="cap"><span class="jobno">Job 3</span><b>Phone: Set my pace</b><span class="small">The physio's visit is the onboarding. Someone without a physio walks alone or uses "Set by hand". The person can also turn the wrist pulse or the earbud sound off.</span><span class="sample">Sample data: name and date are examples</span></figcaption>
+    </figure>
+
+    <figure class="shot" style="margin:0">
+      <div class="phone">
+        <div class="p-title">My week</div>
+        <div class="p-card">
+          <div class="kv"><span>Times you pressed “I’m stuck”</span><b>23</b></div>
+          <div class="kv"><span>Beat ran until you walked, on average</span><b>9 s</b></div>
+          <div class="bars" aria-hidden="true"><div style="height:30%"></div><div style="height:55%"></div><div style="height:40%"></div><div style="height:70%"></div><div style="height:35%"></div><div style="height:20%"></div><div style="height:45%"></div></div>
+          <div class="bars-x"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+        </div>
+        <div class="p-card">
+          <div style="font-weight:700">When in the day</div>
+          <div class="hours" aria-hidden="true"><span class="h1"></span><span class="h3"></span><span class="h2"></span><span></span><span class="h1"></span><span></span><span class="h2"></span><span class="h3"></span><span class="h1"></span><span></span><span></span><span></span></div>
+          <div class="kv small" style="color:var(--muted)"><span>7 am</span><span>1 pm</span><span>7 pm</span></div>
+          <p style="margin:0">Most presses came between 8 and 9 am and around 2 pm.</p>
+        </div>
+        <div class="p-btn">Share with my physio</div>
+      </div>
+      <figcaption class="cap"><span class="jobno">Job 4</span><b>Phone: My week</b><span class="small">Counts only what the person did: presses and how long the beat ran. Freezes they didn't press for are missing. It never says "freezes detected", which would be a medical claim in R1.</span><span class="sample">Sample data: one example week</span></figcaption>
+    </figure>
+
+    <figure class="shot" style="margin:0">
+      <div class="phone">
+        <div class="p-title">Doses and sleep</div>
+        <div class="p-card">
+          <div style="font-weight:700">Thursday</div>
+          <div style="position:relative;height:54px;border-radius:8px;background:var(--track)" aria-hidden="true">
+            <span style="position:absolute;left:8%;top:0;bottom:0;width:2px;background:var(--sage-deep)"></span>
+            <span style="position:absolute;left:41%;top:0;bottom:0;width:2px;background:var(--sage-deep)"></span>
+            <span style="position:absolute;left:74%;top:0;bottom:0;width:2px;background:var(--sage-deep)"></span>
+            <span style="position:absolute;left:30%;top:20px;width:12px;height:12px;border-radius:50%;background:var(--alert)"></span>
+            <span style="position:absolute;left:35%;top:20px;width:12px;height:12px;border-radius:50%;background:var(--alert)"></span>
+            <span style="position:absolute;left:66%;top:20px;width:12px;height:12px;border-radius:50%;background:var(--alert)"></span>
+            <span style="position:absolute;left:88%;top:20px;width:12px;height:12px;border-radius:50%;background:var(--alert)"></span>
+          </div>
+          <div class="kv small" style="color:var(--muted)"><span>7 am</span><span>1 pm</span><span>7 pm</span><span>10 pm</span></div>
+          <div class="row small" style="gap:12px"><span><span style="display:inline-block;width:2px;height:12px;background:var(--sage-deep);vertical-align:middle"></span> Dose taken</span><span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--alert);vertical-align:middle"></span> Pressed “I’m stuck”</span></div>
+        </div>
+        <div class="p-card">
+          <div class="kv"><span>Time since last dose, at a press</span><b>3 h 20 min</b></div>
+          <div class="kv"><span>Last night’s sleep</span><b>5 h 10 min</b></div>
+          <div class="kv"><span>Woke up</span><b>4 times</b></div>
+        </div>
+        <div class="p-card">
+          <div style="font-weight:700">This week</div>
+          <div class="kv"><span>Presses after nights under 6 h</span><b>5 a day</b></div>
+          <div class="kv"><span>Presses after longer nights</span><b>2 a day</b></div>
+        </div>
+        <div class="p-btn">Share with my neurologist</div>
+      </div>
+      <figcaption class="cap"><span class="jobno">Job 5</span><b>Phone: Doses and sleep</b><span class="small">Doses come from the "Take" button, sleep from Apple Health or Health Connect, and presses from the watch. It shows only what was logged or recorded: no detected symptoms (R2), and never a dose suggestion. Sleep appears only if the watch records it and the person allows access.</span><span class="sample">Sample data: one example day and week</span></figcaption>
+    </figure>
+
+    <figure class="shot" style="margin:0">
+      <div class="phone">
+        <div class="p-title">Help the research</div>
+        <p style="margin:0">If you join, your watch records how you move during the day. Researchers use it to teach Daedalus to start the beat by itself one day.</p>
+        <div class="p-card">
+          <div class="kv"><span>Stored in</span><b>Canada</b></div>
+          <div class="kv"><span>Seen by</span><b>The research team</b></div>
+          <div class="kv"><span>Approved by</span><b>An ethics board</b></div>
+          <div class="kv"><span>Leave any time</span><b>Yes, and delete it</b></div>
+        </div>
+        <p style="margin:0;color:var(--muted)">Joining changes nothing about how Daedalus works for you today.</p>
+        <div class="p-btn">Join</div>
+        <div class="p-btn2">Not now</div>
+      </div>
+      <figcaption class="cap"><span class="jobno">Job 6</span><b>Phone: Help the research</b><span class="small">Included because the data program is the only route to automatic cues later. It has its own consent, separate from the app's terms, and appears only once an ethics board approves the program, which can be after launch. Joining is optional.</span><span class="sample">Sample wording, to be checked by the ethics board</span></figcaption>
+    </figure>
+
+    <figure class="shot" style="margin:0">
+      <div class="phone">
+        <div class="p-title">Log a dose</div>
+        <div class="p-card">
+          <div style="font-weight:700">Levodopa/carbidopa 100/25 mg</div>
+          <div class="kv"><span>Due</span><b>8:00 am</b></div>
+        </div>
+        <div class="p-card">
+          <div style="font-weight:700">When did you take it?</div>
+          <div class="row" style="gap:8px">
+            <span class="p-btn2" style="flex:1;padding:10px">Just now</span>
+            <span class="p-btn2" style="flex:1;padding:10px;border-width:2px;background:var(--tint)">Earlier</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center;font-variant-numeric:tabular-nums" aria-hidden="true">
+            <div style="color:var(--muted)">7</div><div style="color:var(--muted)">50</div><div style="color:var(--muted)">am</div>
+            <div style="font-size:22px;font-weight:800;border-block:1px solid var(--line);padding:4px 0">8</div><div style="font-size:22px;font-weight:800;border-block:1px solid var(--line);padding:4px 0">05</div><div style="font-size:22px;font-weight:800;border-block:1px solid var(--line);padding:4px 0">am</div>
+            <div style="color:var(--muted)">9</div><div style="color:var(--muted)">10</div><div style="color:var(--muted)">pm</div>
+          </div>
+          <p style="margin:0;color:var(--muted)">Logged at 10:40 am · taken at 8:05 am</p>
+        </div>
+        <div class="p-btn">Save, taken at 8:05 am</div>
+        <div class="p-btn2">Cancel</div>
+      </div>
+      <figcaption class="cap"><span class="jobno">Job 7</span><b>Phone: Log a dose</b><span class="small">"Take" still logs "just now" in one press. "Earlier" opens a time wheel starting at the scheduled time, limited to today and not in the future. A reminder that went unanswered opens here instead of stamping the time of the press. A logged dose's time can be changed later from the medication list. The report uses the time taken; the time logged is kept alongside.</span><span class="sample">Sample data: medication and times are examples</span></figcaption>
+    </figure>
+  </div>
+  <div class="callout">
+    <strong>What to look at on each screen</strong>
+    <p class="small">Screen 1: could someone who is shaking or frozen hit it? Screen 2: is "stops when you're walking" enough reassurance? Screen 3: is the physio-led set-up how you want people to start? Screen 4: are presses and time-to-walking the right things to show? Screen 5: would a neurologist read "time since last dose" and the sleep comparison the way you intend? Screen 6: is the consent wording calm and plain? Screen 7: is "Just now" or "Earlier" the right first choice, and should a dose logged hours late be flagged in the report?</p>
+  </div>
+</section>
+
+<!-- 8. DECISIONS -->
+<section id="decisions">
+  <div class="eyebrow">8 · Open decisions</div>
+  <h2>Seven questions the evidence couldn't settle</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>#</th><th>Your decision, 2026-11-13</th><th>Matches my recommendation</th></tr></thead>
+    <tbody>
+    <tr><td class="id">D1</td><td>A · The freeze loop, narrowed</td><td>Yes</td></tr>
+    <tr><td class="id">D2</td><td>Business case: press-only in R1; the guard stays silent</td><td>Yes</td></tr>
+    <tr><td class="id">D3</td><td>Fine motor and Calm stay, hidden behind a setting</td><td>No (I recommended removing them). They stay out of the main screens and the marketing, and make no tremor claim.</td></tr>
+    <tr><td class="id">D4</td><td>Plan for Class I and ask Health Canada to classify it</td><td>Yes</td></tr>
+    <tr><td class="id">D5</td><td>Wrist and earbuds</td><td>Yes</td></tr>
+    <tr><td class="id">D6</td><td>Free pilot for the first 100, price shown (CAD 9.99/month)</td><td>Yes</td></tr>
+    <tr><td class="id">D7</td><td>Hallway tests and interviews first; new features paused</td><td>Yes</td></tr>
+    </tbody></table></div>
+  <p class="small muted">What would reopen them: D1, D2 and D5 if the hallway tests fail H1, H2 or H3; D4 when Health Canada answers; D6 if the interviews or the pilot reject the price (H5); D3 if the business case's tremor evidence changes. The options below are kept as they were offered.</p>
+  <div class="callout"><strong>Already decided by you</strong><p class="small">2026-11-13: the dose report stays in the first version, with sleep added where the watch has it (E28). It shows logged doses, presses and recorded sleep; detected symptoms join in R2. Also 2026-11-13: a dose can be logged with the time it was actually taken, not only the time of the press (E34, screen 7).</p></div>
+  <p>Each has my recommendation first. Your picks stay in this browser; press "Copy my choices" and paste them in the chat so they are written into the record.</p>
+  <form id="dec" class="stack" onsubmit="return false">
+
+    <fieldset><legend>D1 · Which direction?</legend>
+      <label class="opt"><input type="radio" name="d1" value="A — the freeze loop, narrowed" id="d1a"><span class="on"><b>A · The freeze loop, narrowed</b><span>Recommended. One job, mostly built, cheap to test.</span></span></label>
+      <label class="opt"><input type="radio" name="d1" value="B — physio home-practice tool" id="d1b"><span class="on"><b>B · Physio home-practice tool</b><span>Clinic pays; doesn't address the freeze itself.</span></span></label>
+      <label class="opt"><input type="radio" name="d1" value="C — keep the broad companion" id="d1c"><span class="on"><b>C · Keep the broad companion</b><span>More features; no clear reason to choose it over Parky.</span></span></label>
+    </fieldset>
+
+    <fieldset><legend>D2 · Which cue design stands?</legend>
+      <p class="rec">The Nov 10 cue design (the current code branch) starts freezing cues automatically and offers a tremor cue. The Nov 11 business case cues only on a press, with no tremor cue, and keeps automatic cues silent until they pass a home false-alarm test. <b>Recommend the business case:</b> no evidence yet shows the wrist cue helps, and buzz fatigue is a known reason people switch devices off (E7).</p>
+      <label class="opt"><input type="radio" name="d2" value="Business case: press-only in R1, guard stays silent" id="d2a"><span class="on"><b>Business case: press-only, guard silent</b><span>Recommended.</span></span></label>
+      <label class="opt"><input type="radio" name="d2" value="Nov 10 design: automatic freezing cues in R1" id="d2b"><span class="on"><b>Nov 10 design: automatic cues in R1</b><span>Faster to the "it just works" promise; risks false alarms and a medical-device claim.</span></span></label>
+    </fieldset>
+
+    <fieldset><legend>D3 · The Fine motor and Calm vibration modes</legend>
+      <label class="opt"><input type="radio" name="d3" value="Remove from R1" id="d3a"><span class="on"><b>Remove from R1</b><span>Recommended. A controlled trial found wrist vibration doesn't change tremor (E27).</span></span></label>
+      <label class="opt"><input type="radio" name="d3" value="Hide behind a setting" id="d3b"><span class="on"><b>Hide behind a setting</b><span>Keeps the code; still something to support and explain.</span></span></label>
+      <label class="opt"><input type="radio" name="d3" value="Keep as they are" id="d3c"><span class="on"><b>Keep as they are</b><span>No change to the apps.</span></span></label>
+    </fieldset>
+
+    <fieldset><legend>D4 · How R1 meets the regulator in Canada</legend>
+      <label class="opt"><input type="radio" name="d4" value="Plan for Class I and ask Health Canada to classify it" id="d4a"><span class="on"><b>Plan for Class I, ask Health Canada to classify</b><span>Recommended. Class I needs no licence when sold straight to people, and the classification request settles whether vibration makes it Class II. Still ask the regulatory consultant to confirm, with a cost; the business case put an opinion at CAD 15–30k.</span></span></label>
+      <label class="opt"><input type="radio" name="d4" value="Get a wellness opinion first, as planned" id="d4b"><span class="on"><b>Get a wellness opinion first, as planned</b><span>Cheaper if it works. My reading of the guidance (E12, an inference, not legal advice) is that it likely won't.</span></span></label>
+    </fieldset>
+
+    <fieldset><legend>D5 · Earbud sound in R1</legend>
+      <label class="opt"><input type="radio" name="d5" value="Yes, wrist and earbuds" id="d5a"><span class="on"><b>Yes, wrist and earbuds</b><span>Recommended. In the one small head-to-head study (20 people, E3), sound beat vibration. Little to build, and the hallway test compares the two.</span></span></label>
+      <label class="opt"><input type="radio" name="d5" value="Wrist only for now" id="d5b"><span class="on"><b>Wrist only for now</b><span>Simpler; bets everything on an untested cue site.</span></span></label>
+    </fieldset>
+
+    <fieldset><legend>D6 · Price for R1</legend>
+      <label class="opt"><input type="radio" name="d6" value="Free pilot for the first 100, with the price shown (CAD 9.99/month)" id="d6a"><span class="on"><b>Free pilot, price shown from day one</b><span>Recommended. The first 100 people use it free for 3 months, then see the price. CAD 9.99 is my placeholder, set at about half of Parky's US$20 a month (E8); the interviews test it. This tests willingness to pay without blocking the evidence phase.</span></span></label>
+      <label class="opt"><input type="radio" name="d6" value="Free to people, licensed to clinics (business case)" id="d6b"><span class="on"><b>Free to people, licensed to clinics</b><span>As in the business case; no revenue signal until 2030.</span></span></label>
+      <label class="opt"><input type="radio" name="d6" value="Paid from launch" id="d6c"><span class="on"><b>Paid from launch</b><span>Strongest signal; may slow the first users.</span></span></label>
+    </fieldset>
+
+    <fieldset><legend>D7 · What comes before more building</legend>
+      <label class="opt"><input type="radio" name="d7" value="Hallway tests and interviews first; pause new features" id="d7a"><span class="on"><b>Hallway tests and interviews first</b><span>Recommended. The prototype is ready to test now. My estimate is four to six weeks, mostly recruiting the 10 people and 20 interviews in section 9, once a partner clinic is signed.</span></span></label>
+      <label class="opt"><input type="radio" name="d7" value="Build R1 and test alongside" id="d7b"><span class="on"><b>Build R1 and test alongside</b><span>Faster to launch; may build the wrong trigger.</span></span></label>
+    </fieldset>
+
+    <div class="row">
+      <button type="button" class="btn" id="copy">Copy my choices</button>
+      <button type="button" class="btn sec" id="recs">Pick all recommendations</button>
+      <span id="copied" class="small muted" role="status"></span>
+    </div>
+    <label for="out" class="small muted">Your choices, as text for the chat</label>
+    <textarea id="out" readonly></textarea>
+  </form>
+</section>
+
+<!-- 9. HYPOTHESES -->
+<section id="hypotheses">
+  <div class="eyebrow">9 · Hypotheses and experiments</div>
+  <h2>What has to be true, and how we find out</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>ID</th><th>Hypothesis</th><th>Rests on</th><th>Status</th><th>Last evidence</th></tr></thead>
+    <tbody>
+    <tr><td class="id">H1</td><td><b>Someone who is frozen can start the beat within 3 seconds.</b></td><td>E26</td><td><span class="tag st-untested">untested</span></td><td>E6 suggests some cannot</td></tr>
+    <tr><td class="id">H2</td><td>A beat at their own pace gets people walking sooner than their own tricks.</td><td>E2, E3, E5</td><td><span class="tag st-untested">untested</span></td><td>Evidence is for leg, foot and sound cues</td></tr>
+    <tr><td class="id">H3</td><td>Earbud sound works at least as well as the wrist pulse.</td><td>E3</td><td><span class="tag st-untested">untested</span></td><td>One study, 20 people</td></tr>
+    <tr><td class="id">H4</td><td>Enough people who freeze already wear a smartwatch.</td><td>E19, E20</td><td><span class="tag st-weak">weakened</span></td><td>About 1 in 5 older adults (E19)</td></tr>
+    <tr><td class="id">H5</td><td>People will pay about CAD 10 a month without a prescription.</td><td>E8, E21</td><td><span class="tag st-untested">untested</span></td><td>—</td></tr>
+    <tr><td class="id">H6</td><td>Physios who offer it to one patient offer it to another within 3 months.</td><td>Business case</td><td><span class="tag st-untested">untested</span></td><td>—</td></tr>
+    <tr><td class="id">H7</td><td>R1 can be sold in Canada as a Class I device without a licence.</td><td>E12, E13</td><td><span class="tag st-untested">untested</span></td><td>Needs Health Canada's classification</td></tr>
+    <tr><td class="id">H8</td><td>At least 30% of R1 users join the data program.</td><td>Business case</td><td><span class="tag st-untested">untested</span></td><td>—</td></tr>
+    <tr><td class="id">H9</td><td>Presses bunch up late in a dose cycle, as the dose wears off.</td><td>E28, E30</td><td><span class="tag st-untested">untested</span></td><td>—</td></tr>
+    <tr><td class="id">H10</td><td>People press more often the day after a short or broken night.</td><td>E28, E29</td><td><span class="tag st-untested">untested</span></td><td>Only long-term and cross-sectional links found (E29)</td></tr>
+    <tr><td class="id">H11</td><td>Neurologists change something (dose timing, a sleep referral) after seeing the doses-and-sleep view.</td><td>E30</td><td><span class="tag st-untested">untested</span></td><td>—</td></tr>
+    </tbody></table></div>
+
+  <div class="callout warn">
+    <strong>Weakest consequential assumption: H1</strong>
+    <p class="small">If people who are frozen cannot start the beat by pressing, a press-started cue fails at the moment it matters. The recommendation would then move to cues that start <em>before</em> a freeze (on standing up, before a doorway) and would bring automatic detection forward, with its regulatory cost.</p>
+  </div>
+
+  <div class="tbl"><table>
+    <thead><tr><th>Tests</th><th>Who takes part</th><th>What they do</th><th>What is observed</th><th>The result that changes the recommendation</th></tr></thead>
+    <tbody>
+    <tr><td class="id">H1, H2, H3</td><td>10 people who freeze, with their physio, at the partner clinic or at home</td><td>Walk a short course with a doorway, a 180° turn and a start from standing. In random order: their own trick, the wrist beat started by press, the earbud beat started by press. Filmed.</td><td>Whether they could start the beat while frozen, and how fast; seconds from freeze to first step; which they prefer and why</td><td>Fewer than 6 of 10 start the beat within 3 s while frozen → change the trigger (H1). The wrist is no faster than their own trick for 7 of 10 but earbuds are → lead with sound (H2, H3).</td></tr>
+    <tr><td class="id">H4, H5, H6</td><td>20 interviews: 8–10 people who freeze with carers, 5 physios, 5 neurologists</td><td>"Walk me through your last freeze." Then show the five screens and the price.</td><td>Watch ownership; what they did last time; whether they would pay CAD 10 a month; whether physios would offer it</td><td>Fewer than 4 of 10 people who freeze own a smartwatch → reconsider the segment, or a cheap watch bundled through clinics.</td></tr>
+    <tr><td class="id">H9, H10, H11</td><td>The first pilot users who log doses and wear the watch at night; 5 neurologists</td><td>Use R1 for 4 weeks. Neurologists are shown screen 6 with each patient's own data at a routine visit.</td><td>Presses by hours since the last dose; presses on days after nights under 6 h against longer nights, within each person; what the neurologist says or changes</td><td>No difference by dose timing or sleep in most people, and no neurologist would use it → keep it as a log, and drop the comparisons from the screen.</td></tr>
+    </tbody></table></div>
+
+  <h3>Observation log</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Date</th><th>What was observed</th><th>Source</th><th>Bears on</th></tr></thead>
+    <tbody><tr><td class="mono">2026-11-13</td><td>Desk research only; no one has used Daedalus yet. Smartwatch use among older adults is about 1 in 5.</td><td>E19</td><td class="id">H4</td></tr>
+    <tr><td class="mono">2026-11-13</td><td>Owner decision: the dose report stays in R1, and sleep is added.</td><td>The owner</td><td class="id">H9, H10, H11</td></tr>
+    <tr><td class="mono">2026-11-13</td><td>Owner decision: a dose's time can be adjusted. Today's apps record the time of the press (E33), which would skew "time since last dose" for any dose logged late.</td><td>The owner; the code</td><td class="id">H9</td></tr>
+    <tr><td class="mono">2026-11-13</td><td>Owner took D1–D7: direction A, press-only cue, Fine motor and Calm behind a setting, Class I route, wrist and earbuds, free pilot with price shown, tests before building.</td><td>The owner</td><td class="id">H1–H8</td></tr></tbody>
+  </table></div>
+</section>
+
+<section id="next">
+  <div class="eyebrow">After your picks</div>
+  <h2>What happens next</h2>
+  <p>The hallway tests need a physio or clinic partner, which is not signed yet; it is first on the business case's 90-day list. The business case puts the interviews at CAD 5–10k.</p>
+  <p>Your decisions are recorded in section 8, and this page is the brief for direction A. The next step is a plan for the hallway tests and interviews (D7). It includes the small prototype changes they need: the earbud beat and a press that starts the cue from the watch face. The narrowed R1 build waits for the tests' results. It opens with the assumptions you need to check and lists any test touching real people or production data, which runs only with your go.</p>
+  <p class="small muted">Record kept in <code class="mono">docs/product/proposal.html</code>. Earlier record: the Nov 11 business case in <code class="mono">Documentation/</code>.</p>
+</section>
+
+</div>
+
+<script>
+(function(){
+  // value curve
+  var factors=["No extra hardware","Starts within seconds","Works outdoors","Discreet in public","Matches own pace","Available in Canada without Rx","Low cost","Shows the week to the care team"];
+  var series=[
+    {n:"Daedalus R1 (target)",c:"--c-dae",w:4,v:[3,2,4,4,4,3,3,3]},
+    {n:"Own tricks",c:"--c-own",w:2,v:[4,3,4,3,3,4,4,0]},
+    {n:"Laser cane",c:"--c-laser",w:2,v:[1,4,1,1,2,4,1,0]},
+    {n:"Parky with Foggy",c:"--c-parky",w:2,v:[3,2,4,4,1,0,2,2]},
+    {n:"CUE1+",c:"--c-cue1",w:2,v:[1,4,4,2,2,0,1,0]}
+  ];
+  var W=760,H=300,L=40,R=20,T=16,B=86, iw=W-L-R, ih=H-T-B, step=iw/(factors.length-1);
+  var x=function(i){return L+i*step}, y=function(v){return T+ih-(v/4)*ih};
+  var s='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">';
+  for(var g=0;g<=4;g++){s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y(g)+'" y2="'+y(g)+'" stroke="var(--line)" stroke-width="1"/>';s+='<text x="'+(L-10)+'" y="'+(y(g)+4)+'" text-anchor="end" font-size="11" fill="var(--muted)" font-family="IBM Plex Mono, monospace">'+g+'</text>';}
+  factors.forEach(function(f,i){
+    var words=f.split(' '),lines=[],cur='';
+    words.forEach(function(w){ if((cur+' '+w).trim().length>14){lines.push(cur.trim());cur=w;} else cur+=' '+w; });
+    lines.push(cur.trim());
+    s+='<text x="'+x(i)+'" y="'+(H-B+20)+'" text-anchor="middle" font-size="11" fill="var(--ink)" font-family="Manrope, sans-serif">';
+    lines.forEach(function(l,k){s+='<tspan x="'+x(i)+'" dy="'+(k?13:0)+'">'+l+'</tspan>';});
+    s+='</text>';
+  });
+  series.slice().reverse().forEach(function(se){
+    var d=se.v.map(function(v,i){return (i?'L':'M')+x(i)+' '+y(v)}).join(' ');
+    s+='<path d="'+d+'" fill="none" stroke="var('+se.c+')" stroke-width="'+se.w+'" stroke-linejoin="round"/>';
+    se.v.forEach(function(v,i){s+='<circle cx="'+x(i)+'" cy="'+y(v)+'" r="'+(se.w>2?4.5:3)+'" fill="var('+se.c+')"><title>'+se.n+' · '+factors[i]+': '+v+'</title></circle>';});
+  });
+  s+='</svg>';
+  document.getElementById('vc').innerHTML=s;
+  var t='<table><thead><tr><th>Factor</th>'+series.map(function(se){return '<th>'+se.n+'</th>'}).join('')+'</tr></thead><tbody>';
+  factors.forEach(function(f,i){t+='<tr><td>'+f+'</td>'+series.map(function(se){return '<td class="num">'+se.v[i]+'</td>'}).join('')+'</tr>';});
+  document.getElementById('vc-table').innerHTML=t+'</tbody></table>';
+
+  // decisions
+  var KEY='daedalus-proposal-picks', form=document.getElementById('dec'), out=document.getElementById('out');
+  var names=['d1','d2','d3','d4','d5','d6','d7'];
+  function legend(n){return form.querySelector('input[name="'+n+'"]').closest('fieldset').querySelector('legend').textContent;}
+  function render(){
+    var lines=['Daedalus proposal — my choices (2026-11-13 draft)'];
+    var store={};
+    names.forEach(function(n){var c=form.querySelector('input[name="'+n+'"]:checked');store[n]=c?c.id:null;lines.push(legend(n)+': '+(c?c.value:'(not picked)'));});
+    out.value=lines.join('\n');
+    try{localStorage.setItem(KEY,JSON.stringify(store));}catch(e){}
+  }
+  try{var saved=JSON.parse(localStorage.getItem(KEY)||'{}');Object.keys(saved).forEach(function(k){if(saved[k]){var el=document.getElementById(saved[k]);if(el)el.checked=true;}});}catch(e){}
+  form.addEventListener('change',render);
+  document.getElementById('recs').addEventListener('click',function(){names.forEach(function(n){document.getElementById(n+'a').checked=true;});render();});
+  document.getElementById('copy').addEventListener('click',function(){
+    render();var msg=document.getElementById('copied');
+    try{navigator.clipboard.writeText(out.value).then(function(){msg.textContent='Copied. Paste it in the chat.';},function(){out.select();msg.textContent='Copy blocked here. The text is selected; copy it by hand.';});}
+    catch(e){out.select();msg.textContent='Copy blocked here. The text is selected; copy it by hand.';}
+  });
+  render();
+})();
+</script>
