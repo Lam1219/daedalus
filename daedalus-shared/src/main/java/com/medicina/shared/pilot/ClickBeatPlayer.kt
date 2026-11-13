@@ -143,12 +143,14 @@ class ClickBeatPlayer(private val context: Context) {
     private var deviceCallback: AudioDeviceCallback? = null
 
     /**
-     * Starts the clicks. [onStarted] is called twice (round 002, #8):
+     * Starts the clicks. [onStarted] is called twice:
      * - at once when the first frames are written and the track is playing: (null, "audio_written");
      * - then with the measured start of the first click from the output timestamp,
-     *   (ms, "audio_timestamp"), or, if none arrives within [TIMESTAMP_WAIT_MS], (null, "audio_no_timestamp").
+     *   (ms, "audio_timestamp"), or, if none arrives within [FirstClick.WAIT_MS], (null,
+     *   "audio_no_timestamp") followed by [onLost] so the wrist takes over (round 003, #4).
      * The play() call time is never reported as the start. Sources end in "_bt" over Bluetooth.
-     * [onFailed] is called if audio can't start; [onLost] if the headphones go away mid-beat.
+     * [onFailed] is called if audio can't start; [onLost] if the headphones go away mid-beat or no
+     * click is shown as presented. Paused for pilot presses until the earbuds check (round 004).
      */
     fun start(bpm: Int, onStarted: (Long?, String) -> Unit, onFailed: (String) -> Unit, onLost: (String) -> Unit = {}) {
         if (running) return
@@ -256,7 +258,5 @@ class ClickBeatPlayer(private val context: Context) {
 
     private companion object {
         const val TAG = "ClickBeatPlayer"
-        /** How long the output has to report a timestamp for the first click (round 002, #8). */
-        const val TIMESTAMP_WAIT_MS = 2_000L
     }
 }

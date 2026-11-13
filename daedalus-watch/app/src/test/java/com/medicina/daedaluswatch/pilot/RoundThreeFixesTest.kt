@@ -78,7 +78,7 @@ class RoundThreeFixesTest {
     @Test
     fun n7_bootRecoversPressesWithTheStudyOff() {
         val calls = mutableListOf<String>()
-        WatchBootReceiver.onBoot("android.intent.action.BOOT_COMPLETED", pilotActive = false, { calls += "restart" }, { calls += "recover" })
+        WatchBootReceiver.onBoot("android.intent.action.BOOT_COMPLETED", pilotActive = false, folderExists = true, { calls += "restart" }, { calls += "recover" })
         assertEquals(listOf("recover"), calls)
     }
 }

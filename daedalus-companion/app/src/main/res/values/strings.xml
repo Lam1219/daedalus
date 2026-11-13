@@ -386,6 +386,8 @@
     <string name="pilot_seed_error">A whole number from 0 to 2147483647</string>
     <string name="pilot_enrolment">Enrolment date</string>
     <string name="pilot_locked">Turn study mode off to change these.</string>
+    <string name="pilot_earbuds_checked">Earbuds checked for this participant</string>
+    <string name="pilot_earbuds_checked_sub">Turn on only after the earbuds check passed with their own earbuds. Off: the pace never plays in earbuds.</string>
     <string name="pilot_pocket">Pocket reminder</string>
     <string name="pilot_pocket_sub">After you stand up, the watch asks if the phone is in your front pocket</string>
     <string name="pilot_sent">Sent to the watch</string>

@@ -7,6 +7,7 @@ import com.medicina.daedaluscompanion.data.CloudBackup
 import com.medicina.daedaluscompanion.data.TremorAnalyzer
 import com.medicina.daedaluscompanion.ui.screens.sessionsDir
 import com.medicina.daedaluscompanion.pilot.PilotFiles
+import com.medicina.daedaluscompanion.pilot.PilotPrefs
 import com.medicina.daedaluscompanion.pilot.PilotPhoneService
 import com.medicina.shared.pilot.AudioRoutes
 import com.medicina.shared.pilot.BeatMessage
@@ -286,7 +287,7 @@ class WatchDataListener : WearableListenerService() {
             PilotLink.QUERY_PATH -> if (service != null) service.onQuery(text(), e.sourceNodeId) else reply(
                 e.sourceNodeId, PilotLink.STATUS_PATH,
                 // Study mode off on this phone, or its service couldn't start: no steps, no movement known.
-                PhoneStatus(AudioRoutes.headphonesConnected(this), null, null, text()).encode(),
+                PhoneStatus(PilotPrefs.settings(this).earbudsChecked && AudioRoutes.headphonesConnected(this), null, null, text()).encode(),
             )
             PilotLink.BEAT_PATH -> {
                 val m = BeatMessage.decode(text()) ?: return

@@ -155,7 +155,9 @@ class PilotPhoneService : Service() {
 
     private fun status(queryId: String = "", moved: Boolean? = null): PhoneStatus {
         val nowBoot = SystemClock.elapsedRealtime()
-        return PhoneStatus(AudioRoutes.headphonesConnected(this), steps.agoMs(nowBoot), moved, queryId)
+        // Round 004: earbuds don't count until the earbuds device check passed for this participant.
+        val earbuds = PilotPrefs.settings(this).earbudsChecked && AudioRoutes.headphonesConnected(this)
+        return PhoneStatus(earbuds, steps.agoMs(nowBoot), moved, queryId)
     }
 
     /** Pushes when the watch's view would change: earbuds, or fresh steps (at most every 15 s). */

@@ -5,14 +5,18 @@ import android.content.Context
 import android.content.Intent
 import com.medicina.daedaluswatch.pilot.PilotPresses
 import com.medicina.daedaluswatch.pilot.PilotStore
+import com.medicina.daedaluswatch.pilot.pilotFolderExists
 
 /**
- * Round 001, #13: after a reboot or an app update in study mode, start the motion ring and the
- * stand-up check again, and finish any press a reboot interrupted (study mode only: round 002, #6).
+ * After a reboot or an app update:
+ * - in study mode, start the motion ring and the stand-up check again (round 001 #13, round 002 #6);
+ * - whatever the switch says, finish presses a reboot interrupted, which only writes files
+ *   (round 003, #7), and only when this watch has a pilot folder (round 004, #4).
+ * With the study off and no pilot folder, a boot does nothing at all.
  */
 class WatchBootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        onBoot(intent.action, PilotStore.active(context),
+        onBoot(intent.action, PilotStore.active(context), pilotFolderExists(context),
             restart = { StandWatchService.refresh(context) },
             recover = { PilotPresses.recoverOrphans(context) })
     }
@@ -20,16 +24,11 @@ class WatchBootReceiver : BroadcastReceiver() {
     companion object {
         val ACTIONS = setOf(Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED)
 
-        /**
-         * Round 002, #6: only while the pilot study is active. With the study switch off, a boot
-         * does nothing new: the stand-up prompt starts as before this branch, from the app.
-         */
-        fun onBoot(action: String?, pilotActive: Boolean, restart: () -> Unit, recover: () -> Unit) {
+        /** See the class comment. [recover] is the only thing that touches PilotPresses. */
+        fun onBoot(action: String?, pilotActive: Boolean, folderExists: Boolean, restart: () -> Unit, recover: () -> Unit) {
             if (action !in ACTIONS) return
             if (pilotActive) restart()
-            // Round 003, #7: unfinished presses are finished whatever the switch says; this only
-            // writes files and starts nothing.
-            recover()
+            if (folderExists) recover()
         }
     }
 }

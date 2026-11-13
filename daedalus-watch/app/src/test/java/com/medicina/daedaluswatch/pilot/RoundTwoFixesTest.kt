@@ -112,14 +112,14 @@ class RoundTwoFixesTest {
     @Test
     fun n6_bootRestartsOnlyWhileThePilotStudyIsActive() {
         val calls = mutableListOf<String>()
-        WatchBootReceiver.onBoot("android.intent.action.BOOT_COMPLETED", pilotActive = false, { calls += "restart" }, { calls += "recover" })
+        WatchBootReceiver.onBoot("android.intent.action.BOOT_COMPLETED", pilotActive = false, folderExists = true, { calls += "restart" }, { calls += "recover" })
         // Round 003, #7: study off still finishes unfinished presses, and starts nothing.
         assertEquals("study off: no restart", listOf("recover"), calls)
         calls.clear()
-        WatchBootReceiver.onBoot("android.intent.action.BOOT_COMPLETED", pilotActive = true, { calls += "restart" }, { calls += "recover" })
+        WatchBootReceiver.onBoot("android.intent.action.BOOT_COMPLETED", pilotActive = true, folderExists = true, { calls += "restart" }, { calls += "recover" })
         assertEquals(listOf("restart", "recover"), calls)
         calls.clear()
-        WatchBootReceiver.onBoot("android.intent.action.SCREEN_ON", pilotActive = true, { calls += "restart" }, { calls += "recover" })
+        WatchBootReceiver.onBoot("android.intent.action.SCREEN_ON", pilotActive = true, folderExists = true, { calls += "restart" }, { calls += "recover" })
         assertEquals(emptyList<String>(), calls)
     }
 
