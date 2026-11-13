@@ -168,6 +168,7 @@ All runs used JDK 17 and Gradle 8.5 from `~/.gradle/wrapper/dists/gradle-8.5-bin
 | Battery (14 h) | Study on all day: read `battery_<code>_<day>.csv` from the export. The percent drop per hour, and `ring_samples_total` growing by about 45,000 every 15 min. The header line says whether wake-up sensors were used. Compare one day with study off. |
 | Settings sync | Change the pocket reminder on the phone with the watch connected: "Sent to the watch". Watch disconnected: the message says so, and reopening the app with the watch back resends the settings. |
 | Export | "Export pilot files" opens the share sheet with one zip. Unzip it and run `pilot_analysis.analyse(folder)`. |
+| Install (update both apps together) | Install the phone and watch builds from the same commit, at the same visit. A phone on an older build can report a `play()` call time; the watch now ignores it (round 003, #5), but the beat start is then lost for that press. |
 | Phone permission refused | Refuse "physical activity": the pilot screen says why, the phone service doesn't start, and earbud-on-phone and pocket presses fall back to the wrist. |
 
 ## Round 001 fixes
@@ -227,8 +228,25 @@ Two round-001 tests (`n7_aPlayCallTimeIsNotABeatStart` and the 2.5 s watch-audio
 
 **Device check added:** Galaxy Buds on the watch. Within 1 s of the press the clicks play with no fallback, and the press file's `beat_start_source` is `audio_timestamp_bt` (or `audio_no_timestamp_bt` with a null start).
 
+## Round 003 fixes
+
+`feature/home-pilot` (fcbd67f) merged first (fast-forward). No Python touched. Tests are in `daedalus-watch/.../pilot/RoundThreeFixesTest.kt`.
+
+| # | What changed | Test |
+|---|---|---|
+| 4 | If the output shows no first click as presented within 2 s, the click player reports a null start (`audio_no_timestamp`) and then treats the audio as lost. The wrist takes over and `fallback_ms` / `fallback_reason` are recorded. The decision is `FirstClick.decide`. On the phone, "lost" is sent as `failed` after the confirmation, which the watch treats as lost. No press can stay silent because audio was written but never presented. | `n4_noTimestampWithinTheWaitIsLost` (new decision), `n4_losingTheAudioAfterTheWaitPutsTheBeatOnTheWristAndRecordsWhen` |
+| 5 | `BeatRunner` never records a start whose source contains `audio_play_call`, whichever app sent it. A later real timestamp still counts. "Update both apps together" is now in the device checks (install row). | `n5_aPlayCallSourceNeverGivesAStart`. Checked against the old code: with the guard removed, it fails. |
+| 7 | `recoverOrphans` runs on app start and on boot whatever the study switch says. It only writes files and never starts the motion ring or a service. With the switch off, a boot does nothing else. | `n7_bootRecoversPressesWithTheStudyOff`; round 002's `n6_…` now expects "recover" (and no restart) with the study off. |
+| 6 | Accepted, no change: a missing beat start is recorded as null, never guessed; a missing start isn't a wrong one. | — |
+| 8 | Accepted, no change: `PilotFileWriter` keeps its copy-in-place path for a refused rename, but refusals aren't expected on internal storage. | — |
+
+**Validation:**
+- Watch: `gradle assembleDebug test --offline` in `daedalus-watch` exited 0; 124 tests per variant, 0 failures.
+- Phone: `gradle assembleDebug test --offline` in `daedalus-companion` exited 0; 31 tests per variant, 0 failures.
+
 ## Commit range
 
 `0812fae..HEAD` on `android-home-pilot` (the commits after 0812fae: Wear OS, phone, then this handoff with the B6 test).
 Round 001 fixes: `c361c93..HEAD` (06c5a65 the fixes, then the handoff update).
 Round 002 fixes: `ca786c1..HEAD`.
+Round 003 fixes: `fcbd67f..HEAD`.
