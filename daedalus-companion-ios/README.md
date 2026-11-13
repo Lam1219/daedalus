@@ -32,7 +32,23 @@ SwiftUI apps with the same design, wording (EN/FR) and Supabase backend as the A
 python3 tools/make_strings.py
 ```
 
+## Home pilot (study mode)
+
+Off by default. Profile → Home pilot on the iPhone turns it on and sets the pilot code, seed,
+start date and pocket reminder times; the watch gets them over WatchConnectivity. Then each
+"I'm stuck" press on the watch plays its beat on the wrist or, through the iPhone, in earbuds
+(`Shared/Pilot.swift`, a port of `daedalus_watch_kit/daedalus_watch_kit/pilot.py`), asks the
+one-tap check-in, and writes one press file (`Shared/PressFile.swift`) that goes to the iPhone's
+`Documents/pilot` folder. Press files are never backed up; "Export pilot files" shares them.
+The pocket beat isn't offered on iPhone (Core Haptics doesn't play in the background).
+See `HANDOFF-ios.md` at the repository root for what was checked and what needs real devices.
+
 ## Testing notes
+
+- Shared tests (signal code, golden vectors, pilot rules) on the Mac:
+  `xcodebuild test -project Daedalus.xcodeproj -scheme SharedTests -destination 'platform=macOS'`.
+  With `TEST_RUNNER_PILOT_PRESS_OUT=<folder>` it also writes a sample press file there for
+  `pilot_analysis.load_press` and `press_timing` to read.
 
 - Haptics, heart rate and wrist motion only work on a real Apple Watch.
 - Session files go from watch to iPhone with WatchConnectivity file transfers, which don't
