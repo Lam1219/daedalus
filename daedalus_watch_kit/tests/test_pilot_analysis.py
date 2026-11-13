@@ -135,3 +135,17 @@ def test_press_file_without_rotation_still_times_walking():
     t = press_timing(d)
     assert t.stop_to_beat_s == pytest.approx(3.5, abs=0.5)
     assert t.press_to_steps_s == pytest.approx(5.0, abs=0.5)
+
+
+def test_press_without_motion_keeps_its_checkin_but_no_timings():
+    d = press_file(25, 33, 28, checkin="already_moving")
+    d["samples"] = {"t_ms": [], "acc": [[], [], []], "gyr": None}
+    t = press_timing(d)
+    assert (t.stop_to_beat_s, t.press_to_steps_s, t.checkin) == (None, None, "already_moving")
+
+
+def test_unconfirmed_beat_start_is_not_timed_as_instant():
+    d = press_file(25, 33, 28)
+    d["beat_start_ms"] = None
+    t = press_timing(d)
+    assert t.stop_to_beat_s is None and t.press_to_steps_s is None

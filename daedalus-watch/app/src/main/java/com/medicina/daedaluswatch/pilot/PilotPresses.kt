@@ -143,7 +143,7 @@ object PilotPresses {
             place = r.placeUsed ?: Place.WRIST,
             earbudsConnected = p.plan.earbudsConnected, phoneCarried = p.plan.phoneCarried,
             paceSpm = p.bpm, pressMs = p.pressMs,
-            beatStartMs = r.beatStartMs ?: p.pressMs,
+            beatStartMs = r.beatStartMs,
             beatStopMs = p.beatStopMs, checkin = p.checkin, samples = samples,
             placeDrawn = p.plan.drawn, player = r.player ?: com.medicina.shared.pilot.Player.WATCH_HAPTIC,
             beatStartSource = r.beatStartSource ?: "missing",
@@ -151,8 +151,8 @@ object PilotPresses {
         )
         Thread {
             val dir = pilotDir(c).apply { mkdirs() }
-            // pilot_analysis can't read a press without motion; keep it, out of the analysis glob.
-            val name = if (samples.size >= 2) record.fileName else record.fileName + ".nomotion"
+            // A press without motion still counts: pilot_analysis keeps its check-in and leaves its timings empty.
+            val name = record.fileName
             val tmp = File(dir, "$name.part")
             tmp.writeText(record.toJson())
             tmp.renameTo(File(dir, name))

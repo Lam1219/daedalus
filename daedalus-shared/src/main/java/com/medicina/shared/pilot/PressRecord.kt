@@ -18,7 +18,9 @@ data class PressRecord(
     val phoneCarried: Boolean,
     val paceSpm: Int,
     val pressMs: Long,
-    val beatStartMs: Long,
+    /** When the beat actually began, or null if it was never confirmed: never the press time,
+     *  which would make the beat look faster than it was (H1). */
+    val beatStartMs: Long?,
     val beatStopMs: Long?,
     val checkin: CheckIn?,
     val samples: MotionSamples,
@@ -46,7 +48,7 @@ data class PressRecord(
         field(sb, "phone_carried", phoneCarried.toString())
         field(sb, "pace_spm", paceSpm.toString())
         field(sb, "press_ms", pressMs.toString())
-        field(sb, "beat_start_ms", beatStartMs.toString())
+        field(sb, "beat_start_ms", beatStartMs?.toString() ?: "null")
         field(sb, "beat_stop_ms", beatStopMs?.toString() ?: "null")
         field(sb, "checkin", checkin?.let { str(it.wire) } ?: "null")
         sb.append("\"samples\":{\"t_ms\":[")
