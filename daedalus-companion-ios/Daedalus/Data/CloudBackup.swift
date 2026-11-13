@@ -158,6 +158,7 @@ final class CloudBackup {
         let signedIn = auth.email != nil
         if signedIn, !(await deleteUploaded()) { return false }
         store.clearHealthData()
+        PilotStore.deleteFiles()   // home pilot press files on this phone
         store.setOwner(nil)
         store.cloudBackup = true
         await MedReminders.reschedule()

@@ -59,6 +59,9 @@ targets:
             CFBundleURLSchemes: [daedalus]
         NSHealthShareUsageDescription: Daedalus reads your heart rate, blood oxygen and breathing rate from Apple Health to show your latest vital signs.
         NSHealthUpdateUsageDescription: Daedalus does not write to Apple Health.
+        # Home pilot: the sound beat keeps playing to earbuds with the iPhone locked in a pocket.
+        UIBackgroundModes: [audio]
+        NSMotionUsageDescription: In the home pilot, Daedalus checks whether your iPhone counted steps in the last minute, to remind you to keep it in your pocket.
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.medicina.daedaluscompanion

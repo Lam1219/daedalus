@@ -22,6 +22,30 @@ enum WatchKey {
     static let heartRate = "hr"
     /// Session file transfers carry the file name in their metadata.
     static let fileName = "fileName"
+
+    // Home pilot (study mode; nothing here is sent while the study switch is off)
+    /// iPhone → watch (application context): `PilotSettings.dictionary`.
+    static let pilot = "pilot"
+    /// watch → iPhone (message with reply): are earbuds connected? Reply: `earbuds`.
+    static let pilotQuery = "pilotQuery"
+    /// watch → iPhone (message with reply): play the sound beat at `rate`. Reply: `ok`, and on
+    /// success `beatStartMs` (first click, iPhone clock) with `r0`/`r1` (iPhone receive/reply times).
+    static let beatStart = "beatStart"
+    /// watch → iPhone: stop the sound beat.
+    static let beatStop = "beatStop"
+    /// iPhone → watch: the sound beat stopped on its own (earbuds removed); the wrist takes over.
+    static let beatLost = "beatLost"
+    /// watch → iPhone (message with reply): steps the iPhone counted in the last minute. Reply: `steps`.
+    static let pocketQuery = "pocketQuery"
+    static let earbuds = "earbuds"
+    static let steps = "steps"
+    static let ok = "ok"
+    static let beatStartMs = "beatStartMs"
+    static let r0 = "r0"
+    static let r1 = "r1"
+    /// File transfer metadata: "pilot" for press files (kept apart from session files, never backed up).
+    static let fileKind = "kind"
+    static let pilotFile = "pilot"
 }
 
 /// Cue modes and their default rates (same ids as the Android apps and Supabase).

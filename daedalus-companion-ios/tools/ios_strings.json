@@ -38,5 +38,85 @@
   "coming_soon": {
     "en": "Coming soon",
     "fr": "Bientôt"
+  },
+  "pilot_title": {
+    "en": "Home pilot",
+    "fr": "Essai à domicile"
+  },
+  "pilot_row_on": {
+    "en": "On: your watch saves a file for each press",
+    "fr": "Activé : votre montre enregistre un fichier par appui"
+  },
+  "pilot_row_off": {
+    "en": "Off",
+    "fr": "Désactivé"
+  },
+  "pilot_lead": {
+    "en": "Only for people taking part in the home pilot. Your physio sets this up with you at the clinic visit.",
+    "fr": "Seulement pour les personnes qui participent à l’essai à domicile. Votre physiothérapeute le règle avec vous lors de la visite."
+  },
+  "pilot_switch_title": {
+    "en": "Study mode",
+    "fr": "Mode essai"
+  },
+  "pilot_switch_sub": {
+    "en": "Each press plays the beat on your wrist or in your earbuds, and your watch saves a short file about it.",
+    "fr": "Chaque appui joue le rythme au poignet ou dans vos écouteurs, et votre montre enregistre un court fichier."
+  },
+  "pilot_incomplete": {
+    "en": "Add the pilot code, seed and start date to begin.",
+    "fr": "Ajoutez le code, la graine et la date de début pour commencer."
+  },
+  "pilot_participant": {
+    "en": "Pilot code",
+    "fr": "Code de l’essai"
+  },
+  "pilot_participant_hint": {
+    "en": "For example P03 (never a name)",
+    "fr": "Par exemple P03 (jamais un nom)"
+  },
+  "pilot_seed": {
+    "en": "Seed",
+    "fr": "Graine"
+  },
+  "pilot_seed_hint": {
+    "en": "A number from 0 to 2147483647",
+    "fr": "Un nombre de 0 à 2147483647"
+  },
+  "pilot_enrolment": {
+    "en": "Start date",
+    "fr": "Date de début"
+  },
+  "pilot_pocket_card": {
+    "en": "Pocket reminder",
+    "fr": "Rappel de poche"
+  },
+  "pilot_pocket_sub": {
+    "en": "At these times your watch taps if your iPhone didn’t come along.",
+    "fr": "À ces heures, votre montre vous tapote si votre iPhone ne vous a pas suivi."
+  },
+  "pilot_reminder_add": {
+    "en": "Add a time",
+    "fr": "Ajouter une heure"
+  },
+  "pilot_reminder_remove": {
+    "en": "Remove %@",
+    "fr": "Retirer %@"
+  },
+  "pilot_iphone_note": {
+    "en": "On iPhone the beat plays on your wrist or in your earbuds. A locked iPhone can’t vibrate in a pocket.",
+    "fr": "Sur iPhone, le rythme joue au poignet ou dans vos écouteurs. Un iPhone verrouillé ne peut pas vibrer dans une poche."
+  },
+  "pilot_files_title": {
+    "en": "Pilot files",
+    "fr": "Fichiers de l’essai"
+  },
+  "pilot_files_sub": {
+    "en": "Files on this iPhone: %lld. They stay here until you export them.",
+    "fr": "Fichiers sur cet iPhone : %lld. Ils restent ici jusqu’à leur export."
+  },
+  "pilot_export": {
+    "en": "Export pilot files",
+    "fr": "Exporter les fichiers de l’essai"
   }
 }

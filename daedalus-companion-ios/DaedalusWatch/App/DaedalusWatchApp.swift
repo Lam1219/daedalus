@@ -25,6 +25,20 @@ final class WatchAppDelegate: NSObject, WKApplicationDelegate {
             CueController.shared.start(mode: mode, rate: pending?.rate)
         }
     }
+
+    /// Home pilot: the pocket reminder runs in a background refresh near each time set on the iPhone.
+    func handle(_ backgroundTasks: Set<WKRefreshBackgroundTask>) {
+        for task in backgroundTasks {
+            if let refresh = task as? WKApplicationRefreshBackgroundTask,
+               (refresh.userInfo as? String) == "pocketReminder" {
+                Task { @MainActor in
+                    PilotController.shared.runPocketCheck { refresh.setTaskCompletedWithSnapshot(false) }
+                }
+            } else {
+                task.setTaskCompletedWithSnapshot(false)
+            }
+        }
+    }
 }
 
 /// Watch palette (dark, from the design): sage on near-black.
@@ -45,10 +59,13 @@ func L(_ key: String, _ args: CVarArg...) -> String {
 
 struct WatchRootView: View {
     @State private var cue = CueController.shared
+    @State private var pilot = PilotController.shared
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         Group {
             switch cue.mode {
+            case nil where pilot.checkinPending: CheckInView()
             case "walking": WalkView()
             case "rest": BreatheView()
             case TremorAnalyzer.mode: TremorCheckView()
@@ -62,5 +79,9 @@ struct WatchRootView: View {
         .background(WS.ground.ignoresSafeArea())
         .task { await cue.requestAuthorization() }
         .onChange(of: cue.heartRate) { _, _ in PhoneLink.shared.sendStatus() }
+        // Home pilot (study mode only): refresh the iPhone's earbuds state and write finished press files.
+        .onChange(of: scenePhase, initial: true) { _, phase in
+            if phase == .active { pilot.appBecameActive() }
+        }
     }
 }

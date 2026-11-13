@@ -256,6 +256,23 @@
         }
       }
     },
+    "guard_notif_text": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Learning your patterns · no automatic cues yet"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apprend vos habitudes · pas encore de repère automatique"
+          }
+        }
+      }
+    },
     "hint_step": {
       "extractionState": "manual",
       "localizations": {
@@ -358,6 +375,23 @@
         }
       }
     },
+    "mode_rest_guard": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rest guard"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veille au repos"
+          }
+        }
+      }
+    },
     "mode_walk": {
       "extractionState": "manual",
       "localizations": {
@@ -371,6 +405,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Marche"
+          }
+        }
+      }
+    },
+    "mode_walk_guard": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walk guard"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veille en marche"
           }
         }
       }
@@ -456,6 +507,176 @@
           "stringUnit": {
             "state": "translated",
             "value": "Lancez les signaux depuis l’app Daedalus sur votre iPhone."
+          }
+        }
+      }
+    },
+    "pilot_checkin_already_moving": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I was already moving"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "J’avançais déjà"
+          }
+        }
+      }
+    },
+    "pilot_checkin_helped": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "It helped"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ça a aidé"
+          }
+        }
+      }
+    },
+    "pilot_checkin_not_felt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I didn’t feel it"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je ne l’ai pas senti"
+          }
+        }
+      }
+    },
+    "pilot_checkin_not_helped": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "It didn’t help"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ça n’a pas aidé"
+          }
+        }
+      }
+    },
+    "pilot_checkin_title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Did the beat help?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le rythme a-t-il aidé ?"
+          }
+        }
+      }
+    },
+    "pilot_place_earbuds": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beat in your earbuds"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rythme dans vos écouteurs"
+          }
+        }
+      }
+    },
+    "pilot_place_pocket": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beat in your pocket"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rythme dans votre poche"
+          }
+        }
+      }
+    },
+    "pilot_place_wrist": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beat on your wrist"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rythme au poignet"
+          }
+        }
+      }
+    },
+    "pilot_pocket_body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your iPhone hasn’t moved with you. Keep it in a front trouser pocket."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre iPhone ne vous a pas suivi. Gardez-le dans une poche avant de pantalon."
+          }
+        }
+      }
+    },
+    "pilot_pocket_title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phone in your front pocket?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Téléphone dans votre poche avant ?"
           }
         }
       }

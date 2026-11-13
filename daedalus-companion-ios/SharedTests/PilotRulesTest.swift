@@ -34,6 +34,65 @@ final class PilotRulesTest: XCTestCase {
         }
     }
 
+    func testWristPressPlaysAtOnce() {
+        var b = PressBeat(drawn: .wrist)
+        XCTAssertTrue(b.wristPlays)
+        XCTAssertFalse(b.waitingForPhone)
+        b.wristPulse(atMs: 500); b.wristPulse(atMs: 1100)
+        XCTAssertEqual(b.beatStartMs, 500)
+        XCTAssertFalse(b.phoneStarted(atMs: 700))   // a stray iPhone reply never silences the wrist
+        XCTAssertTrue(b.wristPlays)
+    }
+
+    func testEarbudsThatNeverConfirmBecomeAWristPress() {
+        var b = PressBeat(drawn: .earbuds)
+        XCTAssertTrue(b.waitingForPhone)
+        XCTAssertTrue(b.phoneFailed())               // no reply in time, or out of reach
+        XCTAssertTrue(b.wristPlays)
+        XCTAssertEqual(b.place, .wrist)
+        b.wristPulse(atMs: 1_000)
+        XCTAssertEqual(b.beatStartMs, 1_000)
+        XCTAssertFalse(b.phoneStarted(atMs: 1_200))  // the late reply is turned away (the iPhone is stopped)
+        XCTAssertEqual(b.beatStartMs, 1_000)
+    }
+
+    func testEarbudsLostMidBeatHandOverToTheWristAndKeepTheirStart() {
+        var b = PressBeat(drawn: .earbuds)
+        XCTAssertTrue(b.phoneStarted(atMs: 400))
+        XCTAssertFalse(b.wristPlays)
+        b.wristPulse(atMs: 450)                      // (silent wrist ticks don't move the start)
+        XCTAssertTrue(b.phoneFailed())               // earbuds removed
+        XCTAssertTrue(b.wristPlays)
+        XCTAssertEqual(b.place, .earbuds)
+        XCTAssertEqual(b.beatStartMs, 400)
+    }
+
+    /// Never silence: every sequence of iPhone answers, ended by the confirmation timeout (which
+    /// the watch always fires), leaves a place playing until the press stops.
+    func testNoSequenceOfAnswersLeavesSilence() {
+        enum Event: CaseIterable { case confirmed, failed, lost, pulse }
+        func sequences(_ n: Int) -> [[Event]] {
+            n == 0 ? [[]] : sequences(n - 1).flatMap { s in Event.allCases.map { s + [$0] } }
+        }
+        for drawn in Pilot.Place.allCases {
+            for seq in (0...4).flatMap(sequences) {
+                var b = PressBeat(drawn: drawn)
+                var t: Int64 = 0
+                for e in seq {
+                    t += 100
+                    switch e {
+                    case .confirmed: _ = b.phoneStarted(atMs: t)
+                    case .failed, .lost: _ = b.phoneFailed()
+                    case .pulse: b.wristPulse(atMs: t)
+                    }
+                }
+                if b.waitingForPhone { _ = b.phoneFailed() }   // the timeout
+                XCTAssertTrue(b.wristPlays || b.phonePlaying, "\(drawn) \(seq)")
+                XCTAssertTrue(Pilot.places.contains(b.place))
+            }
+        }
+    }
+
     func testBadInputsStillGiveTheWrist() {
         XCTAssertEqual(Pilot.choosePlace(seed: -1, pressIndex: 0, dayIndex: 10, earbudsConnected: true, phoneCarried: true), .wrist)
         XCTAssertEqual(Pilot.choosePlace(seed: Pilot.maxSeed, pressIndex: 0, dayIndex: 10, earbudsConnected: true, phoneCarried: true), .wrist)

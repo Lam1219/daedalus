@@ -128,6 +128,56 @@ enum Pilot {
     }
 }
 
+/// The beat of one study press: which place plays it, whether the wrist must play, and when it
+/// started. The watch drives it from the iPhone's answers; every path ends with a place playing.
+/// The only moment nothing plays is while a phone place waits for the iPhone's confirmation, and
+/// the watch ends that wait with `phoneFailed()` after `PilotController.phoneConfirmTimeout`.
+struct PressBeat: Equatable, Sendable {
+    private(set) var place: Pilot.Place
+    private(set) var wristPlays: Bool
+    private(set) var phonePlaying = false
+    private(set) var beatStartMs: Int64?
+    private(set) var stopped = false
+
+    init(drawn: Pilot.Place) {
+        place = drawn
+        wristPlays = drawn == .wrist
+    }
+
+    /// Nothing plays yet: a phone place waiting for the iPhone.
+    var waitingForPhone: Bool { !stopped && !wristPlays && !phonePlaying }
+
+    /// The iPhone confirmed its first click at `ms` (watch clock). False when it's too late (the
+    /// wrist already took over, or the press stopped): the caller then stops the iPhone.
+    mutating func phoneStarted(atMs ms: Int64) -> Bool {
+        guard !stopped, !wristPlays, place != .wrist else { return false }
+        phonePlaying = true
+        beatStartMs = ms
+        return true
+    }
+
+    /// The iPhone couldn't start the beat, didn't confirm in time, or lost it (earbuds removed).
+    /// True when the wrist must start now. A beat that never started on the iPhone is a wrist
+    /// press; one that started there keeps that place and its start time.
+    mutating func phoneFailed() -> Bool {
+        guard !stopped, !wristPlays else { return false }
+        if beatStartMs == nil { place = Pilot.placeToPlay(drawn: place, phoneConfirmed: false) }
+        phonePlaying = false
+        wristPlays = true
+        return true
+    }
+
+    /// A wrist pulse played: the first one is the beat start of a wrist press.
+    mutating func wristPulse(atMs ms: Int64) {
+        if wristPlays && beatStartMs == nil { beatStartMs = ms }
+    }
+
+    mutating func stop() {
+        stopped = true
+        phonePlaying = false
+    }
+}
+
 /// The click schedule of the iPhone's sound beat (B1): one period of audio (a click, then silence),
 /// looped by the audio player, so the beat keeps the audio clock and doesn't drift with the app.
 enum BeatClock {
