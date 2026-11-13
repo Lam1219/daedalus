@@ -134,6 +134,8 @@ targets:
       - path: Shared/GuardEngine.swift
       - path: Shared/GuardRows.swift
       - path: Shared/WatchProtocol.swift
+      - path: Shared/Pilot.swift
+      - path: Shared/PressFile.swift
       - path: SharedTests
     settings:
       base:
