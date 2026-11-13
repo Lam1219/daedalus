@@ -84,6 +84,12 @@ Also reported, without thresholds: presses per day, freezes the person didn't pr
 
 Not built for the test: a one-press start from the watch face, auto-stop when walking resumes, the calibration walk, Fine motor and Calm behind a setting (D3), the adjustable dose time, the doses-and-sleep screen. They go in the R1 build after the test.
 
+## Build status (2026-11-13)
+
+B1–B7, B9 and B10 are built behind the study switch on branch `feature/home-pilot`. B8 (upload) waits for your go; press files leave the phone through "Export pilot files". Each platform's handoff, with its device checks, choices and open questions: `docs/work/HANDOFF-android.md`, `docs/work/HANDOFF-ios.md`. Two platform limits:
+- **iPhone can't vibrate in a locked pocket,** so the pocket place runs on Android phones only, and H12 comes from Android users.
+- **Apple Watch can't detect a stand-up in the background,** so on Apple Watch the pocket reminder comes at times the person sets.
+
 ## Interviews (in parallel, no build needed)
 
 20 one-on-one interviews: 8–10 people who freeze with their carers, 5 physios, 5 neurologists. Each opens with "Walk me through your last freeze: how long did it last, and what got you going?" Then show screens 1–7 and the CAD 9.99 price. Record watch ownership (H4), price reaction (H5), whether physios would offer it (H6) and what neurologists make of the doses-and-sleep screen (H11). The guide goes in `docs/product/interview-guide.md` before the first interview. The interviews can start right away.
