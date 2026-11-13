@@ -55,7 +55,7 @@ At the start of every new task, find your moment (several can apply at once) and
 | planning a complex change | Open the plan with key assumptions for the owner to review; a test touching production or real users' data runs only with the owner's go | the `start-here` skill § Plan |
 | changing a detector, a cue engine, the guard or any algorithm | Change the Python first, regenerate the golden vectors, then make Kotlin and Swift match | `Documentation/automatic-cues-design.md` · `Documentation/automatic-cues-tasks.md` · `daedalus_watch_kit/README.md` |
 | changing what a cue does, or when it fires | Owner, 2026-11-13: R1 cues start only on a press; the guard stays silent (shadow); Fine motor and Calm stay but behind a setting, with no tremor claim; the beat plays on the wrist and in earbuds. This replaces the Nov 10 cue design where they differ | `docs/product/proposal.html` § 8 · `Documentation/automatic-cues-design.md` |
-| starting new feature work | Paused by the owner (2026-11-13, D7) until the hallway tests and interviews report; only the changes those tests need | `docs/product/proposal.html` § 9 |
+| starting new feature work | Paused by the owner (2026-11-13, D7) until the home field test and interviews report; only the changes the test needs | `docs/product/plan.md` · `docs/product/proposal.html` § 9 |
 | adding or changing on-screen text | iOS string catalogs are generated from the Android `strings.xml`; never hand-edit `Localizable.xcstrings` | `daedalus-companion-ios/README.md` § Strings (`python3 tools/make_strings.py`) |
 | a product's screens, or a mock of one | Apply `ui-design`; large targets and no fine taps, for people who shake and freeze | the `ui-design` skill · `Daedalus App Design.pdf` |
 | writing a Supabase query or migration | Use migrations through the CLI with the target named; never point anything at production without the owner's go | `supabase/README.md` · `supabase/migrations/` · the `supabase-production` skill |
@@ -98,4 +98,4 @@ Health data is hosted in Canada and follows PHIPA and Quebec's Law 25. A person 
 
 ## 2.5 Status
 
-Working prototypes exist on all four apps. The automatic-cues work (guard engine in shadow mode) is on `feature/automatic-cues`. The revamp proposal was accepted on 2026-11-13 (direction A, `docs/product/proposal.html`). New features are paused until the hallway tests and interviews report.
+Working prototypes exist on all four apps. The automatic-cues work (guard engine in shadow mode) is on `feature/automatic-cues`. The revamp proposal was accepted on 2026-11-13 (direction A, `docs/product/proposal.html`). New features are paused until the home field test and interviews report (`docs/product/plan.md`).
