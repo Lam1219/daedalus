@@ -88,6 +88,7 @@ Not built for the test: a one-press start from the watch face, auto-stop when wa
 
 B1–B7, B9 and B10 are built behind the study switch on branch `feature/home-pilot`. B8 (upload) waits for your go; press files leave the phone through "Export pilot files". Each platform's handoff, with its device checks, choices and open questions: `docs/work/HANDOFF-android.md`, `docs/work/HANDOFF-ios.md`. Two platform limits:
 - **iPhone can't vibrate in a locked pocket,** so the pocket place runs on Android phones only, and H12 comes from Android users.
+- **Earbuds on Android are paused** (owner, 2026-11-13). The earbuds place is drawn on Android only after the earbuds device check passes for that participant. H3 comes from iPhone users, and from Android users whose earbuds pass.
 - **Apple Watch can't detect a stand-up in the background,** so on Apple Watch the pocket reminder comes at times the person sets.
 
 ## Review findings accepted, not fixed
@@ -99,6 +100,8 @@ These are recorded so they aren't lost. Each says what would reopen it.
 | 002 #7 (Android) | A press recovered after the app died has little or no motion | The analysis gives `recovered` presses no timings and keeps their check-in | Recovered presses exceed 5% of a participant's presses |
 | 003 #6 (Android) | Earbuds dropping within about 2 s of a press leave that press's beat start null | The start is missing, never wrong | Null earbud starts exceed 10% of earbud presses |
 | 003 #8 (Android) | The copy used when a rename is refused isn't atomic | Renames aren't refused on internal storage | Any "rename refused" line appears in a pilot log |
+| 004 #1 (Python) | A press file whose `samples` isn't an object is skipped, so it loses its check-in | The apps never write such a file | A skipped-file note appears in a real pilot report |
+| 004 #7–#9 (Android earbuds) | The audio may stay silent if the Bluetooth output stalls; the wrist takes over after 2 s or more, not 1 s; earbuds that report no click times are cut to the wrist at 2 s | **Paused, not fixed.** The owner chose on 2026-11-13 to pause the earbuds place on Android: it is off unless the physio turns on "Earbuds checked for this participant" after the device check passes (`docs/work/HANDOFF-android.md`, "Earbuds device check") | Anyone turns the setting on: re-review this code first, or redesign it (1 s timer; the wrist joins and the audio keeps playing) |
 
 ## Interviews (in parallel, no build needed)
 
