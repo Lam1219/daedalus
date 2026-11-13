@@ -242,3 +242,17 @@ def test_non_object_samples_is_skipped(tmp_path):
     (tmp_path / "bad.json").write_text(json.dumps(d))
     timings, v = analyse(tmp_path)
     assert len(timings) == 1 and any("bad.json" in n for n in v.notes)
+
+
+def test_report_counts_null_starts_recovered_and_partial_per_place(tmp_path):
+    # Review 004 #2: the plan's reopen triggers must be readable from the report.
+    for i in range(4):
+        d = press_file(25, 33, 28, place="earbuds", index=i, seed=i)
+        if i < 2:
+            d["beat_start_ms"] = None
+        if i == 3:
+            d["recovered"] = True
+        (tmp_path / f"e{i}.json").write_text(json.dumps(d))
+    _, v = analyse(tmp_path)
+    assert v.data_quality["earbuds"] == {"presses": 4, "null_start": 2, "recovered": 1, "motion_partial": 0}
+    assert "earbuds: 4 presses, 2 with no beat start, 1 recovered, 0 partial" in report(v)

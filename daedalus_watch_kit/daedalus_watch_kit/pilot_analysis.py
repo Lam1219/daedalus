@@ -79,6 +79,8 @@ class PressTiming:
     # A beat start was measured. False means the start is unknown: for a pocket press stopped before
     # the phone answered nothing may have played, but an earbuds press can have played with no timestamp.
     beat_confirmed: bool = True
+    recovered: bool = False            # Android: rebuilt after the app died mid-press
+    motion_partial: bool = False       # iOS: the background recorder never covered the window
 
 
 def load_press(path: Path) -> dict:
@@ -103,10 +105,11 @@ def press_timing(d: dict) -> PressTiming:
     t_raw = s.get("t_ms") or []
     beat = d.get("beat_start_ms")
     confirmed = beat is not None
+    flags = dict(recovered=bool(d.get("recovered")), motion_partial=bool(d.get("motion_partial")))
     if (d.get("motion_partial") or d.get("recovered")
             or len(t_raw) < 2 or (t_raw[-1] - t_raw[0]) < GAIT_WIN_MS):
         return PressTiming(d["participant"], d["press_index"], d["place"], d.get("checkin"),
-                           None, None, confirmed)
+                           None, None, confirmed, **flags)
     t = np.asarray(t_raw, dtype=float)
     acc = np.asarray(s["acc"], dtype=float)
     gyr = np.zeros_like(acc) if s.get("gyr") is None else np.asarray(s["gyr"], dtype=float)
@@ -118,7 +121,7 @@ def press_timing(d: dict) -> PressTiming:
     press = d["press_ms"]
     if beat is None:
         return PressTiming(d["participant"], d["press_index"], d["place"], d.get("checkin"),
-                           None, None, confirmed)
+                           None, None, confirmed, **flags)
     stop_ms = None
     for e, wk in zip(ends, walking):
         if e <= press and wk:
@@ -135,7 +138,7 @@ def press_timing(d: dict) -> PressTiming:
     press_to_steps = None if resume_ms is None else max(0.0, (resume_ms - press) / 1000.0)
 
     return PressTiming(d["participant"], d["press_index"], d["place"], d.get("checkin"),
-                       stop_to_beat, press_to_steps, confirmed)
+                       stop_to_beat, press_to_steps, confirmed, **flags)
 
 
 @dataclass
@@ -152,6 +155,9 @@ class Verdicts:
     h12_build_device: Optional[bool]
     h2_median_press_to_steps_s: Optional[float]   # description only, no verdict
     notes: list[str] = field(default_factory=list)
+    # Counts behind the plan's "reopen if" triggers (review 004 #2): per place and per person.
+    data_quality: dict = field(default_factory=dict)
+    data_quality_by_person: dict = field(default_factory=dict)
 
 
 def _median(xs: Iterable[float]) -> Optional[float]:
@@ -212,8 +218,17 @@ def verdicts(timings: list[PressTiming]) -> Verdicts:
         notes.append("H12: no pocket check-ins, so 'reliably felt' is unknown")
 
     h2 = _median(_median(t.press_to_steps_s for t in ts) for ts in by_person.values())
+
+    def counts(ts):
+        return {"presses": len(ts), "null_start": sum(not t.beat_confirmed for t in ts),
+                "recovered": sum(t.recovered for t in ts), "motion_partial": sum(t.motion_partial for t in ts)}
+    by_place: dict[str, list[PressTiming]] = {}
+    for t in timings:
+        by_place.setdefault(t.place, []).append(t)
     return Verdicts(len(by_person), len(timings), h1_med, h1_share, h1_fails, ear, h3,
-                    pocket, not_felt, h12, h2, notes)
+                    pocket, not_felt, h12, h2, notes,
+                    {pl: counts(ts) for pl, ts in sorted(by_place.items())},
+                    {pp: counts(ts) for pp, ts in sorted(by_person.items())})
 
 
 def analyse(folder: Path) -> tuple[list[PressTiming], Verdicts]:
@@ -273,5 +288,10 @@ def report(v: Verdicts) -> str:
         "",
         f"H2  description only: median seconds from press to steady steps {s(v.h2_median_press_to_steps_s, ' s')}",
     ]
+    lines += ["", "Data quality (plan: accepted findings and their reopen triggers)"]
+    for label, table in (("", v.data_quality), ("person ", v.data_quality_by_person)):
+        for k, c in table.items():
+            lines.append(f"    {label}{k}: {c['presses']} presses, {c['null_start']} with no beat start, "
+                         f"{c['recovered']} recovered, {c['motion_partial']} partial")
     lines += [f"note: {n}" for n in v.notes]
     return "\n".join(lines)
