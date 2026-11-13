@@ -175,3 +175,22 @@ The review of `c361c93..ca786c1` asked for iOS fixes 15, 9, 10, 12 and 13, a han
 - **15.** In study mode, press "I'm stuck" on the watch, stop, and wait 2 minutes. Profile → Recorded sessions on the iPhone shows no new session, and the press file arrives under Home pilot. With study mode off, a press still adds a session as before.
 - **12.** Force-quit the watch app 1 s after an earbuds press that fell back to the wrist. The press file that arrives later has a non-null `beat_start_ms` and `place: "wrist"`.
 - **10.** With several waiting presses, the walking screen's pulses stay steady while a press file is being written.
+
+Round 002 commit: bc06214 (`ca786c1..bc06214`).
+
+## Round 003 fixes
+
+The review of `ca786c1..fcbd67f` asked for one iOS fix, 9. The branch was fast-forwarded to fcbd67f first. No Python or Android files changed.
+
+| # | What changed | Test |
+|---|---|---|
+| 9 | **Fallback presses only.** The pending-file save at the first wrist pulse (round 002, fix 12) now happens only in the fallback case: when the start is set after `pressStarted` has already saved the pending file without one. `PressBeat` records that first save (`pendingWasSaved`), and `wristPulse` asks for a save only after it. **Direct wrist presses.** The first pulse comes before `pressStarted`, whose save already carries the start, so there is no second main-thread save. | `PilotRound3Test`: `test9DirectWristPressAsksForNoExtraSave`, `test9FallbackFirstPulseAsksForASave`. The round 002 test 12 now marks the first save, as the watch does. |
+
+**Tests.** Written first and run against the code before the fix: they failed, because `pendingWasSaved` didn't exist. The direct-press test would also have failed on its assertion, since the old first pulse always asked for a save.
+
+**Validation run for round 003:**
+- `xcodegen`, then `xcodebuild test -project Daedalus.xcodeproj -scheme SharedTests -destination 'platform=macOS'`: **TEST SUCCEEDED**, 78 tests, 0 failures, 1 skipped (the sample-file writer, which runs only when its output folder is set).
+- `xcodebuild build -scheme Daedalus -destination 'generic/platform=iOS Simulator'`: **BUILD SUCCEEDED**.
+- The simulators weren't re-run this round.
+
+**Written, not run.** The round 002 device check for 12 still applies: force-quit the watch app 1 s after an earbuds press that fell back to the wrist, and the press file still has its `beat_start_ms`.
