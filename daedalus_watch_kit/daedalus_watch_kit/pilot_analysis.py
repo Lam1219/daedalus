@@ -76,7 +76,9 @@ class PressTiming:
     checkin: Optional[str]
     stop_to_beat_s: Optional[float]   # walking stopped -> beat started (H1)
     press_to_steps_s: Optional[float]  # press -> steady steps again (H2 description, H3, H12)
-    beat_confirmed: bool = True        # a beat start was measured; else nothing is known to have played
+    # A beat start was measured. False means the start is unknown: for a pocket press stopped before
+    # the phone answered nothing may have played, but an earbuds press can have played with no timestamp.
+    beat_confirmed: bool = True
 
 
 def load_press(path: Path) -> dict:
@@ -94,7 +96,10 @@ def press_timing(d: dict) -> PressTiming:
     So does a press whose motion the app flagged as incomplete: `motion_partial` (iOS, the
     background recorder never caught up) or `recovered` (Android, rebuilt after the app died)
     (review 002 #2)."""
-    s = d.get("samples") or {}
+    s = d.get("samples")
+    s = {} if s is None else s
+    if not isinstance(s, dict):
+        raise ValueError("samples is not an object")
     t_raw = s.get("t_ms") or []
     beat = d.get("beat_start_ms")
     confirmed = beat is not None
@@ -112,7 +117,8 @@ def press_timing(d: dict) -> PressTiming:
 
     press = d["press_ms"]
     if beat is None:
-        return PressTiming(d["participant"], d["press_index"], d["place"], d.get("checkin"), None, None)
+        return PressTiming(d["participant"], d["press_index"], d["place"], d.get("checkin"),
+                           None, None, confirmed)
     stop_ms = None
     for e, wk in zip(ends, walking):
         if e <= press and wk:
@@ -221,10 +227,14 @@ def analyse(folder: Path) -> tuple[list[PressTiming], Verdicts]:
         try:
             d = load_press(f)
             key = (d["participant"], d["press_index"], d["press_ms"])
-        except (ValueError, KeyError, TypeError) as e:  # json.JSONDecodeError is a ValueError
+            samples = d.get("samples")
+            samples = {} if samples is None else samples
+            if not isinstance(samples, dict):
+                raise ValueError("samples is not an object")
+            n = len(samples.get("t_ms") or [])
+        except (ValueError, KeyError, TypeError, AttributeError) as e:  # JSONDecodeError is a ValueError
             notes.append(f"skipped {f.name}: {e}")
             continue
-        n = len((d.get("samples") or {}).get("t_ms") or [])
         if key in kept:
             old_n, old_name, _ = kept[key]
             drop = f.name if n <= old_n else old_name
@@ -236,7 +246,7 @@ def analyse(folder: Path) -> tuple[list[PressTiming], Verdicts]:
     for _, name, d in kept.values():
         try:
             timings.append(press_timing(d))
-        except (ValueError, KeyError, TypeError) as e:
+        except (ValueError, KeyError, TypeError, AttributeError) as e:
             notes.append(f"skipped {name}: {e}")
     v = verdicts(timings)
     v.notes.extend(notes)

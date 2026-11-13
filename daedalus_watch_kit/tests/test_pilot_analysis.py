@@ -217,3 +217,28 @@ def test_not_felt_counts_only_confirmed_beats():
         ts += [PressTiming(f"P{p}", 9, "pocket", "not_felt", None, None, beat_confirmed=False)]
     v = verdicts(ts)
     assert v.h12_pocket_not_felt_share == pytest.approx(0.0)
+
+
+def test_unconfirmed_pocket_press_with_full_motion_is_not_counted_as_felt_or_not(tmp_path):
+    # Review 003 #1: goes through press_timing / analyse, not a hand-built PressTiming.
+    d = press_file(25, 33, 28, place="pocket", checkin="not_felt")
+    d["beat_start_ms"] = None
+    assert press_timing(d).beat_confirmed is False
+    for p in range(3):
+        for i in range(3):
+            (tmp_path / f"w{p}{i}.json").write_text(json.dumps(press_file(25, 33, 28, place="wrist", participant=f"P{p}", index=i, seed=i)))
+            (tmp_path / f"k{p}{i}.json").write_text(json.dumps(press_file(25, 31, 28, place="pocket", participant=f"P{p}", index=10 + i, seed=i)))
+        bad = dict(d, participant=f"P{p}", press_index=99, press_ms=d["press_ms"] + p)
+        (tmp_path / f"u{p}.json").write_text(json.dumps(bad))
+    _, v = analyse(tmp_path)
+    assert v.h12_pocket_not_felt_share == pytest.approx(0.0)
+
+
+def test_non_object_samples_is_skipped(tmp_path):
+    # Review 003 #2
+    (tmp_path / "ok.json").write_text(json.dumps(press_file(25, 33, 28)))
+    d = press_file(25, 33, 28, index=1)
+    d["samples"] = []
+    (tmp_path / "bad.json").write_text(json.dumps(d))
+    timings, v = analyse(tmp_path)
+    assert len(timings) == 1 and any("bad.json" in n for n in v.notes)
