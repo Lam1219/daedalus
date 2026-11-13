@@ -16,6 +16,12 @@ data class PilotSettings(
     val enrolmentEpochDay: Long = 0,
     /** B10 "Phone in your front pocket?" reminder after a stand-up. */
     val pocketReminder: Boolean = true,
+    /**
+     * Round 004 (owner, 2026-11-13): the earbuds place is paused on Android until the physio has
+     * run the earbuds device check for this participant. Off: earbuds count as not connected for
+     * drawing, on the watch and the phone, so no Android audio player starts for a pilot press.
+     */
+    val earbudsChecked: Boolean = false,
 ) {
     val enrolment: LocalDate get() = LocalDate.ofEpochDay(enrolmentEpochDay)
 
@@ -28,6 +34,7 @@ data class PilotSettings(
     /** The message the phone sends to the watch on [PilotLink.SETTINGS_PATH]. */
     fun encode(): String = listOf(
         if (enabled) "1" else "0", participant, seed.toString(), enrolmentEpochDay.toString(), if (pocketReminder) "1" else "0",
+        if (earbudsChecked) "1" else "0",
     ).joinToString("|")
 
     companion object {
@@ -43,7 +50,8 @@ data class PilotSettings(
             val seed = p[2].toLongOrNull() ?: return null
             val day = p[3].toLongOrNull() ?: return null
             if (p[0] != "0" && p[0] != "1") return null
-            return PilotSettings(p[0] == "1", p[1], seed, day, p[4] == "1")
+            // A sixth field arrived in round 004; an older phone's five fields mean "not checked".
+            return PilotSettings(p[0] == "1", p[1], seed, day, p[4] == "1", p.getOrNull(5) == "1")
         }
     }
 }

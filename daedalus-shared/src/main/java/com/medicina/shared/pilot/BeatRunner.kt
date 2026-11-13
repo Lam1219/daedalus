@@ -32,11 +32,13 @@ object PressPlanner {
         settings: PilotSettings, pressIndex: Long, dayIndex: Long,
         watchEarbuds: Boolean, phoneEarbuds: Boolean, phoneCarried: Boolean,
     ): PressPlan {
-        val earbuds = watchEarbuds || phoneEarbuds
+        // Round 004: until the earbuds device check passed for this participant, earbuds don't count.
+        val watchEar = settings.earbudsChecked && watchEarbuds
+        val earbuds = settings.earbudsChecked && (watchEarbuds || phoneEarbuds)
         val drawn = Pilot.choosePlace(settings.seed, pressIndex, dayIndex, earbuds, phoneCarried)
         val player = when (drawn) {
             Place.WRIST -> Player.WATCH_HAPTIC
-            Place.EARBUDS -> if (watchEarbuds) Player.WATCH_AUDIO else Player.PHONE_AUDIO
+            Place.EARBUDS -> if (watchEar) Player.WATCH_AUDIO else Player.PHONE_AUDIO
             Place.POCKET -> Player.PHONE_VIBRATION
         }
         return PressPlan(drawn, player, earbuds, phoneCarried)

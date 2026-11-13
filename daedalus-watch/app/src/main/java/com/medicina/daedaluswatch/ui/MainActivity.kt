@@ -30,6 +30,7 @@ import com.medicina.daedaluswatch.sync.SessionSyncManager
 import com.medicina.daedaluswatch.pilot.PilotPhoneLink
 import com.medicina.daedaluswatch.pilot.PilotPresses
 import com.medicina.daedaluswatch.pilot.PilotStore
+import com.medicina.daedaluswatch.pilot.pilotFolderExists
 import com.medicina.shared.pilot.CheckIn
 import com.medicina.shared.pilot.Place
 import java.util.Locale
@@ -77,6 +78,8 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     private lateinit var tvTremorDetail: TextView
 
     private var sensorManager: SensorManager? = null
+    /** Study on, or pilot files on this watch: only then does the screen look at PilotPresses (round 004, #4). */
+    private var pilotOn = false
     private var homeHeartRate = 0
     private var phoneConnected = true
     private var lastPhoneCheckMs = 0L
@@ -152,8 +155,10 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         // "I'm stuck" on the check-in: a new press, which closes the check-in unanswered (round 001, #6).
         findViewById<View>(R.id.btn_checkin_stuck).setOnClickListener { startWalkingCue() }
         // Finish presses a crash or restart left pending (round 001, #5).
-        // Whatever the study switch says (round 003, #7): it only writes files.
-        PilotPresses.recoverOrphans(this)
+        // Whatever the study switch says (round 003, #7): it only writes files. Without a pilot
+        // folder, nothing pilot-related is created (round 004, #4).
+        pilotOn = PilotStore.active(this) || pilotFolderExists(this)
+        if (pilotFolderExists(this)) PilotPresses.recoverOrphans(this)
 
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
     }
@@ -162,6 +167,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         super.onResume()
         isVisible = true
         // Home pilot: the person may be about to press; get the phone's earbuds and steps now.
+        pilotOn = PilotStore.active(this) || pilotFolderExists(this)
         if (PilotStore.active(this)) PilotPhoneLink.query(this)
         lastPhoneCheckMs = 0L
         handler.post(frame)
@@ -202,7 +208,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     private fun render() {
         val now = System.currentTimeMillis()
         // Home pilot: the one-tap check-in after a beat stops comes first.
-        if (PilotPresses.checkinFor != null) {
+        if (pilotOn && PilotPresses.checkinFor != null) {
             show(screenCheckin)
             return
         }
@@ -288,7 +294,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
                 show(screenWalk)
                 tvWalkRate.text = bpm.toString()
                 // Home pilot: where this press plays its beat, in small text.
-                val place = PilotPresses.currentPlace
+                val place = if (pilotOn) PilotPresses.currentPlace else null
                 tvWalkPlace.visibility = if (place != null) View.VISIBLE else View.GONE
                 if (place != null) tvWalkPlace.setText(
                     when (place) {

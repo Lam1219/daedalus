@@ -244,9 +244,51 @@ Two round-001 tests (`n7_aPlayCallTimeIsNotABeatStart` and the 2.5 s watch-audio
 - Watch: `gradle assembleDebug test --offline` in `daedalus-watch` exited 0; 124 tests per variant, 0 failures.
 - Phone: `gradle assembleDebug test --offline` in `daedalus-companion` exited 0; 31 tests per variant, 0 failures.
 
+## Round 004: earbuds paused
+
+Owner decision (2026-11-13). Round 004 found new problems in the Android earbuds start and confirm logic for the fourth round running (#7–#9). The earbuds place on Android is therefore **paused** behind a per-participant setting rather than patched again. #7–#9 are not fixed; that code is paused. `feature/home-pilot` (06801fb) merged first. No Python or iOS touched.
+
+**The setting.**
+- Phone, Profile → Home pilot: **"Earbuds checked for this participant"**. Off by default.
+- Like the code, seed and date, it can only change while study mode is off.
+- It travels to the watch as a sixth settings field. An older phone's five-field message means "not checked".
+- **Off:** "earbuds connected" is false for drawing, on the watch (`PressPlanner`) and in the phone's status. The earbuds place is never drawn, no Android audio player starts for a pilot press, and press files say `earbuds_connected: false`.
+- **On:** draws and players are exactly as before.
+
+**Earbuds device check.** The physio runs this before turning the setting on. Run it for each of the participant's own earbuds: separately when paired to the watch and when paired to the phone.
+1. Turn study mode on with the setting **on**, on a test participant code with the enrolment date today (learning week, so presses rotate through the places).
+2. Make 5 presses that are drawn to earbuds. The watch's walking screen says "In your earbuds"; skip the others.
+3. For each of the 5 presses, check all three:
+   - the click is heard in the earbuds within 1 s of the press;
+   - the press is never cut to the wrist while the clicks are audible;
+   - the press file (Export pilot files) has a measured `beat_start_ms`, with `beat_start_source` starting with `audio_timestamp` (or `phone_audio_timestamp` for the phone), not null.
+4. **Pass** = all 5 presses meet all three. Otherwise leave the setting off: the participant's presses then use the wrist and the pocket only.
+5. Delete the test files, turn study mode off, enter the real participant code and settings, set "Earbuds checked" to the result, and turn study mode on.
+
+**Round 004 #3.** The comments in `ClickBeatPlayer.start` and `WatchBootReceiver` now say what the code does (the 2 s wait ends in a loss and the wrist takes over; what a boot does in each case). The unused `TIMESTAMP_WAIT_MS` is gone.
+
+**Round 004 #4.**
+- `MainActivity` and `WatchBootReceiver` check that `filesDir/pilot` exists (`pilotFolderExists`, kept outside `PilotPresses`) before touching `PilotPresses`.
+- With no pilot folder and study mode off, app start and boot create and run nothing pilot-related.
+- The watch screen only looks at `PilotPresses` when study mode is on or a pilot folder exists.
+
+**Tests (`RoundFourEarbudsPausedTest`).**
+- With the setting off, no draw over days −1 to 22 × 200 presses × every availability yields earbuds or an audio player, even with earbuds connected. I checked that this fails with the gate removed.
+- With it on, every draw equals `Pilot.choosePlace` as before.
+- The setting round-trips and an old five-field message decodes as off.
+- With no pilot folder and the study off, boot touches nothing; with a folder, it only recovers.
+- The folder check counts only a directory.
+- Older tests were updated: the boot tests pass the folder flag, and `BeatRunnerTest`'s earbuds-player test turns the setting on.
+- `MainActivity`'s folder check isn't reachable by a unit test (it's in `onCreate` and `onResume`).
+
+**Validation.**
+- Watch: `gradle assembleDebug test --offline` in `daedalus-watch` exited 0; 129 tests per variant, 0 failures.
+- Phone: `gradle assembleDebug test --offline` in `daedalus-companion` exited 0; 31 tests per variant, 0 failures.
+
 ## Commit range
 
 `0812fae..HEAD` on `android-home-pilot` (the commits after 0812fae: Wear OS, phone, then this handoff with the B6 test).
 Round 001 fixes: `c361c93..HEAD` (06c5a65 the fixes, then the handoff update).
 Round 002 fixes: `ca786c1..HEAD`.
 Round 003 fixes: `fcbd67f..HEAD`.
+Round 004 (earbuds paused): `06801fb..HEAD`.

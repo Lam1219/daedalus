@@ -161,6 +161,20 @@ fun PilotScreen(onBack: () -> Unit) {
                 showDivider = true,
                 onClick = if (locked) null else ({ pickDate = true }),
             )
+            // Round 004 (owner): the earbuds place is paused until the earbuds device check passed for
+            // this participant. Off by default; changes only while study mode is off; sent with the rest.
+            ListRow(
+                title = stringResource(R.string.pilot_earbuds_checked),
+                subtitle = stringResource(R.string.pilot_earbuds_checked_sub),
+                showDivider = true,
+                trailing = {
+                    SageSwitch(
+                        checked = settings.earbudsChecked,
+                        enabled = !locked,
+                        onCheckedChange = { on -> settings = settings.copy(earbudsChecked = on); PilotPrefs.save(context, settings) },
+                    )
+                },
+            )
             if (locked) Text(stringResource(R.string.pilot_locked), style = CaptionStyle, modifier = Modifier.padding(vertical = 8.dp))
             ListRow(
                 title = stringResource(R.string.pilot_pocket),
