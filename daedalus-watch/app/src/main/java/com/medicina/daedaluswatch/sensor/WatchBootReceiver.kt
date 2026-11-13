@@ -25,8 +25,10 @@ class WatchBootReceiver : BroadcastReceiver() {
          * does nothing new: the stand-up prompt starts as before this branch, from the app.
          */
         fun onBoot(action: String?, pilotActive: Boolean, restart: () -> Unit, recover: () -> Unit) {
-            if (action !in ACTIONS || !pilotActive) return
-            restart()
+            if (action !in ACTIONS) return
+            if (pilotActive) restart()
+            // Round 003, #7: unfinished presses are finished whatever the switch says; this only
+            // writes files and starts nothing.
             recover()
         }
     }

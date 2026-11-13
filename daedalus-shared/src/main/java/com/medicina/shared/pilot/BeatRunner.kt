@@ -119,8 +119,10 @@ class BeatRunner(
     }
 
     @Synchronized
-    private fun started(id: Int, tMs: Long?, source: String) {
+    private fun started(id: Int, startMs: Long?, source: String) {
         if (id != attempt || stopped) return
+        // Round 003, #5: a play() call time (an older phone build) is never a start.
+        val tMs = if (source.contains("audio_play_call")) null else startMs
         if (confirmed) {
             // The measured start, after the confirmation: record it (or why there is none).
             if (beatStartMs == null) {

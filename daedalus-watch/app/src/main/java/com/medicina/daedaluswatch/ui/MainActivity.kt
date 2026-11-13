@@ -152,7 +152,8 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         // "I'm stuck" on the check-in: a new press, which closes the check-in unanswered (round 001, #6).
         findViewById<View>(R.id.btn_checkin_stuck).setOnClickListener { startWalkingCue() }
         // Finish presses a crash or restart left pending (round 001, #5).
-        if (PilotStore.active(this)) PilotPresses.recoverOrphans(this)
+        // Whatever the study switch says (round 003, #7): it only writes files.
+        PilotPresses.recoverOrphans(this)
 
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
     }

@@ -59,6 +59,24 @@ object ClickSchedule {
 }
 
 /**
+ * Round 003, #4: what to do while waiting for the output to show the first click as presented.
+ * A timestamp means it played; none within the wait means the audio may be silent, so the
+ * caller treats it as lost and the wrist takes over. No press stays silent because audio was
+ * written but never presented.
+ */
+object FirstClick {
+    enum class Outcome { WAIT, MEASURED, LOST }
+
+    const val WAIT_MS = 2_000L
+
+    fun decide(presented: Boolean, waitedMs: Long, waitMs: Long = WAIT_MS): Outcome = when {
+        presented -> Outcome.MEASURED
+        waitedMs > waitMs -> Outcome.LOST
+        else -> Outcome.WAIT
+    }
+}
+
+/**
  * Earbuds or headphones on this device's audio outputs (round 001, #8). A Bluetooth A2DP sink can
  * be a speaker, a car or a TV, so it counts only when its Bluetooth device class says headphones or
  * a wearable headset. LE audio headsets, wired and USB headsets count. Without permission to read
@@ -189,16 +207,24 @@ class ClickBeatPlayer(private val context: Context) {
                         onStarted(null, "audio_written" + btSuffix(track))
                     }
                     if (confirmed && !measured) {
-                        if (track.getTimestamp(ts) && ts.framePosition > 0) {
-                            // Frame 0 (the first click) was presented framePosition frames before ts.nanoTime.
-                            val ageMs = (System.nanoTime() - ts.nanoTime) / 1_000_000
-                            val start = System.currentTimeMillis() - ageMs - ts.framePosition * 1000 / ClickSchedule.SAMPLE_RATE
-                            measured = true
-                            onStarted(start, "audio_timestamp" + btSuffix(track))
-                        } else if (System.currentTimeMillis() - playCalledMs > TIMESTAMP_WAIT_MS) {
-                            // No timestamp from this output: no start time, and the file says why.
-                            measured = true
-                            onStarted(null, "audio_no_timestamp" + btSuffix(track))
+                        val presented = track.getTimestamp(ts) && ts.framePosition > 0
+                        when (FirstClick.decide(presented, System.currentTimeMillis() - playCalledMs)) {
+                            FirstClick.Outcome.MEASURED -> {
+                                // Frame 0 (the first click) was presented framePosition frames before ts.nanoTime.
+                                val ageMs = (System.nanoTime() - ts.nanoTime) / 1_000_000
+                                val start = System.currentTimeMillis() - ageMs - ts.framePosition * 1000 / ClickSchedule.SAMPLE_RATE
+                                measured = true
+                                onStarted(start, "audio_timestamp" + btSuffix(track))
+                            }
+                            FirstClick.Outcome.LOST -> {
+                                // Written but never shown as presented: maybe silent. No start time, the
+                                // file says why, and the wrist takes over (round 003, #4).
+                                measured = true
+                                onStarted(null, "audio_no_timestamp" + btSuffix(track))
+                                stop()
+                                onLost("audio_no_timestamp")
+                            }
+                            FirstClick.Outcome.WAIT -> Unit
                         }
                     }
                 }
