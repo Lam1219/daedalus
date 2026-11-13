@@ -178,3 +178,42 @@ def test_unreadable_or_foreign_files_are_skipped_and_named(tmp_path):
     timings, v = analyse(tmp_path)
     assert len(timings) == 1
     assert any("old.json" in n for n in v.notes) and any("junk.json" in n for n in v.notes)
+
+
+def test_non_object_json_is_skipped(tmp_path):
+    # Review 002 #1
+    (tmp_path / "P01_0.json").write_text(json.dumps(press_file(25, 33, 28)))
+    (tmp_path / "list.json").write_text("[]")
+    timings, v = analyse(tmp_path)
+    assert len(timings) == 1 and any("list.json" in n for n in v.notes)
+
+
+@pytest.mark.parametrize("flag", ["motion_partial", "recovered"])
+def test_partial_or_recovered_motion_has_no_timings(flag):
+    # Review 002 #2: the platforms flag incomplete motion under two names.
+    d = press_file(25, 33, 28, checkin="helped")
+    d[flag] = True
+    t = press_timing(d)
+    assert (t.stop_to_beat_s, t.press_to_steps_s, t.checkin) == (None, None, "helped")
+
+
+def test_duplicate_copies_of_one_press_count_once(tmp_path):
+    # Review 002 #3: a re-sent file kept as _2 / -2.
+    d = press_file(25, 33, 28)
+    (tmp_path / "press_P01_00000_1.json").write_text(json.dumps(d))
+    short = dict(d, samples={"t_ms": [], "acc": [[], [], []], "gyr": None})
+    (tmp_path / "press_P01_00000_1_2.json").write_text(json.dumps(short))
+    timings, v = analyse(tmp_path)
+    assert len(timings) == 1 and timings[0].press_to_steps_s is not None
+    assert any("duplicate" in n for n in v.notes)
+
+
+def test_not_felt_counts_only_confirmed_beats():
+    # Review 002 #5: a pocket press stopped before the phone confirmed played nothing there.
+    ts = []
+    for p in range(3):
+        ts += [T(f"P{p}", "wrist", 6.0) for _ in range(3)]
+        ts += [T(f"P{p}", "pocket", 4.0) for _ in range(3)]
+        ts += [PressTiming(f"P{p}", 9, "pocket", "not_felt", None, None, beat_confirmed=False)]
+    v = verdicts(ts)
+    assert v.h12_pocket_not_felt_share == pytest.approx(0.0)

@@ -14,6 +14,9 @@ One press file is JSON, written by the watch app (version pilot-1.0):
       "beat_start_ms": 1794570000400,  # when the beat actually began playing, or null if never confirmed
       "beat_stop_ms": 1794570009000,   # null if the app stopped before it could write this
       "checkin": "helped" | "not_helped" | "already_moving" | "not_felt" | null,
+      "motion_partial": false,         # optional, iOS: the background recorder never covered the window
+      "recovered": false,              # optional, Android: rebuilt after the app died mid-press
+                                       # either flag true: the press keeps its check-in, no timings
       "samples": {                     # the watch's motion, from 30 s before to 60 s after the press
         "t_ms": [...],                 # epoch ms, about 50 Hz
         "acc": [[...], [...], [...]],  # m/s², gravity included
@@ -73,10 +76,13 @@ class PressTiming:
     checkin: Optional[str]
     stop_to_beat_s: Optional[float]   # walking stopped -> beat started (H1)
     press_to_steps_s: Optional[float]  # press -> steady steps again (H2 description, H3, H12)
+    beat_confirmed: bool = True        # a beat start was measured; else nothing is known to have played
 
 
 def load_press(path: Path) -> dict:
     d = json.loads(Path(path).read_text())
+    if not isinstance(d, dict):
+        raise ValueError(f"{path}: not a press file (top level is not an object)")
     if d.get("version") != pilot.VERSION:
         raise ValueError(f"{path}: version {d.get('version')!r}, expected {pilot.VERSION}")
     return d
@@ -84,12 +90,18 @@ def load_press(path: Path) -> dict:
 
 def press_timing(d: dict) -> PressTiming:
     """Timings for one press. A press with too little motion, or with no confirmed beat start,
-    keeps its check-in but has no timings (None), rather than being dropped or guessed."""
+    keeps its check-in but has no timings (None), rather than being dropped or guessed.
+    So does a press whose motion the app flagged as incomplete: `motion_partial` (iOS, the
+    background recorder never caught up) or `recovered` (Android, rebuilt after the app died)
+    (review 002 #2)."""
     s = d.get("samples") or {}
     t_raw = s.get("t_ms") or []
     beat = d.get("beat_start_ms")
-    if len(t_raw) < 2 or (t_raw[-1] - t_raw[0]) < GAIT_WIN_MS:
-        return PressTiming(d["participant"], d["press_index"], d["place"], d.get("checkin"), None, None)
+    confirmed = beat is not None
+    if (d.get("motion_partial") or d.get("recovered")
+            or len(t_raw) < 2 or (t_raw[-1] - t_raw[0]) < GAIT_WIN_MS):
+        return PressTiming(d["participant"], d["press_index"], d["place"], d.get("checkin"),
+                           None, None, confirmed)
     t = np.asarray(t_raw, dtype=float)
     acc = np.asarray(s["acc"], dtype=float)
     gyr = np.zeros_like(acc) if s.get("gyr") is None else np.asarray(s["gyr"], dtype=float)
@@ -117,7 +129,7 @@ def press_timing(d: dict) -> PressTiming:
     press_to_steps = None if resume_ms is None else max(0.0, (resume_ms - press) / 1000.0)
 
     return PressTiming(d["participant"], d["press_index"], d["place"], d.get("checkin"),
-                       stop_to_beat, press_to_steps)
+                       stop_to_beat, press_to_steps, confirmed)
 
 
 @dataclass
@@ -181,7 +193,9 @@ def verdicts(timings: list[PressTiming]) -> Verdicts:
 
     felt_shares = []
     for ts in by_person.values():
-        answers = [t.checkin for t in ts if t.place == "pocket" and t.checkin]
+        # Only presses whose beat was confirmed: one stopped before the phone answered played
+        # nothing in the pocket, so its "didn't feel it" says nothing about the pocket (review 002 #5).
+        answers = [t.checkin for t in ts if t.place == "pocket" and t.checkin and t.beat_confirmed]
         if answers:
             felt_shares.append(sum(c == pilot.CheckIn.NOT_FELT.value for c in answers) / len(answers))
     not_felt = _median(felt_shares)
@@ -198,15 +212,34 @@ def verdicts(timings: list[PressTiming]) -> Verdicts:
 
 def analyse(folder: Path) -> tuple[list[PressTiming], Verdicts]:
     """Every press file in the folder. A file that isn't a pilot-1.0 press file is skipped and
-    named in the report notes, so one stray file can't stop the analysis (review 001 #3)."""
-    timings, skipped = [], []
+    named in the report notes, so one stray file can't stop the analysis (review 001 #3).
+    A press that arrived twice (both apps keep a re-sent copy as _2 / -2 rather than overwrite)
+    counts once: the copy with the most motion samples is kept (review 002 #3)."""
+    kept: dict[tuple, tuple[int, str, dict]] = {}
+    notes = []
     for f in sorted(Path(folder).glob("*.json")):
         try:
-            timings.append(press_timing(load_press(f)))
+            d = load_press(f)
+            key = (d["participant"], d["press_index"], d["press_ms"])
         except (ValueError, KeyError, TypeError) as e:  # json.JSONDecodeError is a ValueError
-            skipped.append(f"skipped {f.name}: {e}")
+            notes.append(f"skipped {f.name}: {e}")
+            continue
+        n = len((d.get("samples") or {}).get("t_ms") or [])
+        if key in kept:
+            old_n, old_name, _ = kept[key]
+            drop = f.name if n <= old_n else old_name
+            notes.append(f"duplicate of press {key[0]} #{key[1]}: ignored {drop}")
+            if n <= old_n:
+                continue
+        kept[key] = (n, f.name, d)
+    timings = []
+    for _, name, d in kept.values():
+        try:
+            timings.append(press_timing(d))
+        except (ValueError, KeyError, TypeError) as e:
+            notes.append(f"skipped {name}: {e}")
     v = verdicts(timings)
-    v.notes.extend(skipped)
+    v.notes.extend(notes)
     return timings, v
 
 
