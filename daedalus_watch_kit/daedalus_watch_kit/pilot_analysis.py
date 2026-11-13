@@ -89,6 +89,9 @@ def load_press(path: Path) -> dict:
         raise ValueError(f"{path}: not a press file (top level is not an object)")
     if d.get("version") != pilot.VERSION:
         raise ValueError(f"{path}: version {d.get('version')!r}, expected {pilot.VERSION}")
+    for k in ("participant", "place"):
+        if not isinstance(d.get(k), str):
+            raise ValueError(f"{path}: {k} is not a string")  # review 005 #1: keeps sorting safe
     return d
 
 

@@ -256,3 +256,31 @@ def test_report_counts_null_starts_recovered_and_partial_per_place(tmp_path):
     _, v = analyse(tmp_path)
     assert v.data_quality["earbuds"] == {"presses": 4, "null_start": 2, "recovered": 1, "motion_partial": 0}
     assert "earbuds: 4 presses, 2 with no beat start, 1 recovered, 0 partial" in report(v)
+
+
+def test_non_string_participant_or_place_is_skipped_not_fatal(tmp_path):
+    # Review 005 #1
+    (tmp_path / "ok.json").write_text(json.dumps(press_file(25, 33, 28)))
+    d = press_file(25, 33, 28, index=1)
+    d["place"] = None
+    (tmp_path / "noplace.json").write_text(json.dumps(d))
+    d2 = press_file(25, 33, 28, index=2)
+    d2["participant"] = 7
+    (tmp_path / "numeric.json").write_text(json.dumps(d2))
+    timings, v = analyse(tmp_path)
+    assert len(timings) == 1
+    assert any("noplace.json" in n for n in v.notes) and any("numeric.json" in n for n in v.notes)
+
+
+def test_per_person_counts_and_motion_partial(tmp_path):
+    # Review 005 #2: the per-person row feeds the plan's 5%-recovered trigger.
+    for i in range(3):
+        d = press_file(25, 33, 28, participant="P02", index=i, seed=i)
+        if i == 0:
+            d["motion_partial"] = True
+        if i == 1:
+            d["recovered"] = True
+        (tmp_path / f"p{i}.json").write_text(json.dumps(d))
+    _, v = analyse(tmp_path)
+    assert v.data_quality_by_person["P02"] == {"presses": 3, "null_start": 0, "recovered": 1, "motion_partial": 1}
+    assert v.data_quality["wrist"]["motion_partial"] == 1
