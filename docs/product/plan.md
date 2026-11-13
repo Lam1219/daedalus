@@ -90,6 +90,16 @@ B1–B7, B9 and B10 are built behind the study switch on branch `feature/home-pi
 - **iPhone can't vibrate in a locked pocket,** so the pocket place runs on Android phones only, and H12 comes from Android users.
 - **Apple Watch can't detect a stand-up in the background,** so on Apple Watch the pocket reminder comes at times the person sets.
 
+## Review findings accepted, not fixed
+
+These are recorded so they aren't lost. Each says what would reopen it.
+
+| Round, # | Finding | Why it's accepted | Reopen if |
+|---|---|---|---|
+| 002 #7 (Android) | A press recovered after the app died has little or no motion | The analysis gives `recovered` presses no timings and keeps their check-in | Recovered presses exceed 5% of a participant's presses |
+| 003 #6 (Android) | Earbuds dropping within about 2 s of a press leave that press's beat start null | The start is missing, never wrong | Null earbud starts exceed 10% of earbud presses |
+| 003 #8 (Android) | The copy used when a rename is refused isn't atomic | Renames aren't refused on internal storage | Any "rename refused" line appears in a pilot log |
+
 ## Interviews (in parallel, no build needed)
 
 20 one-on-one interviews: 8–10 people who freeze with their carers, 5 physios, 5 neurologists. Each opens with "Walk me through your last freeze: how long did it last, and what got you going?" Then show screens 1–7 and the CAD 9.99 price. Record watch ownership (H4), price reaction (H5), whether physios would offer it (H6) and what neurologists make of the doses-and-sleep screen (H11). The guide goes in `docs/product/interview-guide.md` before the first interview. The interviews can start right away.
