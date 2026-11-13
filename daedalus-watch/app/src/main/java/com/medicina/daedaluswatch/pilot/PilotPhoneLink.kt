@@ -13,12 +13,12 @@ private const val TAG = "PilotPhoneLink"
 
 /** The watch's side of the pilot messages: beats played by the phone, and status queries. */
 object PilotPhoneLink {
-    private class Pending(val sentAtMs: Long, val onStarted: (Long, String) -> Unit, val onFailed: (String) -> Unit)
+    private class Pending(val sentAtMs: Long, val onStarted: (Long?, String) -> Unit, val onFailed: (String) -> Unit)
 
     private val pending = ConcurrentHashMap<String, Pending>()
 
     /** Asks the phone to play [player]; [onStarted] gets the first click or pulse on the watch's clock. */
-    fun startBeat(c: Context, pressId: String, player: Player, bpm: Int, maxMs: Long, onStarted: (Long, String) -> Unit, onFailed: (String) -> Unit) {
+    fun startBeat(c: Context, pressId: String, player: Player, bpm: Int, maxMs: Long, onStarted: (Long?, String) -> Unit, onFailed: (String) -> Unit) {
         val sentAt = System.currentTimeMillis()
         pending[pressId] = Pending(sentAt, onStarted, onFailed)
         send(c, PilotLink.BEAT_PATH, BeatMessage.Start(pressId, player, bpm, maxMs).encode()) { reason ->
@@ -46,7 +46,8 @@ object PilotPhoneLink {
         when (m) {
             is BeatMessage.Started -> {
                 val p = pending[m.pressId] ?: return
-                val t = BeatClock.beatStartOnWatch(p.sentAtMs, receivedAtMs, m.receivedMs, m.startMs, m.sentMs)
+                // startMs < 0: playing, start not measured yet (a second "started" may follow).
+                val t = if (m.startMs < 0) null else BeatClock.beatStartOnWatch(p.sentAtMs, receivedAtMs, m.receivedMs, m.startMs, m.sentMs)
                 p.onStarted(t, "phone_${m.source}+rtt")
             }
             is BeatMessage.Failed -> pending[m.pressId]?.onFailed?.invoke("phone_${m.reason}")

@@ -224,8 +224,9 @@ class PilotPhoneService : Service() {
         wakeLock = (getSystemService(POWER_SERVICE) as PowerManager)
             .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Daedalus:PilotBeat").apply { acquire(m.maxMs + 60_000) }
         main.postDelayed(beatCap, m.maxMs) // the watch's 10-minute limit, in case its stop never arrives
-        val started = { t: Long, source: String ->
-            send(PilotLink.BEAT_PATH, BeatMessage.Started(m.pressId, receivedMs, t, System.currentTimeMillis(), source).encode())
+        // t null: playing, start not measured yet (sent as -1); the measured start follows (round 002, #8).
+        val started = { t: Long?, source: String ->
+            send(PilotLink.BEAT_PATH, BeatMessage.Started(m.pressId, receivedMs, t ?: -1, System.currentTimeMillis(), source).encode())
         }
         val failed = { reason: String ->
             main.post { if (beatId == m.pressId) stopBeat(m.pressId) }

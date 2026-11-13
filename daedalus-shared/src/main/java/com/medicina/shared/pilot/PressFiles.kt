@@ -82,23 +82,29 @@ data class PendingPress(
  * tries once more, then gives up and returns null (the caller logs it).
  */
 object PilotFileWriter {
-    fun write(dir: File, name: String, text: String, replace: Boolean = false, log: (String) -> Unit = {}): File? {
+    /** [rename] is File.renameTo; tests pass a spy. */
+    fun write(
+        dir: File, name: String, text: String, replace: Boolean = false,
+        rename: (File, File) -> Boolean = { from, to -> from.renameTo(to) },
+        log: (String) -> Unit = {},
+    ): File? {
         repeat(2) { attempt ->
-            val result = runCatching { writeOnce(dir, name, text, replace) }
+            val result = runCatching { writeOnce(dir, name, text, replace, rename) }
             result.getOrNull()?.let { return it }
             log("write $name failed (attempt ${attempt + 1}): ${result.exceptionOrNull()?.message}")
         }
         return null
     }
 
-    private fun writeOnce(dir: File, name: String, text: String, replace: Boolean): File {
+    private fun writeOnce(dir: File, name: String, text: String, replace: Boolean, rename: (File, File) -> Boolean): File {
         dir.mkdirs()
         var target = File(dir, name)
         if (!replace) target = free(dir, name)
         val tmp = File(dir, "${target.name}.part")
         tmp.writeText(text)
-        if (replace && target.isFile) target.delete()
-        if (!tmp.renameTo(target)) {
+        // No delete first (round 002, #4): rename(2), which File.renameTo uses on Android, replaces
+        // the target atomically on one file system, so the old file is there until the new one is.
+        if (!rename(tmp, target)) {
             // Some file systems refuse a rename; copy, and keep the .part only if the copy failed.
             check(!target.exists() || replace) { "target appeared: ${target.name}" }
             target.writeText(text)

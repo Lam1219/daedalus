@@ -46,11 +46,14 @@ object PressPlanner {
 /** Starts and stops the players. Implemented by the watch's HapticService; faked in tests. */
 interface BeatOutput {
     /**
-     * Starts [player] at [bpm]. Calls [onStarted] with the epoch ms (watch clock) when the first
-     * pulse or click actually played, and how that time was measured, or [onFailed] if it can't play. Either may be called on any
-     * thread, synchronously or later. The watch's motor must never fail.
+     * Starts [player] at [bpm]. Calls [onStarted] as soon as it is actually playing, with the
+     * epoch ms (watch clock) of the first pulse or click when it is known, or null when it isn't
+     * known yet, and how that time was (or wasn't) measured. A player may call it a second time
+     * with the measured start (round 002, #8: audio confirms when its first frames are written and
+     * reports the output timestamp later). [onFailed] if it can't play. Either may be called on
+     * any thread, synchronously or later. The watch's motor must never fail.
      */
-    fun start(player: Player, bpm: Int, onStarted: (Long, String) -> Unit, onFailed: (String) -> Unit)
+    fun start(player: Player, bpm: Int, onStarted: (Long?, String) -> Unit, onFailed: (String) -> Unit)
     fun stop(player: Player)
     /** The person paused or resumed the cue: silence the player, then go on (round 001, #24). */
     fun pause(player: Player) {}
@@ -67,8 +70,6 @@ class BeatRunner(
     private val output: BeatOutput,
     private val schedule: (delayMs: Long, block: () -> Unit) -> (() -> Unit),
     private val remoteTimeoutMs: Long = REMOTE_TIMEOUT_MS,
-    /** Watch-played audio needs longer to report its first presented frame (round 001, #7). */
-    private val watchAudioTimeoutMs: Long = WATCH_AUDIO_TIMEOUT_MS,
 ) {
     /** Called once the player has confirmed (for the pending press file, round 001 #5). */
     @Volatile var onConfirmed: (() -> Unit)? = null
@@ -109,21 +110,30 @@ class BeatRunner(
         player = p
         // Any player but the motor must confirm its first click or pulse in time (a hung audio
         // output or an unreachable phone would otherwise leave the press silent).
+        // One wait for every player (round 002, #8): audio confirms when it is playing, not when
+        // its timestamp arrives, so 1 s is enough for the watch's own earbuds too.
         if (p != Player.WATCH_HAPTIC) {
-            val wait = if (p == Player.WATCH_AUDIO) watchAudioTimeoutMs else remoteTimeoutMs
-            cancelTimeout = schedule(wait) { failed(id, "no_reply") }
+            cancelTimeout = schedule(remoteTimeoutMs) { failed(id, "no_reply") }
         }
         output.start(p, bpm, onStarted = { t, src -> started(id, t, src) }, onFailed = { r -> failed(id, r) })
     }
 
     @Synchronized
-    private fun started(id: Int, tMs: Long, source: String) {
-        if (id != attempt || stopped || confirmed) return
+    private fun started(id: Int, tMs: Long?, source: String) {
+        if (id != attempt || stopped) return
+        if (confirmed) {
+            // The measured start, after the confirmation: record it (or why there is none).
+            if (beatStartMs == null) {
+                beatStartMs = tMs
+                beatStartSource = source
+                onConfirmed?.invoke()
+            }
+            return
+        }
         cancelTimeout?.invoke(); cancelTimeout = null
         confirmed = true
-        // A play() call time is when audio was asked for, not when it was heard: no beat start
-        // rather than one that looks early (round 001, #7). The source still says what happened.
-        beatStartMs = if (isEstimateOnly(source)) null else tMs
+        // Never a request time: null until a real output time is reported (round 001 #7, round 002 #8).
+        beatStartMs = tMs
         beatStartSource = source
         placeUsed = player?.place
         onConfirmed?.invoke()
@@ -179,11 +189,6 @@ class BeatRunner(
     companion object {
         /** How long a phone player has to confirm its first click or pulse (plan B1: within 1 s). */
         const val REMOTE_TIMEOUT_MS = 1_000L
-        /** Watch audio: AudioTrack may take up to ~2 s to report its first presented frame. */
-        const val WATCH_AUDIO_TIMEOUT_MS = 2_500L
-
-        /** Sources that only say when audio was requested, not when it played. */
-        fun isEstimateOnly(source: String) = source.contains("audio_play_call")
     }
 }
 

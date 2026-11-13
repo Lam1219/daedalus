@@ -125,10 +125,14 @@ class ClickBeatPlayer(private val context: Context) {
     private var deviceCallback: AudioDeviceCallback? = null
 
     /**
-     * Starts the clicks. [onStarted] gets the epoch ms of the first click and how it was measured;
+     * Starts the clicks. [onStarted] is called twice (round 002, #8):
+     * - at once when the first frames are written and the track is playing: (null, "audio_written");
+     * - then with the measured start of the first click from the output timestamp,
+     *   (ms, "audio_timestamp"), or, if none arrives within [TIMESTAMP_WAIT_MS], (null, "audio_no_timestamp").
+     * The play() call time is never reported as the start. Sources end in "_bt" over Bluetooth.
      * [onFailed] is called if audio can't start; [onLost] if the headphones go away mid-beat.
      */
-    fun start(bpm: Int, onStarted: (Long, String) -> Unit, onFailed: (String) -> Unit, onLost: (String) -> Unit = {}) {
+    fun start(bpm: Int, onStarted: (Long?, String) -> Unit, onFailed: (String) -> Unit, onLost: (String) -> Unit = {}) {
         if (running) return
         if (!AudioRoutes.headphonesConnected(context)) { onFailed("no_headphones"); return }
         val attrs = AudioAttributes.Builder()
@@ -167,7 +171,8 @@ class ClickBeatPlayer(private val context: Context) {
         thread = Thread {
             val chunk = ShortArray(ClickSchedule.SAMPLE_RATE / 100) // 10 ms
             var frame = 0L
-            var reported = false
+            var confirmed = false
+            var measured = false
             val ts = AudioTimestamp()
             val playCalledMs = System.currentTimeMillis()
             try {
@@ -178,22 +183,28 @@ class ClickBeatPlayer(private val context: Context) {
                     val n = track.write(chunk, 0, chunk.size) // blocks while the buffer is full: real-time pacing
                     if (n < 0) throw IllegalStateException("write error $n")
                     frame += n
-                    if (!reported) {
+                    if (!confirmed && n > 0 && track.playState == AudioTrack.PLAYSTATE_PLAYING) {
+                        // Playing: confirm now, so the 1 s safety net never waits for a timestamp.
+                        confirmed = true
+                        onStarted(null, "audio_written" + btSuffix(track))
+                    }
+                    if (confirmed && !measured) {
                         if (track.getTimestamp(ts) && ts.framePosition > 0) {
                             // Frame 0 (the first click) was presented framePosition frames before ts.nanoTime.
                             val ageMs = (System.nanoTime() - ts.nanoTime) / 1_000_000
                             val start = System.currentTimeMillis() - ageMs - ts.framePosition * 1000 / ClickSchedule.SAMPLE_RATE
-                            reported = true
+                            measured = true
                             onStarted(start, "audio_timestamp" + btSuffix(track))
                         } else if (System.currentTimeMillis() - playCalledMs > TIMESTAMP_WAIT_MS) {
-                            reported = true
-                            onStarted(playCalledMs, "audio_play_call" + btSuffix(track))
+                            // No timestamp from this output: no start time, and the file says why.
+                            measured = true
+                            onStarted(null, "audio_no_timestamp" + btSuffix(track))
                         }
                     }
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Click track stopped: ${e.message}")
-                if (!reported) onFailed("audio_write: ${e.message}")
+                if (!confirmed) onFailed("audio_write: ${e.message}")
                 else if (running) { running = false; onLost("audio_error") }
             } finally {
                 runCatching { track.pause(); track.flush(); track.stop() }
@@ -219,7 +230,7 @@ class ClickBeatPlayer(private val context: Context) {
 
     private companion object {
         const val TAG = "ClickBeatPlayer"
-        /** If the output never reports a timestamp, the play() call time stands in after this. */
-        const val TIMESTAMP_WAIT_MS = 500L
+        /** How long the output has to report a timestamp for the first click (round 002, #8). */
+        const val TIMESTAMP_WAIT_MS = 2_000L
     }
 }

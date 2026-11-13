@@ -71,7 +71,7 @@ Everything sits behind **study mode**, off by default. With it off, both apps ta
    - The phone reports when it received the request, when the first pulse or click played, and when it replied, all on its own clock.
    - The watch subtracts the phone's processing time and half the remaining round trip (`BeatClock`). It never needs the two wall clocks to agree.
    - `beat_start_source` says `phone_vibration+rtt` or `phone_audio_timestamp+rtt`.
-3. **Audio beat start** comes from `AudioTrack.getTimestamp` (when the first frame was presented). If no timestamp arrives within 500 ms, the `play()` call time stands in, tagged `audio_play_call`. Bluetooth latency after the output stage (typically 100–250 ms) may not be included. See "Where the spec needs correcting".
+3. **Audio beat start** comes from `AudioTrack.getTimestamp` (when the first frame was presented), recorded even if it arrives after the player confirmed. If none arrives within 2 s, `beat_start_ms` is null with source `audio_no_timestamp`. The `play()` call time is never used (round 002, #8). Bluetooth latency after the output stage (typically 100–250 ms) may not be included; `bt_latency_unknown` flags it. See "Where the spec needs correcting".
 4. **`beat_stop_ms`** is the watch's time of the stop. For phone beats, the phone stops when the message arrives, typically a few hundred ms later.
 5. **Mid-beat loss** switches to the wrist but keeps `place` as where the beat started (analysis keys on the start), and records `fallback_ms`.
 6. **Pocket reminder as a line on the existing prompt** when the stand-up prompt is on (one screen per stand-up rather than two interruptions in a row), and as a screen of its own when it's off. The reminder setting is the "off with one setting" switch, on the phone.
@@ -81,12 +81,12 @@ Everything sits behind **study mode**, off by default. With it off, both apps ta
 10. **The study cap applies to every cue mode in study mode**, not only presses ("study mode caps a cue at 10 minutes"). Guards keep the hour.
 11. **A press inside a running guard session** keeps the existing guard behaviour (wrist, no press file). Guards are a lab tool, not part of the pilot.
 12. **The press counter** lives on the watch and resets when the code or seed changes. A watch reinstall resets it too, so the schedule repeats from press 0. That's acceptable because the schedule is stateless, but the owner may want the phone to keep a copy.
-13. **A press with fewer than 2 motion samples** (the ring wasn't running) is saved as `…json.nomotion`, outside `analyse()`'s `*.json` glob. `pilot_analysis` raises on empty samples, and one bad file would stop the whole folder.
+13. **A press with little or no motion** (the ring wasn't running) is written as an ordinary `pilot_….json` press file with empty or short samples. Since ca72dd9 no code writes `.json.nomotion`; `pilot_analysis` keeps such a press's check-in and leaves its timings empty. (Corrected in round 002.)
 14. ~~Pilot files are not removed by sign-out or "Delete my data".~~ Reversed in round 001 (#10): "Delete everything" and "Delete account" now delete pilot files too. Plain sign-out still leaves them, so a sign-out can't destroy unexported data.
 
 ## Where the spec needs correcting (with platform docs)
 
-- **`pilot_analysis.press_timing` raises on a press with no samples** (`t_ms[-1]` on an empty array). It should skip such presses and count them, or the Android workaround in choice 13 is needed.
+- ~~`pilot_analysis.press_timing` raises on a press with no samples.~~ Fixed in Python (ca72dd9): such presses keep their check-in and get no timings.
 - **The audio "beat start" isn't the moment sound reaches the ear over Bluetooth.**
   - `AudioTrack.getTimestamp` reports frames presented at the output ([AudioTimestamp](https://developer.android.com/reference/android/media/AudioTimestamp)).
   - The A2DP or LE Audio codec delay may or may not be added, depending on the device.
@@ -207,7 +207,28 @@ How "fails before" holds:
 - A Bluetooth speaker connected to the watch: the earbuds place is never drawn (#8).
 - "Delete everything" on the phone: the press count on the pilot screen goes to 0 (#10).
 
+## Round 002 fixes
+
+`feature/home-pilot` (ca786c1) merged first (fast-forward). No Python touched. Tests are in `daedalus-watch/.../pilot/RoundTwoFixesTest.kt`.
+
+| # | What changed | Test |
+|---|---|---|
+| 8 | Back to **1 s** before the wrist takes over, for every player, watch audio included (the 2.5 s from round 001 is gone). `ClickBeatPlayer` confirms as soon as its first frames are written and the track is playing (`audio_written`), so the safety net never waits for a timestamp. It then reports the start of the first click from `AudioTrack.getTimestamp` when one arrives within 2 s (`audio_timestamp`), else null with `audio_no_timestamp`. `BeatRunner` records that measured start even when it comes after the confirmation; only the first measurement counts. The phone does the same: a first `started` with start −1 (playing), then a second with the measured start, converted with the same round-trip rule. The `play()` call time is never used. `_bt` and `bt_latency_unknown` are unchanged. | `n8_watchAudioThatNeverPlaysFallsBackAfterOneSecond`, `n8_confirmationWithoutATimeStopsTheSafetyNetAndTheMeasuredStartIsRecordedLater`, `n8_noTimestampMeansNullStartAndTheSourceSaysWhy` |
+| 4 | `PilotFileWriter` no longer deletes the target before renaming. `File.renameTo` uses rename(2) on Android, which replaces the target atomically on the same file system, and `.part` files sit in the same folder as their target. If a rename is refused, the content is written over the target in place, so the old file is still there until the new content is. | `n4_replacingAPendingFileNeverLeavesItMissing`: a rename spy checks the old file is still present at the rename. Checked against the old code: with the delete put back, this test fails. |
+| 6 | `WatchBootReceiver` does nothing unless the pilot study is active (`PilotStore.active`). With the study switch off, a boot behaves as before this branch: stand-up detection starts when the app opens, as it always did. | `n6_bootRestartsOnlyWhileThePilotStudyIsActive` |
+| 7 | Accepted with no code change. A recovered press keeps `recovered: true`, and the Python analysis gives it no timings. | `n7_aRecoveredPressSaysSo` pins the field. |
+| Doc | Choice 13 no longer describes `.json.nomotion`, which no code writes. Choice 3 and the matching "spec needs correcting" item now describe the round-002 audio timing. | — |
+
+Two round-001 tests (`n7_aPlayCallTimeIsNotABeatStart` and the 2.5 s watch-audio test) were replaced by the round-002 tests above. `BeatRunnerTest.noDrawEverEndsInSilence` now advances 1 s.
+
+**Validation:**
+- Watch: `gradle assembleDebug test --offline` in `daedalus-watch` exited 0; 120 tests per variant, 0 failures.
+- Phone: `gradle assembleDebug test --offline` in `daedalus-companion` exited 0; 31 tests per variant, 0 failures.
+
+**Device check added:** Galaxy Buds on the watch. Within 1 s of the press the clicks play with no fallback, and the press file's `beat_start_source` is `audio_timestamp_bt` (or `audio_no_timestamp_bt` with a null start).
+
 ## Commit range
 
 `0812fae..HEAD` on `android-home-pilot` (the commits after 0812fae: Wear OS, phone, then this handoff with the B6 test).
 Round 001 fixes: `c361c93..HEAD` (06c5a65 the fixes, then the handoff update).
+Round 002 fixes: `ca786c1..HEAD`.
