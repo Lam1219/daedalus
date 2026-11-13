@@ -56,6 +56,25 @@ final class PressFileTest: XCTestCase {
         XCTAssertEqual(r.fileName, "press_P03_00012.json")
     }
 
+    /// Brief rules: a press with no motion and no confirmed beat start is still an ordinary
+    /// press_*.json file, with `beat_start_ms` null (never the press time) and its check-in kept.
+    static func noMotionUnconfirmed() -> PressRecord {
+        PressRecord(participant: "P03", pressIndex: 13, dayIndex: 9, place: .earbuds, earbudsConnected: true,
+                    phoneCarried: false, paceSpm: 100, pressMs: t0 + 200_000, beatStartMs: nil,
+                    beatStopMs: t0 + 200_600, checkin: .notFelt, samples: PressSamples())
+    }
+
+    func testNoMotionAndUnconfirmedStartAreAnOrdinaryPressFile() throws {
+        let r = Self.noMotionUnconfirmed()
+        XCTAssertEqual(r.fileName, "press_P03_00013.json")
+        let d = try XCTUnwrap(JSONSerialization.jsonObject(with: try r.json()) as? [String: Any])
+        XCTAssertTrue(d["beat_start_ms"] is NSNull)
+        XCTAssertEqual(d["checkin"] as? String, "not_felt")
+        let s = try XCTUnwrap(d["samples"] as? [String: Any])
+        XCTAssertEqual((s["t_ms"] as? [Any])?.count, 0)
+        XCTAssertNil(try XCTUnwrap(PressRecord(json: try r.json())).beatStartMs)
+    }
+
     func testMergeKeepsTheWindowAndPrefersTheRecorder() {
         let press: Int64 = 100_000
         let rec = stride(from: press - 40_000, through: press + 20_000, by: 20).map { PressSamples.Sample(tMs: $0, ax: 1, ay: 0, az: 9.8) }
@@ -75,7 +94,8 @@ final class PressFileTest: XCTestCase {
         }
         let dir = URL(fileURLWithPath: out, isDirectory: true)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        let r = Self.sample()
-        try r.json().write(to: dir.appendingPathComponent(r.fileName))
+        for r in [Self.sample(), Self.noMotionUnconfirmed()] {
+            try r.json().write(to: dir.appendingPathComponent(r.fileName))
+        }
     }
 }

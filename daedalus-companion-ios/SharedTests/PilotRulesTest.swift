@@ -56,6 +56,17 @@ final class PilotRulesTest: XCTestCase {
         XCTAssertEqual(b.beatStartMs, 1_000)
     }
 
+    /// Brief rule: `beat_start_ms` stays null when the beat start was never confirmed (Stop during
+    /// the wait for the iPhone). It is never filled with the press time.
+    func testUnconfirmedBeatStartStaysNull() {
+        var b = PressBeat(drawn: .earbuds)
+        b.wristPulse(atMs: 300)   // silent wrist ticks don't count as a start
+        b.stop()
+        XCTAssertNil(b.beatStartMs)
+        XCTAssertFalse(b.phoneStarted(atMs: 900))   // a reply after Stop doesn't fill it either
+        XCTAssertNil(b.beatStartMs)
+    }
+
     func testEarbudsLostMidBeatHandOverToTheWristAndKeepTheirStart() {
         var b = PressBeat(drawn: .earbuds)
         XCTAssertTrue(b.phoneStarted(atMs: 400))

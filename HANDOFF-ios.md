@@ -45,11 +45,14 @@ Everything sits behind a study switch that is off by default. With it off, the a
    - An untested option: `AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)` from an app holding a background audio session. It is one fixed ~0.4 s buzz with no pace control, so it isn't the same cue.
 2. **Apple Watch can't detect a stand-up in the background** without a running session (no background motion or barometer trigger). B10 on Apple Watch is the timed fallback the plan describes, with the timing caveat above.
 3. **`CMSensorRecorder` records the accelerometer only**, at 50 Hz, for up to 12 h a call, kept 3 days, even while the app is suspended (Apple docs, `recordAccelerometer(forDuration:)`). The docs don't state how late the data becomes readable, hence the live-sample fill and the 90 s delay before writing.
-4. **`pilot_analysis.press_timing` crashes on two cases the apps can produce.** Checked with `python3 -c`:
-   - `beat_start_ms: null` (Stop pressed during the ≤1 s wait for the iPhone, so no beat ever played) raises `TypeError`.
-   - Empty `samples` arrays (no recorder data, as on a simulator, or on a watch where recording isn't available) raise `IndexError`.
-   - Because `analyse(folder)` stops at the first bad file, one such file stops the whole folder. The Python side should skip or flag them.
-   - The format docstring should also say `beat_start_ms` may be null.
+4. **Null beat start and no-motion presses: settled by the rules added to the brief.**
+   - The `pilot_analysis.py` on this branch (0812fae) crashes on `beat_start_ms: null` (`TypeError`) and on empty `samples` arrays (`IndexError`).
+   - The updated copy on the Android branch (ca72dd9) accepts both: it keeps the check-in and leaves the timings empty.
+   - The apps follow both rules:
+     - `beat_start_ms` is null whenever no beat start was confirmed (Stop during the ≤1 s wait for the iPhone, or a late iPhone reply). It is never the press time.
+     - A press with little or no motion is still an ordinary `press_<code>_<index>.json`.
+   - Both are unit-tested and checked against ca72dd9 (see Validation).
+   - This branch needs ca72dd9's `pilot_analysis.py` merged before analysis.
 5. **"A reinstall that keeps the seed and the press counter repeats the same schedule"** (`pilot.py` `draw` docstring): on Apple Watch the press counter lives in the watch app's `UserDefaults`, which a reinstall erases. The counter then restarts at 0 and repeats early draws. If that matters, keep the counter on the iPhone too.
 
 ## Decisions this forced, for the owner
@@ -67,9 +70,9 @@ None for the code. The real-device checks below need an Apple Watch paired with 
 | Command | Result |
 |---|---|
 | `cd daedalus-companion-ios && xcodegen` | Project regenerated. The committed `project.pbxproj` includes the new files. `Package.resolved` was left untouched. |
-| `xcodebuild test -project Daedalus.xcodeproj -scheme SharedTests -destination 'platform=macOS'` | **TEST SUCCEEDED**: 51 tests, 0 failures, 1 skipped (the Python sample-file test, which runs only when its output folder is set). New suites: `PilotGoldenTest` (6: all golden vectors), `PilotRulesTest` (15: never silence, equal shares within 3% over 3000 draws, check-in limit, hourly reminder, DST-safe day index, settings, clock offset, beat drift), `PressFileTest` (4: round trip, exact keys and nulls, window merge). |
-| Same command with `TEST_RUNNER_PILOT_PRESS_OUT=<scratch>` | Wrote `press_P03_00012.json` (a synthetic walk, freeze at 25 s, press at 28 s, steps at 33 s, `gyr: null`) |
-| `python3 -c "…load_press(f); press_timing(d); analyse(folder); report(v)"` on that file | Accepted: `stop_to_beat_s=3.42`, `press_to_steps_s=4.98` (true values 3.4 and 5.0). The report printed |
+| `xcodebuild test -project Daedalus.xcodeproj -scheme SharedTests -destination 'platform=macOS'` | **TEST SUCCEEDED**: 53 tests, 0 failures, with the sample-file writer run (it runs only when its output folder is set). New suites: `PilotGoldenTest` (6: all golden vectors), `PilotRulesTest` (16: never silence, unconfirmed start stays null, equal shares within 3% over 3000 draws, check-in limit, hourly reminder, DST-safe day index, settings, clock offset, beat drift), `PressFileTest` (5: round trip, exact keys and nulls, a no-motion press with a null start as an ordinary `.json`, window merge). |
+| Same command with `TEST_RUNNER_PILOT_PRESS_OUT=<scratch>` | Wrote `press_P03_00012.json` (a synthetic walk, freeze at 25 s, press at 28 s, steps at 33 s, `gyr: null`) and `press_P03_00013.json` (no motion, `beat_start_ms: null`, check-in "not_felt") |
+| `python3 -c "…load_press; press_timing; analyse; report"` with ca72dd9's `pilot_analysis.py` (extracted to a scratch folder) | Both accepted. Press 12: `stop_to_beat_s=3.42`, `press_to_steps_s=4.98` (true values 3.4 and 5.0). Press 13: timings None, check-in kept (the "already moving" share counts it: 0.5). The report printed |
 | `xcodebuild build -scheme Daedalus -destination 'generic/platform=iOS Simulator'` (iPhone and the embedded watch app) | **BUILD SUCCEEDED**, no new warnings (one existing warning in `ProfileView.swift` `SessionsView`) |
 | `cd daedalus_watch_kit && python3 -m pytest -q` | **246 passed** |
 | Paired simulators (iPhone 17 Pro and Watch Series 11, watch messages and context do work between them) | See below |
@@ -95,4 +98,4 @@ What the simulator run checked:
 
 ## Commit range
 
-`0812fae..ios/home-pilot` (cac1f71, 9ab9a00, 0ebd011, plus the commit that adds this handoff and the README section).
+`0812fae..ios/home-pilot`: cac1f71, 9ab9a00, 0ebd011, 739c9be (handoff), and the commit adding the tests for the two press-file rules.
