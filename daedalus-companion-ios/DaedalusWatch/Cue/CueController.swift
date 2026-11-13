@@ -108,6 +108,9 @@ final class CueController: NSObject {
             let ring = pilot.live
             recorder.onSample = { ring.append($0) }
             wristSilent = !pilot.beginPress(pace: self.rate)
+            // Home pilot (H1): the beat first. Starting the workout and the recorder takes a
+            // noticeable moment (about 0.7 s in the simulator), so a study press doesn't wait for it.
+            startCue()
         } else {
             recorder.onSample = nil
         }
@@ -117,7 +120,7 @@ final class CueController: NSObject {
         // No rhythm in the tremor check or a guard: one tap to say it started.
         if tremor || guarding { WKInterfaceDevice.current().play(.start) }
         if guarding { startBatteryLog() }
-        startCue()
+        if !studyPress { startCue() }
         startTimeout()
         PhoneLink.shared.sendStatus()
     }
@@ -279,8 +282,20 @@ final class CueController: NSObject {
             let interval = 60.0 / Double(max(rate, 1))
             // Walking: a crisp tap per step. Fine motor and calm: a softer, steady pulse.
             let haptic: WKHapticType = mode == "walking" ? .click : .directionUp
+            // Home pilot: a study press plays its first wrist pulse right here, not once the task
+            // gets the main actor (which `start` still holds while it starts the workout).
+            let playFirstNow = studyPress && !wristSilent
+            if playFirstNow {
+                PilotController.shared.wristBeatPlayed(atMs: Self.nowMs())
+                device.play(haptic)
+                beat += 1
+            }
             cueTask = Task { [weak self] in
                 var next = ContinuousClock.now
+                if playFirstNow {
+                    next = next.advanced(by: .seconds(interval))
+                    try? await Task.sleep(until: next, clock: .continuous)
+                }
                 while !Task.isCancelled {
                     if let self, self.studyPress {
                         // Home pilot: silent while the iPhone plays it; the first wrist pulse is the beat start.

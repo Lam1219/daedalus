@@ -24,6 +24,11 @@ struct CheckInView: View {
                     }
                     .buttonStyle(.plain)
                 }
+                // "I'm stuck" always works: a new press closes this check-in unanswered.
+                Button(L("im_stuck")) { CueController.shared.start(mode: "walking", press: true) }
+                    .font(.system(size: 15, weight: .semibold)).foregroundStyle(WS.ink)
+                    .buttonStyle(.plain).frame(maxWidth: .infinity, minHeight: 48).background(WS.raised, in: Capsule())
+                    .padding(.top, 4)
             }
         }
     }
