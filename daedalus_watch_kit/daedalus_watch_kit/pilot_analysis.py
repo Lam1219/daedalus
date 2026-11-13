@@ -25,7 +25,8 @@ One press file is JSON, written by the watch app (version pilot-1.0):
 
 Timings come from the kit's walking classifier (stream_features), one window a second:
 - walking stopped: the end of the last walking (or turning) window that ends at or before the press,
-  less 1 s (STOP_LAG_MS: the window still reads as walking for about a second after steps stop);
+  less 1 s (STOP_LAG_MS: the window still reads as walking for about a second after steps stop),
+  counted only if it is at most 10 s before the press (MAX_STOP_BEFORE_PRESS_MS);
 - steady steps again: the first run of 3 walking windows that ends at least 2 s after the beat
   started (so the window holds mostly post-beat motion), dated 2 s before that window's end, the
   middle of a 4 s gait window.
@@ -52,6 +53,10 @@ GAIT_HALF_MS = 2000            # half the 4 s gait window
 # walking window ends about 1 s late. Measured on synthetic walks (tests); the filmed walk re-checks it.
 STOP_LAG_MS = 1000
 GAIT_WIN_MS = 4000              # less motion than one gait window can't be timed
+# Walking must have stopped at most this long before the press to count for H1. Longer means the
+# person stood still first, then froze trying to start: that freeze began when they tried to
+# start, which the motion can't date, so the press has no H1 timing (review 001 #1).
+MAX_STOP_BEFORE_PRESS_MS = 10_000
 MIN_PRESSES_PER_PLACE = 3      # a person counts for a place comparison with at least this many
 
 # Thresholds from docs/product/plan.md § Measures.
@@ -100,6 +105,8 @@ def press_timing(d: dict) -> PressTiming:
     for e, wk in zip(ends, walking):
         if e <= press and wk:
             stop_ms = e - STOP_LAG_MS
+    if stop_ms is not None and press - stop_ms > MAX_STOP_BEFORE_PRESS_MS:
+        stop_ms = None
     stop_to_beat = None if stop_ms is None else max(0.0, (beat - stop_ms) / 1000.0)
 
     resume_ms = None
@@ -172,9 +179,12 @@ def verdicts(timings: list[PressTiming]) -> Verdicts:
     pocket = _faster_than_wrist(by_person, "pocket")
     h3 = None if ear[1] == 0 else ear[0] > ear[1] / 2
 
-    pocket_answers = [t.checkin for t in timings if t.place == "pocket" and t.checkin]
-    not_felt = (sum(c == pilot.CheckIn.NOT_FELT.value for c in pocket_answers) / len(pocket_answers)
-                if pocket_answers else None)
+    felt_shares = []
+    for ts in by_person.values():
+        answers = [t.checkin for t in ts if t.place == "pocket" and t.checkin]
+        if answers:
+            felt_shares.append(sum(c == pilot.CheckIn.NOT_FELT.value for c in answers) / len(answers))
+    not_felt = _median(felt_shares)
     h12 = None
     if pocket[1] and not_felt is not None:
         h12 = pocket[0] > pocket[1] / 2 and not_felt < H12_MAX_NOT_FELT
@@ -187,8 +197,17 @@ def verdicts(timings: list[PressTiming]) -> Verdicts:
 
 
 def analyse(folder: Path) -> tuple[list[PressTiming], Verdicts]:
-    timings = [press_timing(load_press(f)) for f in sorted(Path(folder).glob("*.json"))]
-    return timings, verdicts(timings)
+    """Every press file in the folder. A file that isn't a pilot-1.0 press file is skipped and
+    named in the report notes, so one stray file can't stop the analysis (review 001 #3)."""
+    timings, skipped = [], []
+    for f in sorted(Path(folder).glob("*.json")):
+        try:
+            timings.append(press_timing(load_press(f)))
+        except (ValueError, KeyError, TypeError) as e:  # json.JSONDecodeError is a ValueError
+            skipped.append(f"skipped {f.name}: {e}")
+    v = verdicts(timings)
+    v.notes.extend(skipped)
+    return timings, v
 
 
 def report(v: Verdicts) -> str:

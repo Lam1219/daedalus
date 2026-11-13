@@ -149,3 +149,32 @@ def test_unconfirmed_beat_start_is_not_timed_as_instant():
     d["beat_start_ms"] = None
     t = press_timing(d)
     assert t.stop_to_beat_s is None and t.press_to_steps_s is None
+
+
+def test_standing_long_before_the_press_is_not_counted_as_beat_delay():
+    # Review 001 #1: walked to a counter, stood 20 s, then froze trying to start and pressed.
+    t = press_timing(press_file(walk_until_s=8, resume_at_s=33, press_at_s=28))
+    assert t.stop_to_beat_s is None
+    assert t.press_to_steps_s == pytest.approx(5.0, abs=0.5)
+
+
+def test_pocket_not_felt_share_is_per_person():
+    # Review 001 #2: one heavy presser saying "didn't feel it" can't decide H12 alone.
+    ts = []
+    for p in range(3):
+        ts += [T(f"P{p}", "wrist", 6.0) for _ in range(3)]
+        ts += [T(f"P{p}", "pocket", 4.0) for _ in range(3)]
+    ts += [T("P0", "pocket", 4.0, checkin="not_felt") for _ in range(30)]
+    v = verdicts(ts)
+    assert v.h12_pocket_not_felt_share == pytest.approx(0.0)
+    assert v.h12_build_device is True
+
+
+def test_unreadable_or_foreign_files_are_skipped_and_named(tmp_path):
+    # Review 001 #3
+    (tmp_path / "P01_0.json").write_text(json.dumps(press_file(25, 33, 28)))
+    (tmp_path / "old.json").write_text(json.dumps({"version": "pilot-0.9"}))
+    (tmp_path / "junk.json").write_text("{not json")
+    timings, v = analyse(tmp_path)
+    assert len(timings) == 1
+    assert any("old.json" in n for n in v.notes) and any("junk.json" in n for n in v.notes)
