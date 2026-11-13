@@ -178,6 +178,7 @@ final class CloudBackup {
         }
         defaults.removeObject(forKey: "restored:\(userId)")
         store.clearHealthData()
+        PilotStore.deleteFiles()   // home pilot press files on this phone (round 002, 13)
         store.setOwner(nil)
         store.cloudBackup = true
         await MedReminders.reschedule()
