@@ -1,0 +1,9558 @@
+{
+ "version": "pilot-1.0",
+ "places_order": [
+  "wrist",
+  "earbuds",
+  "pocket"
+ ],
+ "constants": {
+  "learning_days": 7,
+  "pilot_days": 21,
+  "max_seed": 2147483648,
+  "max_checkins_per_day": 6,
+  "reminder_gap_ms": 3600000,
+  "phone_carried_window_s": 60,
+  "study_max_cue_s": 600,
+  "buffer_before_s": 30,
+  "buffer_after_s": 60
+ },
+ "splitmix64": [
+  {
+   "input": "0000000000000000",
+   "output": "e220a8397b1dcdaf"
+  },
+  {
+   "input": "0000000000000001",
+   "output": "910a2dec89025cc1"
+  },
+  {
+   "input": "0000000000000002",
+   "output": "975835de1c9756ce"
+  },
+  {
+   "input": "ffffffffffffffff",
+   "output": "e4d971771b652c20"
+  },
+  {
+   "input": "9e3779b97f4a7c15",
+   "output": "6e789e6aa1b965f4"
+  },
+  {
+   "input": "0000011f71fb04cb",
+   "output": "9a253c9557cd08d8"
+  }
+ ],
+ "draws": [
+  {
+   "seed": 0,
+   "press_index": 0,
+   "draw": "e220a8397b1dcdaf"
+  },
+  {
+   "seed": 0,
+   "press_index": 1,
+   "draw": "6e789e6aa1b965f4"
+  },
+  {
+   "seed": 0,
+   "press_index": 2,
+   "draw": "06c45d188009454f"
+  },
+  {
+   "seed": 0,
+   "press_index": 99,
+   "draw": "3505b7796bd1a506"
+  },
+  {
+   "seed": 0,
+   "press_index": 100000,
+   "draw": "2e7e8f794de23685"
+  },
+  {
+   "seed": 1,
+   "press_index": 0,
+   "draw": "910a2dec89025cc1"
+  },
+  {
+   "seed": 1,
+   "press_index": 1,
+   "draw": "beeb8da1658eec67"
+  },
+  {
+   "seed": 1,
+   "press_index": 2,
+   "draw": "f893a2eefb32555e"
+  },
+  {
+   "seed": 1,
+   "press_index": 99,
+   "draw": "4f05f03735c3b951"
+  },
+  {
+   "seed": 1,
+   "press_index": 100000,
+   "draw": "77ba1509fa06275b"
+  },
+  {
+   "seed": 42,
+   "press_index": 0,
+   "draw": "bdd732262feb6e95"
+  },
+  {
+   "seed": 42,
+   "press_index": 1,
+   "draw": "28efe333b266f103"
+  },
+  {
+   "seed": 42,
+   "press_index": 2,
+   "draw": "47526757130f9f52"
+  },
+  {
+   "seed": 42,
+   "press_index": 99,
+   "draw": "39feecac1eb4a198"
+  },
+  {
+   "seed": 42,
+   "press_index": 100000,
+   "draw": "7b28f321a608af22"
+  },
+  {
+   "seed": 123456789,
+   "press_index": 0,
+   "draw": "223c74d93deb7679"
+  },
+  {
+   "seed": 123456789,
+   "press_index": 1,
+   "draw": "7a91dd183971ee2e"
+  },
+  {
+   "seed": 123456789,
+   "press_index": 2,
+   "draw": "310e0831409afde5"
+  },
+  {
+   "seed": 123456789,
+   "press_index": 99,
+   "draw": "244e867bee2d60e7"
+  },
+  {
+   "seed": 123456789,
+   "press_index": 100000,
+   "draw": "8a2764492a4988f4"
+  },
+  {
+   "seed": 2147483647,
+   "press_index": 0,
+   "draw": "61fa36a6261a4be7"
+  },
+  {
+   "seed": 2147483647,
+   "press_index": 1,
+   "draw": "097a775b9e76a5c7"
+  },
+  {
+   "seed": 2147483647,
+   "press_index": 2,
+   "draw": "6536e03c7465df5e"
+  },
+  {
+   "seed": 2147483647,
+   "press_index": 99,
+   "draw": "281d0a61f4944e6c"
+  },
+  {
+   "seed": 2147483647,
+   "press_index": 100000,
+   "draw": "e98e6b4353dea1ee"
+  }
+ ],
+ "choose_place": [
+  {
+   "seed": 0,
+   "press_index": 0,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 0,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 0,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 0,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 1,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 1,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 1,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 1,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 2,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 2,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 2,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 2,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 3,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 3,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 3,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 3,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 4,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 4,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 4,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 4,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 5,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 5,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 5,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 5,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 6,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 6,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 6,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 6,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 7,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 7,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 7,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 7,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 8,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 8,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 8,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 8,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 9,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 9,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 9,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 9,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 10,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 10,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 10,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 10,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 11,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 11,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 11,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 11,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 0,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 0,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 0,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 0,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 1,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 1,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 1,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 1,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 2,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 2,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 2,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 2,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 3,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 3,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 3,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 3,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 4,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 4,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 4,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 4,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 5,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 5,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 5,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 5,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 6,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 6,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 6,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 6,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 7,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 7,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 7,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 7,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 8,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 8,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 8,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 8,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 9,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 9,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 9,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 9,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 10,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 10,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 10,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 10,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 11,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 11,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 11,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 11,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 0,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 0,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 0,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 0,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 1,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 1,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 1,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 1,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 2,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 2,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 2,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 2,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 3,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 3,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 3,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 3,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 4,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 4,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 4,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 4,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 5,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 5,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 5,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 5,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 6,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 6,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 6,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 6,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 7,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 7,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 7,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 7,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 8,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 8,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 8,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 8,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 9,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 9,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 9,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 9,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 10,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 10,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 10,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 10,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 11,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 11,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 11,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 11,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 0,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 0,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 0,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 0,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 1,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 1,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 1,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 1,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 2,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 2,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 2,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 2,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 3,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 3,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 3,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 3,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 4,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 4,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 4,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 4,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 5,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 5,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 5,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 5,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 6,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 6,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 6,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 6,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 7,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 7,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 7,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 7,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 8,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 8,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 8,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 8,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 9,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 9,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 9,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 9,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 10,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 10,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 10,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 10,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 11,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 11,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 11,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 11,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 0,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 0,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 0,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 0,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 1,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 1,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 1,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 1,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 2,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 2,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 2,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 2,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 3,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 3,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 3,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 3,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 4,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 4,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 4,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 4,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 5,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 5,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 5,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 5,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 6,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 6,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 6,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 6,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 7,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 7,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 7,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 7,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 8,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 8,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 8,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 8,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 9,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 9,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 9,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 9,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 10,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 10,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 10,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 10,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 11,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 11,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 11,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 11,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 0,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 0,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 0,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 0,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 1,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 1,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 1,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 1,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 2,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 2,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 2,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 2,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 3,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 3,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 3,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 3,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 4,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 4,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 4,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 4,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 5,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 5,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 5,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 5,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 6,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 6,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 6,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 6,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 7,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 7,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 7,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 7,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 8,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 8,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 8,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 8,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 9,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 9,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 9,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 9,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 10,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 10,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 0,
+   "press_index": 10,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 10,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 11,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 11,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 11,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 11,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 0,
+   "press_index": 0,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 0,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 0,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 0,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 1,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 1,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 1,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 1,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 2,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 2,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 2,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 2,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 3,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 3,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 3,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 3,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 4,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 4,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 4,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 4,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 5,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 5,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 5,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 5,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 6,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 6,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 6,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 6,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 7,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 7,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 7,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 7,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 8,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 8,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 8,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 8,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 9,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 9,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 9,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 9,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 10,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 10,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 10,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 10,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 11,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 11,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 11,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 0,
+   "press_index": 11,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 0,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 0,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 0,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 0,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 1,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 1,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 1,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 1,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 2,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 2,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 2,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 2,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 3,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 3,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 3,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 3,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 4,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 4,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 4,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 4,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 5,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 5,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 5,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 5,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 6,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 6,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 6,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 6,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 7,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 7,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 7,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 7,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 8,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 8,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 8,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 8,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 9,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 9,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 9,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 9,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 10,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 10,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 10,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 10,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 11,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 11,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 11,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 11,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 0,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 0,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 0,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 0,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 1,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 1,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 1,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 1,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 2,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 2,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 2,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 2,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 3,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 3,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 3,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 3,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 4,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 4,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 4,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 4,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 5,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 5,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 5,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 5,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 6,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 6,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 6,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 6,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 7,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 7,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 7,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 7,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 8,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 8,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 8,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 8,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 9,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 9,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 9,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 9,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 10,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 10,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 10,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 10,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 11,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 11,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 11,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 11,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 0,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 0,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 0,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 0,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 1,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 1,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 1,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 1,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 2,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 2,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 2,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 2,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 3,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 3,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 3,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 3,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 4,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 4,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 4,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 4,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 5,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 5,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 5,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 5,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 6,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 6,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 6,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 6,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 7,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 7,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 7,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 7,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 8,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 8,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 8,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 8,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 9,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 9,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 9,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 9,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 10,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 10,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 10,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 10,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 11,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 11,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 11,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 11,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 0,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 0,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 0,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 0,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 1,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 1,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 1,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 1,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 2,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 2,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 2,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 2,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 3,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 3,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 3,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 3,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 4,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 4,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 4,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 4,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 5,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 5,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 5,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 5,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 6,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 6,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 6,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 6,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 7,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 7,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 7,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 7,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 8,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 8,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 8,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 8,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 9,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 9,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 9,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 9,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 10,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 10,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 10,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 10,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 11,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 11,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 11,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 11,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 0,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 0,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 0,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 0,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 1,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 1,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 1,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 1,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 2,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 2,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 2,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 2,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 3,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 3,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 3,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 3,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 4,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 4,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 4,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 4,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 5,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 5,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 5,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 5,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 6,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 6,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 6,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 6,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 7,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 7,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 7,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 7,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 8,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 8,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 8,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 8,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 9,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 9,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 9,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 9,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 10,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 10,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 10,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 10,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 11,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 11,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 11,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 11,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 0,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 0,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 0,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 0,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 1,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 1,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 1,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 1,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 2,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 2,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 2,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 2,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 3,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 3,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 3,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 3,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 4,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 4,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 4,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 4,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 5,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 5,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 5,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 5,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 6,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 6,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 6,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 6,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 7,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 7,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 7,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 7,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 8,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 8,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 8,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 8,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 9,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 9,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 9,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 9,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 10,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 10,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 1,
+   "press_index": 10,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 10,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 11,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 11,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 11,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 11,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 1,
+   "press_index": 0,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 0,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 0,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 0,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 1,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 1,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 1,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 1,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 2,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 2,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 2,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 2,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 3,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 3,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 3,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 3,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 4,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 4,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 4,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 4,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 5,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 5,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 5,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 5,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 6,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 6,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 6,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 6,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 7,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 7,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 7,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 7,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 8,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 8,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 8,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 8,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 9,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 9,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 9,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 9,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 10,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 10,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 10,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 10,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 11,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 11,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 11,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 1,
+   "press_index": 11,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 0,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 0,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 0,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 0,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 1,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 1,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 1,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 1,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 2,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 2,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 2,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 2,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 3,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 3,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 3,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 3,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 4,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 4,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 4,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 4,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 5,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 5,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 5,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 5,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 6,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 6,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 6,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 6,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 7,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 7,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 7,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 7,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 8,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 8,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 8,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 8,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 9,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 9,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 9,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 9,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 10,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 10,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 10,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 10,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 11,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 11,
+   "day_index": -1,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 11,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 11,
+   "day_index": -1,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 0,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 0,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 0,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 0,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 1,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 1,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 1,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 1,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 2,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 2,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 2,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 2,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 3,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 3,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 3,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 3,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 4,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 4,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 4,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 4,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 5,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 5,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 5,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 5,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 6,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 6,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 6,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 6,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 7,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 7,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 7,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 7,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 8,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 8,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 8,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 8,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 9,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 9,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 9,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 9,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 10,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 10,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 10,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 10,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 11,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 11,
+   "day_index": 0,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 11,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 11,
+   "day_index": 0,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 0,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 0,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 0,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 0,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 1,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 1,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 1,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 1,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 2,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 2,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 2,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 2,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 3,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 3,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 3,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 3,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 4,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 4,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 4,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 4,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 5,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 5,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 5,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 5,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 6,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 6,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 6,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 6,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 7,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 7,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 7,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 7,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 8,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 8,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 8,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 8,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 9,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 9,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 9,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 9,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 10,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 10,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 10,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 10,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 11,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 11,
+   "day_index": 6,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 11,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 11,
+   "day_index": 6,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 0,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 0,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 0,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 0,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 1,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 1,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 1,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 1,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 2,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 2,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 2,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 2,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 3,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 3,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 3,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 3,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 4,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 4,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 4,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 4,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 5,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 5,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 5,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 5,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 6,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 6,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 6,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 6,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 7,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 7,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 7,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 7,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 8,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 8,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 8,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 8,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 9,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 9,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 9,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 9,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 10,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 10,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 10,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 10,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 11,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 11,
+   "day_index": 7,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 11,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 11,
+   "day_index": 7,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 0,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 0,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 0,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 0,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 1,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 1,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 1,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 1,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 2,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 2,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 2,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 2,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 3,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 3,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 3,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 3,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 4,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 4,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 4,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 4,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 5,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 5,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 5,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 5,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 6,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 6,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 6,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 6,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 7,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 7,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 7,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 7,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 8,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 8,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 8,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 8,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 9,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 9,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 9,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 9,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 10,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 10,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 10,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 10,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 11,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 11,
+   "day_index": 13,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 11,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 11,
+   "day_index": 13,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 0,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 0,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 0,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 0,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 1,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 1,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 1,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 1,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 2,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 2,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 2,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 2,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 3,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 3,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 3,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 3,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 4,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 4,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 4,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 4,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 5,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 5,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 5,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 5,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 6,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 6,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 6,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 6,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 7,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 7,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 7,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 7,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 8,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 8,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 8,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 8,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 9,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 9,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 9,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 9,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 10,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 10,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 10,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 10,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "pocket"
+  },
+  {
+   "seed": 42,
+   "press_index": 11,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 11,
+   "day_index": 20,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 11,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 11,
+   "day_index": 20,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "earbuds"
+  },
+  {
+   "seed": 42,
+   "press_index": 0,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 0,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 0,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 0,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 1,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 1,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 1,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 1,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 2,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 2,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 2,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 2,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 3,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 3,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 3,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 3,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 4,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 4,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 4,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 4,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 5,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 5,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 5,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 5,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 6,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 6,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 6,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 6,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 7,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 7,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 7,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 7,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 8,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 8,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 8,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 8,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 9,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 9,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 9,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 9,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 10,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 10,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 10,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 10,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 11,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 11,
+   "day_index": 21,
+   "earbuds_connected": false,
+   "phone_carried": true,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 11,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": false,
+   "place": "wrist"
+  },
+  {
+   "seed": 42,
+   "press_index": 11,
+   "day_index": 21,
+   "earbuds_connected": true,
+   "phone_carried": true,
+   "place": "wrist"
+  }
+ ],
+ "should_remind_pocket": [
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": null,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": true
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": null,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 1000000,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": true
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 1000000,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4599999,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4599999,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4600000,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": true
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4600000,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": null,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": null,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 1000000,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 1000000,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4599999,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4599999,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4600000,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4600000,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": null,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": null,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 1000000,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 1000000,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4599999,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4599999,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4600000,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4600000,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": null,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": null,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 1000000,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 1000000,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4599999,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4599999,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4600000,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4600000,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": null,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": null,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 1000000,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 1000000,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4599999,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4599999,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4600000,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4600000,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": null,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": null,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 1000000,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 1000000,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4599999,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4599999,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4600000,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4600000,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": null,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": null,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 1000000,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 1000000,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4599999,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4599999,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4600000,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4600000,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": null,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": null,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 1000000,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 1000000,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4599999,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4599999,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4600000,
+   "beat_playing": false,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4600000,
+   "beat_playing": true,
+   "enabled": true,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": null,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": null,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 1000000,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 1000000,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4599999,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4599999,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4600000,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4600000,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": null,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": null,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 1000000,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 1000000,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4599999,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4599999,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4600000,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": true,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4600000,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": null,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": null,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 1000000,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 1000000,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4599999,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4599999,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4600000,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4600000,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": null,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": null,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 1000000,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 1000000,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4599999,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4599999,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4600000,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": true,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4600000,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": null,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": null,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 1000000,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 1000000,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4599999,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4599999,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4600000,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4600000,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": null,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": null,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 1000000,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 1000000,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4599999,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4599999,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4600000,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": false,
+   "phone_steps_last_min": 0,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4600000,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": null,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": null,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 1000000,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 1000000,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4599999,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4599999,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4600000,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": false,
+   "last_reminder_ms": 4600000,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": null,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": null,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 1000000,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 4600000,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 1000000,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4599999,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8199998,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4599999,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4600000,
+   "beat_playing": false,
+   "enabled": false,
+   "remind": false
+  },
+  {
+   "now_ms": 8200000,
+   "stood_up": false,
+   "phone_steps_last_min": 5,
+   "phone_moved_last_min": true,
+   "last_reminder_ms": 4600000,
+   "beat_playing": true,
+   "enabled": false,
+   "remind": false
+  }
+ ],
+ "should_ask_checkin": [
+  {
+   "asked_today": 0,
+   "ask": true
+  },
+  {
+   "asked_today": 1,
+   "ask": true
+  },
+  {
+   "asked_today": 2,
+   "ask": true
+  },
+  {
+   "asked_today": 3,
+   "ask": true
+  },
+  {
+   "asked_today": 4,
+   "ask": true
+  },
+  {
+   "asked_today": 5,
+   "ask": true
+  },
+  {
+   "asked_today": 6,
+   "ask": false
+  },
+  {
+   "asked_today": 7,
+   "ask": false
+  },
+  {
+   "asked_today": 8,
+   "ask": false
+  }
+ ]
+}
