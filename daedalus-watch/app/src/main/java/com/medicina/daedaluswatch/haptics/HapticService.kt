@@ -30,6 +30,14 @@ import com.medicina.daedaluswatch.sensor.GuardSession
 import com.medicina.daedaluswatch.sensor.TremorAnalyzer
 import com.medicina.daedaluswatch.sensor.VitalsTracker
 import com.medicina.daedaluswatch.sync.SessionSyncManager
+import com.medicina.daedaluswatch.pilot.PilotPhoneLink
+import com.medicina.daedaluswatch.pilot.PilotPresses
+import com.medicina.daedaluswatch.pilot.PilotStore
+import com.medicina.daedaluswatch.sensor.StandWatchService
+import com.medicina.shared.pilot.BeatOutput
+import com.medicina.shared.pilot.ClickBeatPlayer
+import com.medicina.shared.pilot.Pilot
+import com.medicina.shared.pilot.Player
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
@@ -112,11 +120,15 @@ class HapticService : Service() {
         const val ACTION_RESUME = "action_resume"
         /** During a guard: stop the "I'm stuck" walking rhythm but keep the guard running. */
         const val ACTION_STOP_CUE = "action_stop_cue"
+        /** Epoch ms of an "I'm stuck" tap on the watch. In study mode that cue is a pilot press. */
+        const val EXTRA_PRESS_MS = "extra_press_ms"
 
         /** Breathing pacer: inhale share of each breath (In 4 s · Out 6 s at 6 breaths/min). */
         const val INHALE_SHARE = 0.4f
         /** A session the person forgets to stop ends on its own after this long. */
         const val MAX_SESSION_MS = 60 * 60 * 1000L
+        /** B6: in study mode a cue stops by itself after 10 minutes instead. */
+        const val STUDY_MAX_CUE_MS = Pilot.STUDY_MAX_CUE_S * 1000L
         private const val NOTIFICATION_ID = 1
         private const val CHANNEL_ID = "daedalus_haptic_channel"
 
@@ -191,7 +203,7 @@ class HapticService : Service() {
                 if (mode == "rest" && bpm !in 6..20) bpm = 6
                 // "I'm stuck" during a guard: the walking rhythm starts inside the guard, which keeps recording.
                 if (isRunning && isGuard && mode == "walking") startGuardCue(bpm)
-                else startForegroundService(bpm, mode)
+                else startForegroundService(bpm, mode, intent.getLongExtra(EXTRA_PRESS_MS, -1L).takeIf { it > 0 })
             }
             ACTION_STOP_CUE -> stopGuardCue()
             ACTION_STOP -> {
@@ -208,8 +220,11 @@ class HapticService : Service() {
         return START_STICKY
     }
 
-    private fun startForegroundService(bpm: Int, mode: String) {
+    private fun startForegroundService(bpm: Int, mode: String, pressMs: Long? = null) {
         if (isRunning) return
+        val study = PilotStore.active(this)
+        // A pilot press: a walking cue started by "I'm stuck" on the watch while study mode is on.
+        pilotPress = study && mode == "walking" && pressMs != null
         // A stop that is still sending the previous file must not end this new cue.
         stopGeneration++
         currentBpm = bpm
@@ -250,7 +265,7 @@ class HapticService : Service() {
         mainHandler.removeCallbacks(sessionTimeout)
         mainHandler.removeCallbacks(tremorCheckEnd)
         if (mode == TremorAnalyzer.MODE) mainHandler.postDelayed(tremorCheckEnd, TremorAnalyzer.CHECK_DURATION_MS)
-        else mainHandler.postDelayed(sessionTimeout, MAX_SESSION_MS)
+        else mainHandler.postDelayed(sessionTimeout, sessionLimitMs(study, mode))
 
         // Start foreground notification
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
@@ -292,6 +307,11 @@ class HapticService : Service() {
         // Start haptic thread; the tremor check has no rhythm, only one short buzz to begin.
         // A guard plays no rhythm either (shadow mode): one short buzz to say it started.
         if (mode == TremorAnalyzer.MODE || GuardSession.isGuard(mode)) vibrator?.let { vibrateOnce(it, 60) }
+        else if (pilotPress) {
+            // The motion ring must be running for the press file (it normally already is).
+            StandWatchService.refresh(this)
+            PilotPresses.begin(this, pressMs!!, bpm, beatOutput)
+        }
         else startHapticThread(bpm)
 
         // Notify phone
@@ -510,6 +530,7 @@ class HapticService : Service() {
                             if (!silenced()) {
                                 vibrateOnce(vib, 50)
                                 pulseCount++
+                                firstPulse?.let { firstPulse = null; it(System.currentTimeMillis(), "watch_motor") }
                             }
                             sleepWhileRunning(intervalMs)
                         }
@@ -532,6 +553,46 @@ class HapticService : Service() {
             it.isDaemon = false
             it.start()
             Log.i("HapticService", "Haptic thread started")
+        }
+    }
+
+    // ------------------------------------------------------------------ home pilot
+
+    /** The running cue is a pilot press: the beat plays where PilotPresses drew it. */
+    @Volatile private var pilotPress = false
+    /** Called once with the time of the first wrist pulse (beat_start_ms for the wrist). */
+    @Volatile private var firstPulse: ((Long, String) -> Unit)? = null
+    private var clickPlayer: ClickBeatPlayer? = null
+
+    /** B6: 10 minutes for a cue in study mode; guards and everything outside study mode keep the hour. */
+    private fun sessionLimitMs(study: Boolean, mode: String) =
+        if (study && !GuardSession.isGuard(mode)) STUDY_MAX_CUE_MS else MAX_SESSION_MS
+
+    /** Plays a press's beat on the player the draw chose (or the wrist, when that fails). */
+    private val beatOutput = object : BeatOutput {
+        override fun start(player: Player, bpm: Int, onStarted: (Long, String) -> Unit, onFailed: (String) -> Unit) {
+            when (player) {
+                Player.WATCH_HAPTIC -> {
+                    firstPulse = onStarted
+                    mainHandler.post { if (isRunning && hapticThread == null) startHapticThread(bpm) }
+                }
+                Player.WATCH_AUDIO -> clickPlayer = ClickBeatPlayer(this@HapticService).also {
+                    it.start(bpm, onStarted, onFailed, onLost = { reason -> PilotPresses.current?.runner?.lost(reason) })
+                }
+                Player.PHONE_AUDIO, Player.PHONE_VIBRATION -> {
+                    val id = PilotPresses.current?.id ?: return onFailed("no_press")
+                    PilotPhoneLink.startBeat(this@HapticService, id, player, bpm, STUDY_MAX_CUE_MS, onStarted, onFailed)
+                }
+            }
+        }
+
+        override fun stop(player: Player) {
+            when (player) {
+                Player.WATCH_HAPTIC -> Unit // stops with the service
+                Player.WATCH_AUDIO -> { clickPlayer?.stop(); clickPlayer = null }
+                Player.PHONE_AUDIO, Player.PHONE_VIBRATION ->
+                    PilotPresses.current?.id?.let { PilotPhoneLink.stopBeat(this@HapticService, it) }
+            }
         }
     }
 
@@ -608,6 +669,12 @@ class HapticService : Service() {
         hapticThread?.interrupt()
         hapticThread = null
         vibrator?.cancel()
+        if (pilotPress) {
+            pilotPress = false
+            PilotPresses.onBeatStopped(this, System.currentTimeMillis())
+            clickPlayer?.stop()
+            clickPlayer = null
+        }
 
         // Stop sensor recording
         sensorListener?.let { sensorManager?.unregisterListener(it) }

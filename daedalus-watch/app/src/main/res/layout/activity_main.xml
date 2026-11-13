@@ -231,6 +231,19 @@
                 android:textColor="@color/watch_muted"
                 android:textSize="13sp" />
 
+            <!-- Home pilot: where this press plays its beat, in small text. -->
+            <TextView
+                android:id="@+id/tv_walk_place"
+                style="@style/WatchText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:maxLines="1"
+                android:maxWidth="170dp"
+                android:textColor="@color/watch_muted"
+                android:textSize="12sp"
+                android:visibility="gone" />
+
             <LinearLayout
                 android:id="@+id/btn_walk_stop"
                 android:layout_width="wrap_content"
@@ -629,5 +642,100 @@
             android:textSize="16sp" />
     </LinearLayout>
     </ScrollView>
+
+    <!-- ===== Home pilot: one-tap check-in after the beat stops (closes by itself after 30 s) ===== -->
+    <LinearLayout
+        android:id="@+id/screen_checkin"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            style="@style/WatchText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="2dp"
+            android:text="@string/pilot_checkin_title"
+            android:textColor="@color/watch_muted"
+            android:textSize="14sp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/btn_checkin_helped"
+                style="@style/WatchText"
+                android:layout_width="86dp"
+                android:layout_height="60dp"
+                android:layout_margin="3dp"
+                android:background="@drawable/bg_pill_raised"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?android:attr/selectableItemBackground"
+                android:gravity="center"
+                android:maxLines="3"
+                android:paddingHorizontal="6dp"
+                android:text="@string/pilot_checkin_helped"
+                android:textFontWeight="600"
+                android:textSize="13sp" />
+            <TextView
+                android:id="@+id/btn_checkin_not_helped"
+                style="@style/WatchText"
+                android:layout_width="86dp"
+                android:layout_height="60dp"
+                android:layout_margin="3dp"
+                android:background="@drawable/bg_pill_raised"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?android:attr/selectableItemBackground"
+                android:gravity="center"
+                android:maxLines="3"
+                android:paddingHorizontal="6dp"
+                android:text="@string/pilot_checkin_not_helped"
+                android:textFontWeight="600"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/btn_checkin_moving"
+                style="@style/WatchText"
+                android:layout_width="86dp"
+                android:layout_height="60dp"
+                android:layout_margin="3dp"
+                android:background="@drawable/bg_pill_raised"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?android:attr/selectableItemBackground"
+                android:gravity="center"
+                android:maxLines="3"
+                android:paddingHorizontal="6dp"
+                android:text="@string/pilot_checkin_moving"
+                android:textFontWeight="600"
+                android:textSize="13sp" />
+            <TextView
+                android:id="@+id/btn_checkin_not_felt"
+                style="@style/WatchText"
+                android:layout_width="86dp"
+                android:layout_height="60dp"
+                android:layout_margin="3dp"
+                android:background="@drawable/bg_pill_raised"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?android:attr/selectableItemBackground"
+                android:gravity="center"
+                android:maxLines="3"
+                android:paddingHorizontal="6dp"
+                android:text="@string/pilot_checkin_not_felt"
+                android:textFontWeight="600"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </LinearLayout>
 
 </FrameLayout>

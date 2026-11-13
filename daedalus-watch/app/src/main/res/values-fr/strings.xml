@@ -71,4 +71,18 @@
     <string name="mode_walk_guard">Veille en marche</string>
     <string name="mode_rest_guard">Veille au repos</string>
     <string name="guard_notif_text">Apprend vos habitudes · pas encore de repère automatique</string>
+
+    <!-- Pilote à domicile (mode étude, réglé sur le téléphone) -->
+    <string name="pilot_watching">Pilote à domicile activé</string>
+    <string name="pilot_place_wrist">Au poignet</string>
+    <string name="pilot_place_earbuds">Dans vos écouteurs</string>
+    <string name="pilot_place_pocket">Téléphone dans la poche</string>
+    <string name="pilot_checkin_title">Le rythme vous a aidé ?</string>
+    <string name="pilot_checkin_helped">Ça m’a aidé</string>
+    <string name="pilot_checkin_not_helped">Ça n’a pas aidé</string>
+    <string name="pilot_checkin_moving">Je bougeais déjà</string>
+    <string name="pilot_checkin_not_felt">Je ne l’ai pas senti</string>
+    <string name="pilot_checkin_channel">Questions du pilote</string>
+    <string name="pilot_pocket_title">Téléphone dans la poche avant ?</string>
+    <string name="pilot_pocket_sub">Gardez-le dans la poche avant de votre pantalon.</string>
 </resources>
