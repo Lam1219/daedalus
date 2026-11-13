@@ -577,12 +577,12 @@ class HapticService : Service() {
     /** The running cue is a pilot press: the beat plays where PilotPresses drew it. */
     @Volatile private var pilotPress = false
     /** Called once with the time of the first wrist pulse (beat_start_ms for the wrist). */
-    @Volatile private var firstPulse: ((Long, String) -> Unit)? = null
+    @Volatile private var firstPulse: ((Long?, String) -> Unit)? = null
     private var clickPlayer: ClickBeatPlayer? = null
 
     /** Plays a press's beat on the player the draw chose (or the wrist, when that fails). */
     private val beatOutput = object : BeatOutput {
-        override fun start(player: Player, bpm: Int, onStarted: (Long, String) -> Unit, onFailed: (String) -> Unit) {
+        override fun start(player: Player, bpm: Int, onStarted: (Long?, String) -> Unit, onFailed: (String) -> Unit) {
             when (player) {
                 Player.WATCH_HAPTIC -> {
                     firstPulse = onStarted

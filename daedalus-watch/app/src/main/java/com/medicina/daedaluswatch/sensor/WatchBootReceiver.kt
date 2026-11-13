@@ -7,17 +7,27 @@ import com.medicina.daedaluswatch.pilot.PilotPresses
 import com.medicina.daedaluswatch.pilot.PilotStore
 
 /**
- * Round 001, #13: after a reboot or an app update, start stand-up detection and, in study mode,
- * the motion ring again, and finish any press a reboot interrupted.
+ * Round 001, #13: after a reboot or an app update in study mode, start the motion ring and the
+ * stand-up check again, and finish any press a reboot interrupted (study mode only: round 002, #6).
  */
 class WatchBootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action !in ACTIONS) return
-        StandWatchService.refresh(context)
-        if (PilotStore.active(context)) PilotPresses.recoverOrphans(context)
+        onBoot(intent.action, PilotStore.active(context),
+            restart = { StandWatchService.refresh(context) },
+            recover = { PilotPresses.recoverOrphans(context) })
     }
 
     companion object {
         val ACTIONS = setOf(Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED)
+
+        /**
+         * Round 002, #6: only while the pilot study is active. With the study switch off, a boot
+         * does nothing new: the stand-up prompt starts as before this branch, from the app.
+         */
+        fun onBoot(action: String?, pilotActive: Boolean, restart: () -> Unit, recover: () -> Unit) {
+            if (action !in ACTIONS || !pilotActive) return
+            restart()
+            recover()
+        }
     }
 }

@@ -33,7 +33,7 @@ class RoundOneFixesTest {
     private class Out(private val silent: Set<Player> = emptySet(), private val source: String = "test") : BeatOutput {
         val started = mutableListOf<Player>()
         val paused = mutableListOf<Pair<Player, Boolean>>()
-        override fun start(player: Player, bpm: Int, onStarted: (Long, String) -> Unit, onFailed: (String) -> Unit) {
+        override fun start(player: Player, bpm: Int, onStarted: (Long?, String) -> Unit, onFailed: (String) -> Unit) {
             started += player
             if (player !in silent) onStarted(5_000, source)
         }
@@ -100,23 +100,9 @@ class RoundOneFixesTest {
         assertTrue("above the answers", stuck < screen.indexOf("@+id/btn_checkin_helped"))
     }
 
-    // ---- #7: no beat start from a play() call; Bluetooth flagged; longer wait for watch audio
+    // ---- #7: Bluetooth flagged (the rest of #7 changed in round 002, #8)
 
-    @Test
-    fun n7_aPlayCallTimeIsNotABeatStart() {
-        val r = BeatRunner(Out(source = "audio_play_call_bt"), Clock()::schedule)
-        r.start(plan(Player.WATCH_AUDIO), 100)
-        assertTrue(r.confirmed)
-        assertNull("estimate only: no beat_start_ms", r.beatStartMs)
-        assertEquals(Place.EARBUDS, r.placeUsed)
-        assertEquals("audio_play_call_bt", r.beatStartSource)
-        val phone = BeatRunner(Out(source = "phone_audio_play_call+rtt"), Clock()::schedule)
-        phone.start(plan(Player.PHONE_AUDIO), 100)
-        assertNull(phone.beatStartMs)
-        val ok = BeatRunner(Out(source = "audio_timestamp"), Clock()::schedule)
-        ok.start(plan(Player.WATCH_AUDIO), 100)
-        assertEquals(5_000L, ok.beatStartMs)
-    }
+    // n7_aPlayCallTimeIsNotABeatStart was replaced in round 002 (#8): see RoundTwoFixesTest.
 
     @Test
     fun n7_bluetoothAudioIsFlaggedInThePressFile() {
@@ -127,23 +113,7 @@ class RoundOneFixesTest {
         assertFalse(p.copy(beatStartSource = "watch_motor").toRecord(MotionSamples.EMPTY, null).btLatencyUnknown)
     }
 
-    @Test
-    fun n7_watchAudioGets2_5sToConfirmAndStillFallsBack() {
-        val clock = Clock()
-        val out = Out(silent = setOf(Player.WATCH_AUDIO))
-        val r = BeatRunner(out, clock::schedule)
-        r.start(plan(Player.WATCH_AUDIO), 100)
-        clock.advance(2_000)
-        assertEquals("still waiting at 2 s", listOf(Player.WATCH_AUDIO), out.started)
-        clock.advance(500)
-        assertEquals(listOf(Player.WATCH_AUDIO, Player.WATCH_HAPTIC), out.started)
-        assertEquals(Place.WRIST, r.placeUsed)
-        // The phone keeps its 1 s.
-        val c2 = Clock(); val o2 = Out(silent = setOf(Player.PHONE_AUDIO))
-        BeatRunner(o2, c2::schedule).start(plan(Player.PHONE_AUDIO), 100)
-        c2.advance(1_000)
-        assertEquals(listOf(Player.PHONE_AUDIO, Player.WATCH_HAPTIC), o2.started)
-    }
+    // n7_watchAudioGets2_5sToConfirm... was reversed in round 002 (#8): 1 s for every player, see RoundTwoFixesTest.
 
     // ---- #8: earbuds are headphones or headsets, not speakers, cars or TVs
 
