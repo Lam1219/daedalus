@@ -9,6 +9,23 @@ import java.util.Locale
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
+/**
+ * Round 005: the phone's own guards for the earbuds pause, so a watch on an older build can't
+ * play the paused code.
+ */
+object PilotPhoneRules {
+    /** Earbuds as reported to the watch: only once this participant's earbuds check passed. */
+    fun earbudsForStatus(settings: com.medicina.shared.pilot.PilotSettings, headphonesConnected: Boolean) =
+        settings.earbudsChecked && headphonesConnected
+
+    /** Whether the phone may start [player] for a pilot press. PHONE_AUDIO needs the earbuds check. */
+    fun mayPlay(player: com.medicina.shared.pilot.Player, settings: com.medicina.shared.pilot.PilotSettings) = when (player) {
+        com.medicina.shared.pilot.Player.PHONE_AUDIO -> settings.earbudsChecked
+        com.medicina.shared.pilot.Player.PHONE_VIBRATION -> true
+        else -> false
+    }
+}
+
 /** The phone's copy of the pilot settings (Profile → Home pilot). Sent to the watch on every change. */
 object PilotPrefs {
     private const val PREFS = "pilot"

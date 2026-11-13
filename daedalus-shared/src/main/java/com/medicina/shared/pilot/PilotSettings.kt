@@ -31,6 +31,14 @@ data class PilotSettings(
     /** Study mode is on and usable. */
     val active: Boolean get() = enabled && isValid
 
+    /**
+     * Round 005, #4: a new participant code or seed is a new participant, so "Earbuds checked"
+     * goes back off. The same code and seed keep it.
+     */
+    fun withIdentity(code: String, newSeed: Long): PilotSettings =
+        if (code == participant && newSeed == seed) this
+        else copy(participant = code, seed = newSeed, earbudsChecked = false)
+
     /** The message the phone sends to the watch on [PilotLink.SETTINGS_PATH]. */
     fun encode(): String = listOf(
         if (enabled) "1" else "0", participant, seed.toString(), enrolmentEpochDay.toString(), if (pocketReminder) "1" else "0",

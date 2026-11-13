@@ -156,7 +156,7 @@ class PilotPhoneService : Service() {
     private fun status(queryId: String = "", moved: Boolean? = null): PhoneStatus {
         val nowBoot = SystemClock.elapsedRealtime()
         // Round 004: earbuds don't count until the earbuds device check passed for this participant.
-        val earbuds = PilotPrefs.settings(this).earbudsChecked && AudioRoutes.headphonesConnected(this)
+        val earbuds = PilotPhoneRules.earbudsForStatus(PilotPrefs.settings(this), AudioRoutes.headphonesConnected(this))
         return PhoneStatus(earbuds, steps.agoMs(nowBoot), moved, queryId)
     }
 
@@ -220,6 +220,12 @@ class PilotPhoneService : Service() {
     }
 
     private fun startBeat(m: BeatMessage.Start, receivedMs: Long) {
+        // Round 005, #5: refuse at once (the watch's wrist takes over well within 1 s).
+        if (!PilotPhoneRules.mayPlay(m.player, PilotPrefs.settings(this))) {
+            Log.w(TAG, "Refused ${m.player} for ${m.pressId}: earbuds not checked for this participant")
+            send(PilotLink.BEAT_PATH, BeatMessage.Failed(m.pressId, "earbuds_not_checked").encode())
+            return
+        }
         stopBeat(beatId ?: "")
         beatId = m.pressId
         beatPaused = false

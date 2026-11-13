@@ -20,7 +20,9 @@ android {
         minSdk = 26
         targetSdk = 35
         versionCode = 1
-        versionName = "0.1.0"
+        // Home pilot build, shown in Settings > Apps > Daedalus on the phone and the watch. Both apps
+        // of a pilot set must show the same "pilotN"; the earbuds setting needs pilot5 or later.
+        versionName = "0.1.0-pilot5"
         // Ship only the languages the app is translated into.
         resourceConfigurations += listOf("en", "fr")
 

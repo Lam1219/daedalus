@@ -105,7 +105,15 @@ fun PilotScreen(onBack: () -> Unit) {
     val permissions = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { granted ->
         needActivity = granted[Manifest.permission.ACTIVITY_RECOGNITION] == false
         // The phone's part needs "physical activity" (steps, and the foreground service on Android 14+).
-        apply(settings.copy(enabled = true, participant = code, seed = seed ?: 0))
+        apply(settings.withIdentity(code, seed ?: 0).copy(enabled = true))
+    }
+
+    /** Round 005, #4: editing the code or seed is a new participant: "Earbuds checked" goes off. */
+    fun editIdentity(newCode: String, newSeedText: String) {
+        code = newCode
+        seedText = newSeedText
+        val updated = settings.withIdentity(newCode, newSeedText.toLongOrNull() ?: -1)
+        if (updated != settings) { settings = updated; PilotPrefs.save(context, updated) }
     }
 
     fun turnOn() {
@@ -115,7 +123,7 @@ fun PilotScreen(onBack: () -> Unit) {
             // Earbuds are told from speakers by their Bluetooth device class (round 001, #8).
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) add(Manifest.permission.BLUETOOTH_CONNECT)
         }.filter { context.checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED }
-        if (wanted.isEmpty()) apply(settings.copy(enabled = true, participant = code, seed = seed ?: 0))
+        if (wanted.isEmpty()) apply(settings.withIdentity(code, seed ?: 0).copy(enabled = true))
         else permissions.launch(wanted.toTypedArray())
     }
 
@@ -138,7 +146,7 @@ fun PilotScreen(onBack: () -> Unit) {
             )
             Spacer(Modifier.height(12.dp))
             OutlinedTextField(
-                code, { code = it.trim().uppercase() },
+                code, { editIdentity(it.trim().uppercase(), seedText) },
                 label = { Text(stringResource(R.string.pilot_code)) },
                 singleLine = true, enabled = !locked,
                 isError = code.isNotEmpty() && !codeOk,
@@ -146,7 +154,7 @@ fun PilotScreen(onBack: () -> Unit) {
                 modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp), colors = fieldColors(),
             )
             OutlinedTextField(
-                seedText, { seedText = it.filter(Char::isDigit).take(10) },
+                seedText, { editIdentity(code, it.filter(Char::isDigit).take(10)) },
                 label = { Text(stringResource(R.string.pilot_seed)) },
                 singleLine = true, enabled = !locked,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),

@@ -31,6 +31,7 @@ import com.medicina.daedaluswatch.pilot.PilotPhoneLink
 import com.medicina.daedaluswatch.pilot.PilotPresses
 import com.medicina.daedaluswatch.pilot.PilotStore
 import com.medicina.daedaluswatch.pilot.pilotFolderExists
+import com.medicina.daedaluswatch.pilot.PilotFlags
 import com.medicina.shared.pilot.CheckIn
 import com.medicina.shared.pilot.Place
 import java.util.Locale
@@ -208,7 +209,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     private fun render() {
         val now = System.currentTimeMillis()
         // Home pilot: the one-tap check-in after a beat stops comes first.
-        if (pilotOn && PilotPresses.checkinFor != null) {
+        if (PilotFlags.screenReadsPresses(pilotOn) && PilotPresses.checkinFor != null) {
             show(screenCheckin)
             return
         }
@@ -294,7 +295,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
                 show(screenWalk)
                 tvWalkRate.text = bpm.toString()
                 // Home pilot: where this press plays its beat, in small text.
-                val place = if (pilotOn) PilotPresses.currentPlace else null
+                val place = if (PilotFlags.screenReadsPresses(pilotOn)) PilotPresses.currentPlace else null
                 tvWalkPlace.visibility = if (place != null) View.VISIBLE else View.GONE
                 if (place != null) tvWalkPlace.setText(
                     when (place) {

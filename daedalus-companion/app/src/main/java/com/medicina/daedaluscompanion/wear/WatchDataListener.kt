@@ -287,7 +287,7 @@ class WatchDataListener : WearableListenerService() {
             PilotLink.QUERY_PATH -> if (service != null) service.onQuery(text(), e.sourceNodeId) else reply(
                 e.sourceNodeId, PilotLink.STATUS_PATH,
                 // Study mode off on this phone, or its service couldn't start: no steps, no movement known.
-                PhoneStatus(PilotPrefs.settings(this).earbudsChecked && AudioRoutes.headphonesConnected(this), null, null, text()).encode(),
+                PhoneStatus(com.medicina.daedaluscompanion.pilot.PilotPhoneRules.earbudsForStatus(PilotPrefs.settings(this), AudioRoutes.headphonesConnected(this)), null, null, text()).encode(),
             )
             PilotLink.BEAT_PATH -> {
                 val m = BeatMessage.decode(text()) ?: return
