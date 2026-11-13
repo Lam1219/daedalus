@@ -149,6 +149,10 @@ class MainActivity : ComponentActivity(), SensorEventListener {
             R.id.btn_checkin_moving to CheckIn.ALREADY_MOVING,
             R.id.btn_checkin_not_felt to CheckIn.NOT_FELT,
         ).forEach { (id, answer) -> findViewById<View>(id).setOnClickListener { PilotPresses.answer(this, answer) } }
+        // "I'm stuck" on the check-in: a new press, which closes the check-in unanswered (round 001, #6).
+        findViewById<View>(R.id.btn_checkin_stuck).setOnClickListener { startWalkingCue() }
+        // Finish presses a crash or restart left pending (round 001, #5).
+        if (PilotStore.active(this)) PilotPresses.recoverOrphans(this)
 
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
     }
@@ -377,6 +381,8 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         // Wear OS 5+ gates heart rate with the health permission (confirmed via
         // `dumpsys sensorservice`); BODY_SENSORS above covers older watches.
         if (HeartRatePermission.name !in permissionsToRequest) permissionsToRequest.add(HeartRatePermission.name)
+        // Home pilot: telling earbuds from a speaker reads the Bluetooth device class (round 001, #8).
+        if (PilotStore.active(this) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) permissionsToRequest.add(Manifest.permission.BLUETOOTH_CONNECT)
         val missing = permissionsToRequest.filter {
             checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED
         }

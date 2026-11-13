@@ -82,7 +82,7 @@ Everything sits behind **study mode**, off by default. With it off, both apps ta
 11. **A press inside a running guard session** keeps the existing guard behaviour (wrist, no press file). Guards are a lab tool, not part of the pilot.
 12. **The press counter** lives on the watch and resets when the code or seed changes. A watch reinstall resets it too, so the schedule repeats from press 0. That's acceptable because the schedule is stateless, but the owner may want the phone to keep a copy.
 13. **A press with fewer than 2 motion samples** (the ring wasn't running) is saved as `…json.nomotion`, outside `analyse()`'s `*.json` glob. `pilot_analysis` raises on empty samples, and one bad file would stop the whole folder.
-14. **Pilot files are not removed by sign-out or "Delete my data".** Signing out wipes health data, and that would destroy pilot files before export. They have their own delete button on the pilot screen. The owner should confirm this (see Decisions).
+14. ~~Pilot files are not removed by sign-out or "Delete my data".~~ Reversed in round 001 (#10): "Delete everything" and "Delete account" now delete pilot files too. Plain sign-out still leaves them, so a sign-out can't destroy unexported data.
 
 ## Where the spec needs correcting (with platform docs)
 
@@ -170,6 +170,44 @@ All runs used JDK 17 and Gradle 8.5 from `~/.gradle/wrapper/dists/gradle-8.5-bin
 | Export | "Export pilot files" opens the share sheet with one zip. Unzip it and run `pilot_analysis.analyse(folder)`. |
 | Phone permission refused | Refuse "physical activity": the pilot screen says why, the phone service doesn't start, and earbud-on-phone and pocket presses fall back to the wrist. |
 
+## Round 001 fixes
+
+Branch brought up to date with `feature/home-pilot` at c361c93 (fast-forward). No Python was touched. The fixes are in commit 06c5a65. Tests live in `daedalus-watch/.../pilot/RoundOneFixesTest.kt`, one or more per number.
+
+How "fails before" holds:
+- **Fail as behaviour on the old code:** #6, #7 (watch-audio wait), #9, #12 and #13. For #12 the old ring held a fixed 6,000 samples, so 150 s at 100 Hz came back short. For #7 the old runner fell back to the wrist at 1 s.
+- **Fail to compile on the old code** (the API is new): #5, #7 (play-call start, Bluetooth flag), #8, #11, #14 and #24.
+
+| # | What changed | Test |
+|---|---|---|
+| 4 | `PilotPresses.begin` holds a partial wake lock (`Daedalus:PilotCapture`, 2 min timeout) from the press until the +60 s capture is read, so the Handler isn't paused by deep sleep. Chosen over an exact alarm: one lock, no new permission. | Not unit-testable (wake lock). Device check: press, screen off, file has motion to press +60 s. |
+| 12 | `MotionRing` keeps samples by age (150 s) and grows its arrays, instead of a fixed count sized for exactly 50 Hz. | `n12_ringKeeps150sEvenWhenTheSensorDeliversTwiceAsFast` |
+| 5 | A `pending_<press>.txt` (`PendingPress`) is saved at the press, when the player confirms and at the beat stop. It's deleted once the press file is written. All pilot file writes go through one serial executor, so a late pending save can't outlive the final write. At the next start (app screen, motion-ring start or boot), orphans become ordinary press files: whatever motion the ring still holds (usually none), `checkin: null` and `recovered: true`. | `n5_pendingPressRoundTripsAndBecomesARecoveredPressFile` |
+| 6 | The watch check-in has "I'm stuck" first, above the four answers (the screen scrolls on small watches). A new press closes the open check-in, unanswered. | `n6_checkinScreenHasImStuckFirst` (layout) |
+| 7 | `beat_start_ms` is null when the only source is a play() call (`audio_play_call`, on the watch or the phone); the press still counts as played there. `ClickBeatPlayer` adds `_bt` to the source when routed to Bluetooth, and each press file has `bt_latency_unknown` (true for Bluetooth audio). Watch audio gets 2.5 s to confirm and the phone keeps 1 s; both still fall back to the wrist. | `n7_aPlayCallTimeIsNotABeatStart`, `n7_bluetoothAudioIsFlaggedInThePressFile`, `n7_watchAudioGets2_5sToConfirmAndStillFallsBack` |
+| 8 | "Earbuds" means LE audio headsets, wired and USB headsets, or an A2DP device whose Bluetooth class is headphones or wearable headset. Speakers, car audio, hands-free kits, hi-fi, TVs and uncategorised sinks are excluded. Reading the class needs BLUETOOTH_CONNECT (Android 12+): the watch asks for it in study mode, the phone when study mode is turned on. Without it, a Bluetooth sink doesn't count, so the press gets the wrist. | `n8_onlyHeadphoneBluetoothClassesCountAsEarbuds` |
+| 9 | Watch manifest: `dataExtractionRules` and `fullBackupContent` exclude `files/pilot/` and `pilot.xml` (cloud backup and device transfer). The watch's other data keeps its backup. | `n9_watchPilotFilesAndSettingsAreExcludedFromBackup` |
+| 10 | `CloudBackup.deleteEverything` and `deleteAccount` call `PilotFiles.deleteAll`. Sign-out alone still keeps them. | No unit test: both need a signed-in Supabase session. Checked by reading; device check below. |
+| 11 | A pilot press creates no ordinary session CSV, and no extra sensor recording or vitals tracker. The press file is its record. This was the smaller change: one branch in `HapticService`, against teaching `CloudBackup` about study mode. Cues outside study mode, and non-press cues in study mode, still write their CSV. | `n11_pilotPressWritesNoSessionCsv` |
+| 13 | `WatchBootReceiver` (BOOT_COMPLETED, MY_PACKAGE_REPLACED) calls `StandWatchService.refresh` and, in study mode, recovers pending presses. | `n13_watchRestartsAfterABoot` (manifest) |
+| 14 | `PilotFileWriter`: write to `.part`, rename, copy if the rename fails, one retry, then log and return null. Everything runs in `runCatching`, so it never crashes. It never replaces an existing press file (a clash gets `-2`, `-3`…). A failed write leaves the pending file for the next start. | `n14_writerKeepsBothOnAClashAndFailsWithoutThrowing` |
+| 24 | Pause and resume reach the beat's player: watch audio plays silence while keeping time, and the phone gets `pause` / `resume` and stops its pulses or silences its clicks. The Android walking screen has no pause button, so today this only takes effect when a pause is sent to the service. | `n24_pauseAndResumeReachThePlayer` |
+
+`BeatRunnerTest.noDrawEverEndsInSilence` now advances 2.5 s (the longest confirm wait) instead of 1 s.
+
+**Validation re-run:**
+- Watch: `gradle assembleDebug test --offline` in `daedalus-watch` exited 0; 116 tests per variant, 0 failures.
+- Phone: `gradle assembleDebug test --offline` in `daedalus-companion` exited 0; 31 tests per variant, 0 failures.
+- The press-file round trip through Python `pilot_analysis` still passes (inside `PressFileTest`).
+
+**New device checks:**
+- Press with the screen off, then leave the watch alone for 2 minutes: the file has motion up to about press +60 s (#4).
+- Kill the app mid-beat (`adb shell am force-stop`), then reopen it: a `recovered: true` press file appears (#5).
+- Reboot the watch in study mode: the battery log shows the ring again (#13).
+- A Bluetooth speaker connected to the watch: the earbuds place is never drawn (#8).
+- "Delete everything" on the phone: the press count on the pilot screen goes to 0 (#10).
+
 ## Commit range
 
 `0812fae..HEAD` on `android-home-pilot` (the commits after 0812fae: Wear OS, phone, then this handoff with the B6 test).
+Round 001 fixes: `c361c93..HEAD` (06c5a65 the fixes, then the handoff update).

@@ -32,7 +32,12 @@ data class PressRecord(
     val fallbackReason: String? = null,
     val fallbackAtMs: Long? = null,
     val app: String = "wear-os",
+    /** Finished after a crash or restart from the pending file written at the press (round 001, #5). */
+    val recovered: Boolean = false,
 ) {
+    /** Audio over Bluetooth: the codec delay after the output may not be in beat_start_ms (round 001, #7). */
+    val btLatencyUnknown: Boolean get() = isBluetoothSource(beatStartSource)
+
     /** Sortable and unique per person: pilot_P03_00012_1794570000000.json */
     val fileName: String get() = "pilot_${participant}_${String.format(Locale.US, "%05d", pressIndex)}_$pressMs.json"
 
@@ -63,6 +68,8 @@ data class PressRecord(
         field(sb, "beat_start_source", str(beatStartSource))
         field(sb, "fallback_reason", fallbackReason?.let { str(it) } ?: "null")
         field(sb, "fallback_ms", fallbackAtMs?.toString() ?: "null")
+        field(sb, "bt_latency_unknown", btLatencyUnknown.toString())
+        field(sb, "recovered", recovered.toString())
         sb.append("\"app\":").append(str(app))
         sb.append('}')
         return sb.toString()
@@ -84,6 +91,9 @@ data class PressRecord(
     }
 
     companion object {
+        /** ClickBeatPlayer marks a source "_bt" when the click track was routed to a Bluetooth device. */
+        fun isBluetoothSource(source: String) = source.contains("_bt")
+
         /** JSON has no NaN or infinity; a sensor never gives them, but never write an invalid file. */
         fun num(x: Float): String = if (x.isFinite()) x.toString() else "0.0"
 

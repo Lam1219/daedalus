@@ -52,6 +52,9 @@ interface BeatOutput {
      */
     fun start(player: Player, bpm: Int, onStarted: (Long, String) -> Unit, onFailed: (String) -> Unit)
     fun stop(player: Player)
+    /** The person paused or resumed the cue: silence the player, then go on (round 001, #24). */
+    fun pause(player: Player) {}
+    fun resume(player: Player) {}
 }
 
 /**
@@ -64,7 +67,16 @@ class BeatRunner(
     private val output: BeatOutput,
     private val schedule: (delayMs: Long, block: () -> Unit) -> (() -> Unit),
     private val remoteTimeoutMs: Long = REMOTE_TIMEOUT_MS,
+    /** Watch-played audio needs longer to report its first presented frame (round 001, #7). */
+    private val watchAudioTimeoutMs: Long = WATCH_AUDIO_TIMEOUT_MS,
 ) {
+    /** Called once the player has confirmed (for the pending press file, round 001 #5). */
+    @Volatile var onConfirmed: (() -> Unit)? = null
+    /** The player said it is playing. [beatStartMs] can still be null: see [started]. */
+    var confirmed = false
+        private set
+    var paused = false
+        private set
     var player: Player? = null
         private set
     /** The place where the beat actually started (null until it has). */
@@ -98,24 +110,29 @@ class BeatRunner(
         // Any player but the motor must confirm its first click or pulse in time (a hung audio
         // output or an unreachable phone would otherwise leave the press silent).
         if (p != Player.WATCH_HAPTIC) {
-            cancelTimeout = schedule(remoteTimeoutMs) { failed(id, "no_reply") }
+            val wait = if (p == Player.WATCH_AUDIO) watchAudioTimeoutMs else remoteTimeoutMs
+            cancelTimeout = schedule(wait) { failed(id, "no_reply") }
         }
         output.start(p, bpm, onStarted = { t, src -> started(id, t, src) }, onFailed = { r -> failed(id, r) })
     }
 
     @Synchronized
     private fun started(id: Int, tMs: Long, source: String) {
-        if (id != attempt || stopped || beatStartMs != null) return
+        if (id != attempt || stopped || confirmed) return
         cancelTimeout?.invoke(); cancelTimeout = null
-        beatStartMs = tMs
+        confirmed = true
+        // A play() call time is when audio was asked for, not when it was heard: no beat start
+        // rather than one that looks early (round 001, #7). The source still says what happened.
+        beatStartMs = if (isEstimateOnly(source)) null else tMs
         beatStartSource = source
         placeUsed = player?.place
+        onConfirmed?.invoke()
     }
 
     @Synchronized
     private fun failed(id: Int, reason: String) {
         if (id != attempt || stopped) return
-        if (beatStartMs != null) return lost(reason)
+        if (confirmed) return lost(reason)
         cancelTimeout?.invoke(); cancelTimeout = null
         val p = player ?: return
         if (p == Player.WATCH_HAPTIC) return // the motor has no fallback; it doesn't report failures
@@ -138,6 +155,20 @@ class BeatRunner(
     }
 
     @Synchronized
+    fun pause() {
+        if (stopped || paused) return
+        paused = true
+        player?.let { output.pause(it) }
+    }
+
+    @Synchronized
+    fun resume() {
+        if (stopped || !paused) return
+        paused = false
+        player?.let { output.resume(it) }
+    }
+
+    @Synchronized
     fun stop() {
         if (stopped) return
         stopped = true
@@ -148,6 +179,11 @@ class BeatRunner(
     companion object {
         /** How long a phone player has to confirm its first click or pulse (plan B1: within 1 s). */
         const val REMOTE_TIMEOUT_MS = 1_000L
+        /** Watch audio: AudioTrack may take up to ~2 s to report its first presented frame. */
+        const val WATCH_AUDIO_TIMEOUT_MS = 2_500L
+
+        /** Sources that only say when audio was requested, not when it played. */
+        fun isEstimateOnly(source: String) = source.contains("audio_play_call")
     }
 }
 

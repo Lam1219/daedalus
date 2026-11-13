@@ -248,6 +248,8 @@ class StandWatchService : Service(), SensorEventListener {
         writeBatteryHeader(acc, gyr)
         main.removeCallbacks(batteryTick)
         main.post(batteryTick)
+        // A restart (crash, kill, update) may have left presses pending (round 001, #5).
+        PilotPresses.recoverOrphans(this)
         Log.i(TAG, "Motion ring started: acc wake-up=${acc.isWakeUpSensor} fifo=${acc.fifoMaxEventCount}, gyro=${gyr != null}")
     }
 

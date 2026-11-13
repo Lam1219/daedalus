@@ -130,6 +130,9 @@ class HapticService : Service() {
         /** B6: in study mode a cue stops by itself after 10 minutes instead. */
         const val STUDY_MAX_CUE_MS = Pilot.STUDY_MAX_CUE_S * 1000L
 
+        /** Round 001, #11: a pilot press writes no session CSV (it never reaches the session list or backup). */
+        fun writesSessionCsv(pilotPress: Boolean) = !pilotPress
+
         /** B6: 10 minutes for a cue in study mode; guards and everything outside study mode keep the hour. */
         fun sessionLimitMs(study: Boolean, mode: String) =
             if (study && !GuardSession.isGuard(mode)) STUDY_MAX_CUE_MS else MAX_SESSION_MS
@@ -213,8 +216,15 @@ class HapticService : Service() {
             ACTION_STOP -> {
                 stopService()
             }
-            ACTION_PAUSE -> if (isRunning) isUserPaused = true
-            ACTION_RESUME -> isUserPaused = false
+            ACTION_PAUSE -> if (isRunning) {
+                isUserPaused = true
+                // Round 001, #24: an earbud or pocket beat pauses too, not only the wrist.
+                if (pilotPress) PilotPresses.current?.runner?.pause()
+            }
+            ACTION_RESUME -> {
+                isUserPaused = false
+                if (pilotPress) PilotPresses.current?.runner?.resume()
+            }
             ACTION_SET_BPM -> {
                 val bpm = intent.getIntExtra(EXTRA_BPM, currentBpm)
                 val mode = intent.getStringExtra(EXTRA_MODE)
@@ -282,20 +292,22 @@ class HapticService : Service() {
             startForeground(NOTIFICATION_ID, buildNotification(bpm, mode))
         }
 
-        // Create session CSV file
-        createSessionFile(mode)
+        // Round 001, #11: a pilot press records only its press file (from the motion ring). An
+        // ordinary session CSV would go to the phone's session list and from there to cloud backup.
+        val sessionCsv = writesSessionCsv(pilotPress)
+        if (sessionCsv) createSessionFile(mode) else { sessionFile = null; recordingFileName = null }
 
         // A guard's engine must exist before the first sample arrives.
         if (GuardSession.isGuard(mode)) startGuard()
 
         // Start sensor recording
-        startSensorRecording()
+        if (sessionCsv) startSensorRecording() else sensorListener = null
 
         // Breathing rate and SpO2 (Samsung Health Sensor SDK)
         latestBreathingRate = null
         latestBreathing = null
         latestSpo2 = null
-        if (!GuardSession.isGuard(mode)) vitalsTracker = VitalsTracker(
+        if (!GuardSession.isGuard(mode) && sessionCsv) vitalsTracker = VitalsTracker(
             this,
             onBreathingRate = { latestBreathingRate = it; latestBreathing = it },
             onSpo2 = { latestSpo2 = it },
@@ -583,6 +595,18 @@ class HapticService : Service() {
                     val id = PilotPresses.current?.id ?: return onFailed("no_press")
                     PilotPhoneLink.startBeat(this@HapticService, id, player, bpm, STUDY_MAX_CUE_MS, onStarted, onFailed)
                 }
+            }
+        }
+
+        override fun pause(player: Player) = setPaused(player, true)
+        override fun resume(player: Player) = setPaused(player, false)
+
+        private fun setPaused(player: Player, paused: Boolean) {
+            when (player) {
+                Player.WATCH_HAPTIC -> Unit // isUserPaused silences the motor
+                Player.WATCH_AUDIO -> clickPlayer?.paused = paused
+                Player.PHONE_AUDIO, Player.PHONE_VIBRATION ->
+                    PilotPresses.current?.id?.let { PilotPhoneLink.pauseBeat(this@HapticService, it, paused) }
             }
         }
 

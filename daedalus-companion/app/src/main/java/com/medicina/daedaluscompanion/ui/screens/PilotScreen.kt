@@ -112,6 +112,8 @@ fun PilotScreen(onBack: () -> Unit) {
         val wanted = buildList {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) add(Manifest.permission.ACTIVITY_RECOGNITION)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) add(Manifest.permission.POST_NOTIFICATIONS)
+            // Earbuds are told from speakers by their Bluetooth device class (round 001, #8).
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) add(Manifest.permission.BLUETOOTH_CONNECT)
         }.filter { context.checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED }
         if (wanted.isEmpty()) apply(settings.copy(enabled = true, participant = code, seed = seed ?: 0))
         else permissions.launch(wanted.toTypedArray())

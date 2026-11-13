@@ -1,6 +1,11 @@
 package com.medicina.shared.pilot
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.bluetooth.BluetoothClass
+import android.bluetooth.BluetoothManager
 import android.content.Context
+import android.content.pm.PackageManager
 import android.media.AudioAttributes
 import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
@@ -53,20 +58,53 @@ object ClickSchedule {
     }
 }
 
-/** Headphones of any kind on this device's audio outputs (Bluetooth, BLE audio, wired, USB). */
+/**
+ * Earbuds or headphones on this device's audio outputs (round 001, #8). A Bluetooth A2DP sink can
+ * be a speaker, a car or a TV, so it counts only when its Bluetooth device class says headphones or
+ * a wearable headset. LE audio headsets, wired and USB headsets count. Without permission to read
+ * Bluetooth device classes (Android 12+: BLUETOOTH_CONNECT), a Bluetooth sink doesn't count, so the
+ * earbuds place is never drawn by mistake (the press still gets its beat on the wrist).
+ */
 object AudioRoutes {
-    private val HEADPHONES = buildSet {
-        add(AudioDeviceInfo.TYPE_BLUETOOTH_A2DP)
+    private val ALWAYS_HEADPHONES = buildSet {
         add(AudioDeviceInfo.TYPE_WIRED_HEADSET)
         add(AudioDeviceInfo.TYPE_WIRED_HEADPHONES)
         add(AudioDeviceInfo.TYPE_USB_HEADSET)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) add(AudioDeviceInfo.TYPE_BLE_HEADSET)
     }
 
+    /** Bluetooth device classes that are worn on or in the ears. */
+    fun isHeadphoneClass(deviceClass: Int): Boolean = deviceClass == BluetoothClass.Device.AUDIO_VIDEO_HEADPHONES ||
+        deviceClass == BluetoothClass.Device.AUDIO_VIDEO_WEARABLE_HEADSET
+
+    private fun isEarbuds(context: Context, d: AudioDeviceInfo): Boolean = when (d.type) {
+        in ALWAYS_HEADPHONES -> true
+        AudioDeviceInfo.TYPE_BLUETOOTH_A2DP -> bluetoothClass(context, d.address)?.let { isHeadphoneClass(it) } ?: false
+        else -> false
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun bluetoothClass(context: Context, address: String?): Int? = runCatching {
+        if (address.isNullOrEmpty()) return null
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            context.checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
+        ) return null
+        val adapter = (context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter ?: return null
+        adapter.getRemoteDevice(address).bluetoothClass?.deviceClass
+    }.getOrNull()
+
     fun headphonesConnected(context: Context): Boolean {
         val am = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        return am.getDevices(AudioManager.GET_DEVICES_OUTPUTS).any { it.type in HEADPHONES }
+        return am.getDevices(AudioManager.GET_DEVICES_OUTPUTS).any { isEarbuds(context, it) }
     }
+
+    private val BLUETOOTH_TYPES = buildSet {
+        add(AudioDeviceInfo.TYPE_BLUETOOTH_A2DP)
+        add(AudioDeviceInfo.TYPE_BLUETOOTH_SCO)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { add(AudioDeviceInfo.TYPE_BLE_HEADSET); add(AudioDeviceInfo.TYPE_BLE_SPEAKER) }
+    }
+
+    fun isBluetooth(d: AudioDeviceInfo?): Boolean = d != null && d.type in BLUETOOTH_TYPES
 }
 
 /**
@@ -80,6 +118,8 @@ class ClickBeatPlayer(private val context: Context) {
     private val am = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private val main = Handler(Looper.getMainLooper())
     @Volatile private var running = false
+    /** Paused by the person: the track keeps time but plays silence (round 001, #24). */
+    @Volatile var paused = false
     private var thread: Thread? = null
     private var focus: AudioFocusRequest? = null
     private var deviceCallback: AudioDeviceCallback? = null
@@ -134,6 +174,7 @@ class ClickBeatPlayer(private val context: Context) {
                 track.play()
                 while (running) {
                     ClickSchedule.fill(chunk, frame, bpm)
+                    if (paused) chunk.fill(0)
                     val n = track.write(chunk, 0, chunk.size) // blocks while the buffer is full: real-time pacing
                     if (n < 0) throw IllegalStateException("write error $n")
                     frame += n
@@ -143,10 +184,10 @@ class ClickBeatPlayer(private val context: Context) {
                             val ageMs = (System.nanoTime() - ts.nanoTime) / 1_000_000
                             val start = System.currentTimeMillis() - ageMs - ts.framePosition * 1000 / ClickSchedule.SAMPLE_RATE
                             reported = true
-                            onStarted(start, "audio_timestamp")
+                            onStarted(start, "audio_timestamp" + btSuffix(track))
                         } else if (System.currentTimeMillis() - playCalledMs > TIMESTAMP_WAIT_MS) {
                             reported = true
-                            onStarted(playCalledMs, "audio_play_call")
+                            onStarted(playCalledMs, "audio_play_call" + btSuffix(track))
                         }
                     }
                 }
@@ -172,6 +213,9 @@ class ClickBeatPlayer(private val context: Context) {
     }
 
     val isPlaying get() = running
+
+    /** "_bt" when the clicks go to a Bluetooth device, whose codec delay the timestamp may not include. */
+    private fun btSuffix(track: AudioTrack) = if (AudioRoutes.isBluetooth(track.routedDevice)) "_bt" else ""
 
     private companion object {
         const val TAG = "ClickBeatPlayer"

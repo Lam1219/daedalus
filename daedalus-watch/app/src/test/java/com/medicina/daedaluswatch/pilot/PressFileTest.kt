@@ -51,7 +51,8 @@ class PressFileTest {
 
     @Test
     fun ringKeepsOnlyTheLastSamplesInOrder() {
-        val ring = MotionRing(capacity = 100)
+        // Kept by age: 99 ms, with a small starting size that has to grow.
+        val ring = MotionRing(keepMs = 99, initialCapacity = 16)
         for (i in 0 until 250) ring.add(i.toLong(), i.toFloat(), 0f, 0f, 0f, 0f, 0f)
         val s = ring.snapshot(0, 1000)
         assertEquals(100, s.size)
