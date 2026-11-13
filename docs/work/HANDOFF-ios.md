@@ -139,4 +139,4 @@ The review of `feature/home-pilot` at c361c93 asked for iOS fixes 15–24 and th
 - **18, partial motion.** On a watch where `CMSensorRecorder` isn't recording, a press file arrives after 10 minutes with `motion_partial: true`.
 - **20, backup.** After an iCloud backup of the iPhone, confirm in Settings → iCloud → Manage Storage → Backups that the Daedalus pilot folder isn't counted (best effort; the flag is set on both folders).
 
-Round 001 commit: see the git log on `ios/home-pilot` after d5a3af6.
+Round 001 commits: `c361c93..ios/home-pilot` (87b56ee, plus this line).
