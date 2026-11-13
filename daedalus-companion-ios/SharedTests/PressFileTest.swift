@@ -45,7 +45,9 @@ final class PressFileTest: XCTestCase {
         r.beatStopMs = nil; r.checkin = nil
         let d = try XCTUnwrap(JSONSerialization.jsonObject(with: try r.json()) as? [String: Any])
         XCTAssertEqual(Set(d.keys), ["version", "participant", "press_index", "day_index", "place", "earbuds_connected",
-                                     "phone_carried", "pace_spm", "press_ms", "beat_start_ms", "beat_stop_ms", "checkin", "samples"])
+                                     "phone_carried", "pace_spm", "press_ms", "beat_start_ms", "beat_stop_ms", "checkin",
+                                     "motion_partial", "samples"])
+        XCTAssertEqual(d["motion_partial"] as? Bool, false)
         XCTAssertEqual(d["version"] as? String, "pilot-1.0")
         XCTAssertTrue(d["beat_stop_ms"] is NSNull)
         XCTAssertTrue(d["checkin"] is NSNull)
@@ -53,7 +55,7 @@ final class PressFileTest: XCTestCase {
         XCTAssertEqual(Set(s.keys), ["t_ms", "acc", "gyr"])
         XCTAssertTrue(s["gyr"] is NSNull)
         XCTAssertEqual((s["acc"] as? [[Double]])?.count, 3)
-        XCTAssertEqual(r.fileName, "press_P03_00012.json")
+        XCTAssertEqual(r.fileName, "press_P03_00012_\(Self.t0 + 28_000).json")
     }
 
     /// Brief rules: a press with no motion and no confirmed beat start is still an ordinary
@@ -66,7 +68,7 @@ final class PressFileTest: XCTestCase {
 
     func testNoMotionAndUnconfirmedStartAreAnOrdinaryPressFile() throws {
         let r = Self.noMotionUnconfirmed()
-        XCTAssertEqual(r.fileName, "press_P03_00013.json")
+        XCTAssertEqual(r.fileName, "press_P03_00013_\(Self.t0 + 200_000).json")
         let d = try XCTUnwrap(JSONSerialization.jsonObject(with: try r.json()) as? [String: Any])
         XCTAssertTrue(d["beat_start_ms"] is NSNull)
         XCTAssertEqual(d["checkin"] as? String, "not_felt")

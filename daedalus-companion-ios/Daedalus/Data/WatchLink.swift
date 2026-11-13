@@ -30,7 +30,7 @@ final class WatchLink: NSObject {
         WCSession.default.activate()
         // Home pilot: tell the watch when earbuds come and go (study mode only), and hand the
         // beat back to the wrist when they go mid-beat.
-        PhoneBeatPlayer.shared.onLost = { [weak self] in self?.sendBeatLost() }
+        PhoneBeatPlayer.shared.onLost = { [weak self] press in self?.sendBeatLost(press: press) }
         NotificationCenter.default.addObserver(forName: AVAudioSession.routeChangeNotification, object: nil, queue: .main) { _ in
             MainActor.assumeIsolated { WatchLink.shared.sendEarbuds() }
         }
@@ -44,25 +44,47 @@ final class WatchLink: NSObject {
         guard session.activationState == .activated, session.isPaired else { return }
         var context = session.applicationContext
         context[WatchKey.pilot] = PilotStore.shared.settings.dictionary
-        if PilotStore.shared.settings.isActive { context[WatchKey.earbuds] = PhoneBeatPlayer.earbudsConnected }
+        if PilotStore.shared.settings.isActive { context[WatchKey.earbuds] = Self.pilotEarbuds }
         try? session.updateApplicationContext(context)
+    }
+
+    /// 8: earbuds count only with a headphone route and the physio's "Earbuds paired: yes".
+    private static var pilotEarbuds: Bool {
+        Pilot.earbudsAvailable(paired: PilotStore.shared.settings.earbudsPaired, headphoneRoute: PhoneBeatPlayer.earbudsConnected)
     }
 
     private func sendEarbuds() {
         guard PilotStore.shared.settings.isActive else { return }
         let session = WCSession.default
         guard session.activationState == .activated, session.isPaired else { return }
-        let connected = PhoneBeatPlayer.earbudsConnected
+        let connected = Self.pilotEarbuds
         var context = session.applicationContext
         context[WatchKey.earbuds] = connected
         try? session.updateApplicationContext(context)
         if session.isReachable { session.sendMessage([WatchKey.earbuds: connected], replyHandler: nil) }
     }
 
-    private func sendBeatLost() {
+    private func sendBeatLost(press: Int64) {
         let session = WCSession.default
         guard session.activationState == .activated, session.isReachable else { return }
-        session.sendMessage([WatchKey.command: WatchKey.beatLost], replyHandler: nil)
+        session.sendMessage([WatchKey.command: WatchKey.beatLost, WatchKey.press: NSNumber(value: press)], replyHandler: nil)
+    }
+
+    /// Beat commands without a reply (stop, pause, resume), by message or queued delivery (17, 24).
+    /// Each names its press, so a late one never reaches a newer beat (21).
+    private func handleBeatCommand(_ message: [String: Any]) -> Bool {
+        guard let press = (message[WatchKey.press] as? NSNumber)?.int64Value else {
+            // A stop without a press (an older watch build) still stops: never leave a beat running.
+            if message[WatchKey.command] as? String == WatchKey.beatStop { PhoneBeatPlayer.shared.stop(); return true }
+            return false
+        }
+        switch message[WatchKey.command] as? String {
+        case WatchKey.beatStop: PhoneBeatPlayer.shared.stop(press: press)
+        case WatchKey.beatPause: PhoneBeatPlayer.shared.setPaused(true, press: press)
+        case WatchKey.beatResume: PhoneBeatPlayer.shared.setPaused(false, press: press)
+        default: return false
+        }
+        return true
     }
 
     /// Messages from the watch that need an answer (study mode only).
@@ -70,11 +92,14 @@ final class WatchLink: NSObject {
         let pilot = PilotStore.shared.settings
         switch message[WatchKey.command] as? String {
         case WatchKey.pilotQuery:
-            return [WatchKey.earbuds: pilot.isActive && PhoneBeatPlayer.earbudsConnected]
+            return [WatchKey.earbuds: pilot.isActive && Self.pilotEarbuds]
         case WatchKey.beatStart:
-            guard pilot.isActive, let pace = message[WatchKey.rate] as? Int,
-                  let start = PhoneBeatPlayer.shared.start(pace: pace) else { return [WatchKey.ok: false] }
-            return [WatchKey.ok: true, WatchKey.beatStartMs: NSNumber(value: start), WatchKey.r0: NSNumber(value: r0),
+            let press = (message[WatchKey.press] as? NSNumber)?.int64Value ?? -1
+            guard pilot.isActive, pilot.earbudsPaired, let pace = message[WatchKey.rate] as? Int,
+                  let start = await PhoneBeatPlayer.shared.start(pace: pace, press: press)
+            else { return [WatchKey.ok: false, WatchKey.press: NSNumber(value: press)] }
+            return [WatchKey.ok: true, WatchKey.press: NSNumber(value: press),
+                    WatchKey.beatStartMs: NSNumber(value: start), WatchKey.r0: NSNumber(value: r0),
                     WatchKey.r1: NSNumber(value: Int64(Date.now.timeIntervalSince1970 * 1000))]
         case WatchKey.pocketQuery:
             return [WatchKey.steps: pilot.isActive ? await PilotStore.shared.stepsLastMinute() : 0]
@@ -161,13 +186,16 @@ extension WatchLink: WCSessionDelegate {
     }
 
     nonisolated func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
+        nonisolated(unsafe) let message = message
         Task { @MainActor in
-            if message[WatchKey.command] as? String == WatchKey.beatStop {
-                PhoneBeatPlayer.shared.stop()
-            } else {
-                self.apply(status: message)
-            }
+            if !self.handleBeatCommand(message) { self.apply(status: message) }
         }
+    }
+
+    /// 17, 24: beat commands queued by the watch while this iPhone wasn't reachable.
+    nonisolated func session(_ session: WCSession, didReceiveUserInfo userInfo: [String: Any]) {
+        nonisolated(unsafe) let userInfo = userInfo
+        Task { @MainActor in _ = self.handleBeatCommand(userInfo) }
     }
 
     /// Home pilot requests from the watch (earbuds state, start the sound beat, recent steps).
@@ -188,10 +216,16 @@ extension WatchLink: WCSessionDelegate {
         let name = URL(fileURLWithPath: (file.metadata?[WatchKey.fileName] as? String) ?? file.fileURL.lastPathComponent).lastPathComponent
         // Home pilot press files stay on this phone in their own folder: never backed up.
         let pilot = file.metadata?[WatchKey.fileKind] as? String == WatchKey.pilotFile
-        let destination = (pilot ? PilotStore.dir : LocalStore.sessionsDir).appendingPathComponent(name)
-        try? FileManager.default.removeItem(at: destination)
         do {
-            try FileManager.default.moveItem(at: file.fileURL, to: destination)
+            let destination: URL
+            if pilot {
+                // 15: a pilot file never replaces another; a clash keeps both.
+                destination = try PilotFiles.moveNew(file.fileURL, into: PilotStore.dir, name: name)
+            } else {
+                destination = LocalStore.sessionsDir.appendingPathComponent(name)
+                try? FileManager.default.removeItem(at: destination)
+                try FileManager.default.moveItem(at: file.fileURL, to: destination)
+            }
             try? FileManager.default.setAttributes(
                 [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication], ofItemAtPath: destination.path
             )

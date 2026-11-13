@@ -26,10 +26,9 @@ final class PilotStore {
 
     func fileArrived() { filesReceived += 1 }
 
+    /// Excluded from iCloud and device backups (20).
     nonisolated static var dir: URL {
-        let d = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("pilot")
-        try? FileManager.default.createDirectory(at: d, withIntermediateDirectories: true)
-        return d
+        PilotFiles.directory(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("pilot"))
     }
 
     nonisolated static func files() -> [URL] {

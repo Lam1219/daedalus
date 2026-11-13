@@ -126,6 +126,88 @@ enum Pilot {
         let offset = ((r0 - t0) + (r1 - t1)) / 2   // phone clock minus watch clock
         return beatStartPhoneMs - offset
     }
+
+    // MARK: Round 001 rules
+
+    /// 17: the iPhone's beat stops by itself after the study limit, even if the watch's stop never arrives.
+    static let phoneBeatLimitS = studyMaxCueS
+
+    /// 21: a stop (sent now, or queued and delivered late) stops the iPhone's beat only when it is
+    /// for the press that beat belongs to.
+    static func phoneShouldStop(playingPress: Int64?, requestedPress: Int64) -> Bool {
+        playingPress == requestedPress
+    }
+
+    /// 8: iOS can't tell earbuds from a Bluetooth speaker, so earbuds count only when the physio
+    /// confirmed at set-up that the person's earbuds are paired with this iPhone.
+    static func earbudsAvailable(paired: Bool, headphoneRoute: Bool) -> Bool { paired && headphoneRoute }
+
+    /// 18, 19: how long the watch waits for the background recorder to reach press + 60 s before
+    /// writing what it has, marked `motion_partial`.
+    static let sealGiveUpMs: Int64 = 10 * 60 * 1000
+
+    enum SealDecision: Equatable, Sendable { case wait, seal(partial: Bool) }
+
+    /// When a waiting press file can be written. The press still running is never written (its
+    /// file is updated when it ends); an orphan (the app was stopped mid-beat) is.
+    static func sealDecision(nowMs: Int64, pressMs: Int64, recordedLastMs: Int64?, isCurrentPress: Bool) -> SealDecision {
+        if isCurrentPress { return .wait }
+        let end = pressMs + Int64(bufferAfterS) * 1000
+        if nowMs < end { return .wait }
+        // 100 ms of slack: the last 50 Hz sample can fall just short of the window's end.
+        if let last = recordedLastMs, last >= end - 100 { return .seal(partial: false) }
+        return nowMs >= pressMs + sealGiveUpMs ? .seal(partial: true) : .wait
+    }
+}
+
+/// Pilot files on disk (15, 20): folders excluded from backup, and writes that never replace an
+/// existing file (a clash keeps both, the new one as `<name>_2.json`, `_3`, ...).
+enum PilotFiles {
+    @discardableResult
+    static func directory(_ url: URL) -> URL {
+        try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        var u = url
+        var values = URLResourceValues()
+        values.isExcludedFromBackup = true
+        try? u.setResourceValues(values)
+        return url
+    }
+
+    private static func candidate(_ dir: URL, _ name: String, _ n: Int) -> URL {
+        guard n > 1 else { return dir.appendingPathComponent(name) }
+        let u = URL(fileURLWithPath: name)
+        let ext = u.pathExtension.isEmpty ? "" : ".\(u.pathExtension)"
+        return dir.appendingPathComponent("\(u.deletingPathExtension().lastPathComponent)_\(n)\(ext)")
+    }
+
+    /// Writes `data` as `name` in `dir`, or the next free `_n` name. Never overwrites.
+    static func writeNew(_ data: Data, in dir: URL, name: String) throws -> URL {
+        for n in 1...1000 {
+            let url = candidate(dir, name, n)
+            do {
+                try data.write(to: url, options: .withoutOverwriting)
+                return url
+            } catch CocoaError.fileWriteFileExists {
+                continue
+            }
+        }
+        throw CocoaError(.fileWriteFileExists)
+    }
+
+    /// Moves `file` into `dir` as `name`, or the next free `_n` name. Never replaces.
+    static func moveNew(_ file: URL, into dir: URL, name: String) throws -> URL {
+        for n in 1...1000 {
+            let url = candidate(dir, name, n)
+            if FileManager.default.fileExists(atPath: url.path) { continue }
+            do {
+                try FileManager.default.moveItem(at: file, to: url)
+                return url
+            } catch CocoaError.fileWriteFileExists {
+                continue
+            }
+        }
+        throw CocoaError(.fileWriteFileExists)
+    }
 }
 
 /// The beat of one study press: which place plays it, whether the wrist must play, and when it
@@ -138,18 +220,23 @@ struct PressBeat: Equatable, Sendable {
     private(set) var phonePlaying = false
     private(set) var beatStartMs: Int64?
     private(set) var stopped = false
+    /// 21: the press this beat belongs to; messages from the iPhone about another press are ignored.
+    let pressIndex: Int64
 
-    init(drawn: Pilot.Place) {
+    init(drawn: Pilot.Place, pressIndex: Int64 = 0) {
         place = drawn
         wristPlays = drawn == .wrist
+        self.pressIndex = pressIndex
     }
 
     /// Nothing plays yet: a phone place waiting for the iPhone.
     var waitingForPhone: Bool { !stopped && !wristPlays && !phonePlaying }
 
     /// The iPhone confirmed its first click at `ms` (watch clock). False when it's too late (the
-    /// wrist already took over, or the press stopped): the caller then stops the iPhone.
-    mutating func phoneStarted(atMs ms: Int64) -> Bool {
+    /// wrist already took over, or the press stopped) or the reply is for another press: the
+    /// caller then stops the iPhone's beat for that press.
+    mutating func phoneStarted(atMs ms: Int64, forPress press: Int64? = nil) -> Bool {
+        if let press, press != pressIndex { return false }
         guard !stopped, !wristPlays, place != .wrist else { return false }
         phonePlaying = true
         beatStartMs = ms
@@ -158,8 +245,10 @@ struct PressBeat: Equatable, Sendable {
 
     /// The iPhone couldn't start the beat, didn't confirm in time, or lost it (earbuds removed).
     /// True when the wrist must start now. A beat that never started on the iPhone is a wrist
-    /// press; one that started there keeps that place and its start time.
-    mutating func phoneFailed() -> Bool {
+    /// press; one that started there keeps that place and its start time. `forPress`: the press
+    /// an iPhone message is about (nil for the watch's own timeout); another press is ignored.
+    mutating func phoneFailed(forPress press: Int64? = nil) -> Bool {
+        if let press, press != pressIndex { return false }
         guard !stopped, !wristPlays else { return false }
         if beatStartMs == nil { place = Pilot.placeToPlay(drawn: place, phoneConfirmed: false) }
         phonePlaying = false
@@ -201,6 +290,17 @@ enum BeatClock {
         }
         return worst
     }
+
+    /// 22: host time (s) at which the player's frame 0 was rendered, from a render timestamp
+    /// (`lastRenderTime`) and the player's sample time at that render.
+    static func firstFrameHostSeconds(renderHostSeconds: Double, playerSampleTime: Double, sampleRate: Double) -> Double {
+        renderHostSeconds - playerSampleTime / sampleRate
+    }
+
+    /// Wall-clock ms of a host time, plus the output latency (the time from render to the ear).
+    static func wallMs(hostSeconds: Double, nowHostSeconds: Double, nowWallMs: Int64, latencyS: Double) -> Int64 {
+        nowWallMs + Int64(((hostSeconds - nowHostSeconds + latencyS) * 1000).rounded())
+    }
 }
 
 /// Pilot settings, set on the iPhone (Profile → Home pilot) and sent to the watch in the
@@ -214,6 +314,12 @@ struct PilotSettings: Equatable, Sendable {
     var pocketReminder = true
     /// Reminder times as minutes after midnight (Apple Watch has no stand-up detector).
     var reminderMinutes: [Int] = []
+    /// 8: the physio confirmed at set-up that the person's earbuds are paired with this iPhone.
+    /// "No" (the default) means the earbuds place is never drawn.
+    var earbudsPaired = false
+
+    /// 16: the code, seed, start date and earbuds check can't change while study mode is on.
+    var fieldsLocked: Bool { enabled }
 
     /// Study mode runs only when the switch is on and the settings are complete.
     var isActive: Bool {
@@ -223,7 +329,7 @@ struct PilotSettings: Equatable, Sendable {
 
     var dictionary: [String: Any] {
         ["enabled": enabled, "participant": participant, "seed": NSNumber(value: seed), "enrolment": enrolment,
-         "pocketReminder": pocketReminder, "reminderMinutes": reminderMinutes]
+         "pocketReminder": pocketReminder, "reminderMinutes": reminderMinutes, "earbudsPaired": earbudsPaired]
     }
 
     init() {}
@@ -235,8 +341,44 @@ struct PilotSettings: Equatable, Sendable {
         enrolment = d["enrolment"] as? String ?? ""
         pocketReminder = d["pocketReminder"] as? Bool ?? true
         reminderMinutes = (d["reminderMinutes"] as? [Int]) ?? []
+        earbudsPaired = d["earbudsPaired"] as? Bool ?? false
     }
 
     /// Settings that change the schedule (a new person or seed) restart the press counter.
     var scheduleIdentity: String { "\(participant)|\(seed)|\(enrolment)" }
+}
+
+/// 16: what the physio types on the iPhone's pilot screen, applied only by Save and only when
+/// every field is valid, so an invalid seed is never stored or sent to the watch.
+struct PilotDraft: Equatable, Sendable {
+    var participant: String
+    var seedText: String
+    var enrolment: String
+    var earbudsPaired: Bool
+
+    init(_ s: PilotSettings) {
+        participant = s.participant
+        seedText = String(s.seed)
+        enrolment = s.enrolment
+        earbudsPaired = s.earbudsPaired
+    }
+
+    /// 0 <= seed < 2^31, digits only.
+    static func seed(_ text: String) -> Int64? {
+        guard !text.isEmpty, text.allSatisfy({ $0.isASCII && $0.isNumber }), let v = Int64(text),
+              v >= 0, v < Pilot.maxSeed else { return nil }
+        return v
+    }
+
+    /// `base` with this draft's fields, or nil when the code, seed or date isn't valid.
+    func applied(to base: PilotSettings) -> PilotSettings? {
+        let code = participant.trimmingCharacters(in: .whitespaces)
+        guard !code.isEmpty, let seed = Self.seed(seedText), Pilot.enrolmentComponents(enrolment) != nil else { return nil }
+        var s = base
+        s.participant = code
+        s.seed = seed
+        s.enrolment = enrolment
+        s.earbudsPaired = earbudsPaired
+        return s
+    }
 }

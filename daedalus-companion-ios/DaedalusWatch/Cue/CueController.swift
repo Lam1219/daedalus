@@ -111,6 +111,7 @@ final class CueController: NSObject {
             // Home pilot (H1): the beat first. Starting the workout and the recorder takes a
             // noticeable moment (about 0.7 s in the simulator), so a study press doesn't wait for it.
             startCue()
+            pilot.pressStarted()
         } else {
             recorder.onSample = nil
         }
@@ -235,6 +236,8 @@ final class CueController: NSObject {
         guard !isGuard else { return }
         paused.toggle()
         if paused { cueTask?.cancel(); cueTask = nil } else { startCue() }
+        // Home pilot (24): a beat the iPhone plays pauses and resumes with it.
+        if studyPress { PilotController.shared.pauseChanged(paused: paused) }
     }
 
     /// Stops the session after `maxSessionDuration`, or a tremor check after `checkDuration`

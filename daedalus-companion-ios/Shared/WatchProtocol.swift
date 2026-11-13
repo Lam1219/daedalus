@@ -37,6 +37,12 @@ enum WatchKey {
     static let beatLost = "beatLost"
     /// watch → iPhone (message with reply): steps the iPhone counted in the last minute. Reply: `steps`.
     static let pocketQuery = "pocketQuery"
+    /// watch → iPhone: pause or resume the sound beat (24).
+    static let beatPause = "beatPause"
+    static let beatResume = "beatResume"
+    /// The press index a beat message is about (start, reply, stop, pause, resume, lost): a
+    /// message for a press that isn't current is ignored (21).
+    static let press = "press"
     static let earbuds = "earbuds"
     static let steps = "steps"
     static let ok = "ok"

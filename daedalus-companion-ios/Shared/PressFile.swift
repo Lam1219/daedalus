@@ -17,11 +17,15 @@ struct PressRecord: Sendable {
     var beatStopMs: Int64?
     var checkin: Pilot.CheckIn?
     var samples = PressSamples()
+    /// 18: the background recorder hadn't reached press + 60 s when the file had to be written.
+    var motionPartial = false
 
-    /// "press_<participant>_<index>.json", zero-padded so files sort in press order.
+    /// "press_<participant>_<index>_<press_ms>.json" (15), as on Android: the index is zero-padded
+    /// so files sort in press order, and press_ms keeps two presses with the same index apart
+    /// (a reinstall restarts the counter).
     var fileName: String {
         let safe = participant.filter { $0.isLetter || $0.isNumber || $0 == "-" || $0 == "_" }
-        return String(format: "press_%@_%05lld.json", safe.isEmpty ? "P" : safe, pressIndex)
+        return String(format: "press_%@_%05lld_%lld.json", safe.isEmpty ? "P" : safe, pressIndex, pressMs)
     }
 
     /// The metadata only (no samples): kept on disk while a press waits for its motion.
@@ -35,6 +39,7 @@ struct PressRecord: Sendable {
         d["beat_start_ms"] = beatStartMs.map { NSNumber(value: $0) } ?? NSNull()
         d["beat_stop_ms"] = beatStopMs.map { NSNumber(value: $0) } ?? NSNull()
         d["checkin"] = checkin?.rawValue ?? NSNull()
+        d["motion_partial"] = motionPartial
         return d
     }
 
@@ -74,6 +79,7 @@ struct PressRecord: Sendable {
                   beatStartMs: (d["beat_start_ms"] as? NSNumber)?.int64Value,
                   beatStopMs: (d["beat_stop_ms"] as? NSNumber)?.int64Value,
                   checkin: (d["checkin"] as? String).flatMap(Pilot.CheckIn.init(rawValue:)))
+        motionPartial = d["motion_partial"] as? Bool ?? false
         if let s = d["samples"] as? [String: Any], let t = s["t_ms"] as? [NSNumber], let acc = s["acc"] as? [[Double]], acc.count == 3 {
             samples = PressSamples(tMs: t.map(\.int64Value), ax: acc[0], ay: acc[1], az: acc[2])
             if let g = s["gyr"] as? [[Double]], g.count == 3 { samples.gyr = (g[0], g[1], g[2]) }

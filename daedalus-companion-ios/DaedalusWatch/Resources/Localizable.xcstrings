@@ -528,6 +528,23 @@
         }
       }
     },
+    "pilot_checkin_channel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pilot questions"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questions du pilote"
+          }
+        }
+      }
+    },
     "pilot_checkin_helped": {
       "extractionState": "manual",
       "localizations": {
@@ -541,6 +558,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ça a aidé"
+          }
+        }
+      }
+    },
+    "pilot_checkin_moving": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I was already moving"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je bougeais déjà"
           }
         }
       }
@@ -664,6 +698,23 @@
         }
       }
     },
+    "pilot_pocket_sub": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Take it with you in your front trouser pocket."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gardez-le dans la poche avant de votre pantalon."
+          }
+        }
+      }
+    },
     "pilot_pocket_title": {
       "extractionState": "manual",
       "localizations": {
@@ -677,6 +728,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Téléphone dans votre poche avant ?"
+          }
+        }
+      }
+    },
+    "pilot_watching": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home pilot on"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pilote à domicile activé"
           }
         }
       }

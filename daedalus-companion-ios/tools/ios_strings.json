@@ -118,5 +118,33 @@
   "pilot_export": {
     "en": "Export pilot files",
     "fr": "Exporter les fichiers de l’essai"
+  },
+  "pilot_save": {
+    "en": "Save",
+    "fr": "Enregistrer"
+  },
+  "pilot_saved": {
+    "en": "Saved. Your watch gets it in a moment.",
+    "fr": "Enregistré. Votre montre le reçoit dans un instant."
+  },
+  "pilot_invalid": {
+    "en": "Check the pilot code, the seed (a number from 0 to 2147483647) and the start date.",
+    "fr": "Vérifiez le code de l’essai, la graine (un nombre de 0 à 2147483647) et la date de début."
+  },
+  "pilot_locked": {
+    "en": "Turn study mode off to change these.",
+    "fr": "Désactivez le mode essai pour modifier ces réglages."
+  },
+  "pilot_switch_needs_save": {
+    "en": "Save the pilot code, seed and start date first.",
+    "fr": "Enregistrez d’abord le code, la graine et la date de début."
+  },
+  "pilot_earbuds_paired": {
+    "en": "Earbuds paired with this iPhone",
+    "fr": "Écouteurs jumelés à cet iPhone"
+  },
+  "pilot_earbuds_paired_sub": {
+    "en": "Turn on only after checking the person’s own earbuds are paired. An iPhone can’t tell earbuds from a speaker.",
+    "fr": "Activez seulement après avoir vérifié que les écouteurs de la personne sont jumelés. Un iPhone ne distingue pas des écouteurs d’un haut-parleur."
   }
 }
