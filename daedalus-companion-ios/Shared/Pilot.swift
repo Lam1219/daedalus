@@ -238,9 +238,15 @@ struct PressBeat: Equatable, Sendable {
     private(set) var stopped = false
     /// 21: the press this beat belongs to; messages from the iPhone about another press are ignored.
     let pressIndex: Int64
+    /// Round 006: the place the rule drew (`place` is where the beat actually started).
+    let placeDrawn: Pilot.Place
+    /// Round 006: why the wrist took over (nil when it didn't), and when (watch clock, epoch ms).
+    private(set) var fallbackReason: String?
+    private(set) var fallbackMs: Int64?
 
     init(drawn: Pilot.Place, pressIndex: Int64 = 0) {
         place = drawn
+        placeDrawn = drawn
         wristPlays = drawn == .wrist
         self.pressIndex = pressIndex
     }
@@ -263,12 +269,16 @@ struct PressBeat: Equatable, Sendable {
     /// True when the wrist must start now. A beat that never started on the iPhone is a wrist
     /// press; one that started there keeps that place and its start time. `forPress`: the press
     /// an iPhone message is about (nil for the watch's own timeout); another press is ignored.
-    mutating func phoneFailed(forPress press: Int64? = nil) -> Bool {
+    /// `reason` and `atMs` go into the press file as `fallback_reason` and `fallback_ms`.
+    mutating func phoneFailed(forPress press: Int64? = nil, reason: String = "phone_failed",
+                              atMs: Int64 = Int64(Date.now.timeIntervalSince1970 * 1000)) -> Bool {
         if let press, press != pressIndex { return false }
         guard !stopped, !wristPlays else { return false }
         if beatStartMs == nil { place = Pilot.placeToPlay(drawn: place, phoneConfirmed: false) }
         phonePlaying = false
         wristPlays = true
+        fallbackReason = reason
+        fallbackMs = atMs
         return true
     }
 

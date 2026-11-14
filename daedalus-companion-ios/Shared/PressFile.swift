@@ -19,6 +19,20 @@ struct PressRecord: Sendable {
     var samples = PressSamples()
     /// 18: the background recorder hadn't reached press + 60 s when the file had to be written.
     var motionPartial = false
+    /// Round 006, as Android: the place the rule drew (`place` is where the beat started), why
+    /// and when the wrist took over (both nil when it didn't).
+    var placeDrawn: Pilot.Place?
+    var fallbackReason: String?
+    var fallbackMs: Int64?
+
+    /// The beat's outcome: where it started, when, what was drawn, and any fallback.
+    mutating func apply(_ beat: PressBeat) {
+        place = beat.place
+        placeDrawn = beat.placeDrawn
+        beatStartMs = beat.beatStartMs
+        fallbackReason = beat.fallbackReason
+        fallbackMs = beat.fallbackMs
+    }
 
     /// "press_<participant>_<index>_<press_ms>.json" (15), as on Android: the index is zero-padded
     /// so files sort in press order, and press_ms keeps two presses with the same index apart
@@ -40,6 +54,9 @@ struct PressRecord: Sendable {
         d["beat_stop_ms"] = beatStopMs.map { NSNumber(value: $0) } ?? NSNull()
         d["checkin"] = checkin?.rawValue ?? NSNull()
         d["motion_partial"] = motionPartial
+        d["place_drawn"] = (placeDrawn ?? place).rawValue
+        d["fallback_reason"] = fallbackReason ?? NSNull()
+        d["fallback_ms"] = fallbackMs.map { NSNumber(value: $0) } ?? NSNull()
         return d
     }
 
@@ -80,6 +97,9 @@ struct PressRecord: Sendable {
                   beatStopMs: (d["beat_stop_ms"] as? NSNumber)?.int64Value,
                   checkin: (d["checkin"] as? String).flatMap(Pilot.CheckIn.init(rawValue:)))
         motionPartial = d["motion_partial"] as? Bool ?? false
+        placeDrawn = (d["place_drawn"] as? String).flatMap(Pilot.Place.init(rawValue:))
+        fallbackReason = d["fallback_reason"] as? String
+        fallbackMs = (d["fallback_ms"] as? NSNumber)?.int64Value
         if let s = d["samples"] as? [String: Any], let t = s["t_ms"] as? [NSNumber], let acc = s["acc"] as? [[Double]], acc.count == 3 {
             samples = PressSamples(tMs: t.map(\.int64Value), ax: acc[0], ay: acc[1], az: acc[2])
             if let g = s["gyr"] as? [[Double]], g.count == 3 { samples.gyr = (g[0], g[1], g[2]) }
