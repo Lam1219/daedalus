@@ -52,8 +52,24 @@ data class PilotSettings(
         earbudsCheckedFor.replace('|', ':'),
     ).joinToString("|")
 
+    /**
+     * Round 007, #1: the messages the phone sends, in order. With study mode on, an "off" copy
+     * goes first, marked as a precursor in a seventh field. A watch from before round 006 accepts
+     * the "off" (it reads only the first five or six fields), turns study mode off, then rejects
+     * the "2|…" that follows, so it can never stay on with its old earbuds behaviour. A current
+     * watch ignores the precursor ([isPrecursor]) and applies the "on", so its motion ring isn't
+     * wiped on every resend.
+     */
+    fun wireMessages(): List<String> =
+        if (enabled) listOf(copy(enabled = false).encode() + "|" + PRECURSOR, encode()) else listOf(encode())
+
     companion object {
         private val CODE = Regex("^[A-Za-z0-9-]{1,16}$")
+        /** Seventh field of the "off" sent just before an "on" (round 007, #1). */
+        const val PRECURSOR = "precursor"
+
+        /** A current watch ignores the "off" that only exists to turn older watches off. */
+        fun isPrecursor(message: String) = message.split("|").getOrNull(6) == PRECURSOR
         /** Study on, on the wire since round 006. */
         const val ON = "2"
 

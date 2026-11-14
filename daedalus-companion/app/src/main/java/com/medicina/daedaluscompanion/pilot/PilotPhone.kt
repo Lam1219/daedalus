@@ -12,12 +12,17 @@ import java.util.zip.ZipOutputStream
 /**
  * The phone's own rules for the home pilot.
  *
- * What is guarded against mixed builds (round 005 #5, round 006 #5):
- * - the phone never plays earbud audio unless this participant's earbuds check is recorded here;
- * - a watch build from before round 004 rejects the settings (study on is sent as "2"), so it
- *   never runs pilot presses at all.
- * What isn't: a watch from round 004 or 005 with its own earbuds connected; those builds also
- * reject "2", so they never enter study mode either. The handoff's install check is the backstop.
+ * What is guarded against mixed builds:
+ * - The phone never plays earbud audio unless this participant's earbuds check is recorded here,
+ *   for the current code and seed (rounds 005 and 006).
+ * - Any watch build from before round 006 ends up with study mode off. With study on the phone
+ *   sends an "off" first and then "2|…", which those builds reject (round 007, #1). Such a watch
+ *   never runs pilot presses, whatever it had stored.
+ * What isn't guarded:
+ * - A watch on a current build but an older phone. The phone's "1|…" is accepted, and its earbuds
+ *   value counts as not checked, so earbuds are never drawn.
+ * - A watch that misses both messages (not connected). It keeps its last settings until the phone
+ *   resends them; the install check (study off, then on, watched on the watch) catches it.
  */
 object PilotPhoneRules {
     /**
@@ -30,6 +35,10 @@ object PilotPhoneRules {
         if (!com.medicina.shared.pilot.PilotSettings.isValidCode(code) || !com.medicina.shared.pilot.PilotSettings.isValidSeed(seed)) return null
         return saved.copy(participant = code, seed = seed)
     }
+
+    /** Round 007, #5: the typed code and seed differ from the saved ones. The seed compares as a number ("042" is 42). */
+    fun isUnsaved(saved: com.medicina.shared.pilot.PilotSettings, code: String, seedText: String): Boolean =
+        code != saved.participant || seedText.toLongOrNull() != saved.seed
 
     /** The plain status line on the pilot screen: "Earbuds checked for P05" or "Earbuds not checked". */
     inline fun earbudsStatusLine(settings: com.medicina.shared.pilot.PilotSettings, checked: (String) -> String, notChecked: () -> String) =
