@@ -10,7 +10,6 @@ import com.medicina.daedaluswatch.sensor.StandWatchService
 import com.medicina.daedaluswatch.sensor.TremorAnalyzer
 import com.medicina.daedaluswatch.pilot.PilotPhoneLink
 import com.medicina.daedaluswatch.pilot.PilotStore
-import com.medicina.daedaluswatch.pilot.deletePilotFiles
 import com.medicina.shared.pilot.BeatMessage
 import com.medicina.shared.pilot.PhoneStatus
 import com.medicina.shared.pilot.PilotLink
@@ -47,12 +46,6 @@ class WatchMessageListener : WearableListenerService() {
                 Log.i(TAG, "Pilot settings: on=${s.enabled}, valid=${s.isValid}")
                 // Starts or stops the motion ring and the pocket check with study mode.
                 StandWatchService.refresh(this)
-                return
-            }
-            PilotLink.DELETE_PATH -> {
-                // Round 007, #4: "Delete pilot files" on the phone clears this watch's copies too.
-                val n = deletePilotFiles(filesDir)
-                Log.i(TAG, "Deleted $n pilot file(s) on request from the phone")
                 return
             }
             PilotLink.STATUS_PATH -> {

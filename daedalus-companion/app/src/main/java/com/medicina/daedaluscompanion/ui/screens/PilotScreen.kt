@@ -52,7 +52,6 @@ import com.medicina.daedaluscompanion.R
 import com.medicina.daedaluscompanion.pilot.PilotFiles
 import com.medicina.daedaluscompanion.pilot.PilotPhoneRules
 import com.medicina.daedaluscompanion.pilot.PilotPhoneService
-import androidx.compose.material3.HorizontalDivider
 import com.medicina.daedaluscompanion.pilot.PilotPrefs
 import com.medicina.daedaluscompanion.utils.DaedalusApplication
 import com.medicina.shared.pilot.PilotSettings
@@ -180,28 +179,6 @@ fun PilotScreen(onBack: () -> Unit) {
                 showDivider = true,
                 onClick = if (locked) null else ({ pickDate = true }),
             )
-            // Round 004 (owner), round 006 (A): the earbuds place is paused until the earbuds device check
-            // passed, and the check belongs to the saved code and seed. Changes only while study mode
-            // is off and the code and seed shown are the saved ones; sent with the rest.
-            ListRow(
-                title = stringResource(R.string.pilot_earbuds_checked),
-                subtitle = stringResource(R.string.pilot_earbuds_checked_sub),
-                trailing = {
-                    SageSwitch(
-                        checked = settings.earbudsChecked,
-                        enabled = !locked && !unsaved && settings.isValid,
-                        onCheckedChange = { on -> settings = settings.withEarbudsChecked(on); PilotPrefs.save(context, settings) },
-                    )
-                },
-            )
-            Text(
-                PilotPhoneRules.earbudsStatusLine(settings,
-                    checked = { stringResource(R.string.pilot_earbuds_status_checked, it) },
-                    notChecked = { stringResource(R.string.pilot_earbuds_status_not) }),
-                fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = DesignTokens.Ink,
-                modifier = Modifier.padding(start = 0.dp, bottom = 12.dp),
-            )
-            HorizontalDivider(color = DesignTokens.Divider)
             if (locked) Text(stringResource(R.string.pilot_locked), style = CaptionStyle, modifier = Modifier.padding(vertical = 8.dp))
             ListRow(
                 title = stringResource(R.string.pilot_pocket),
@@ -226,8 +203,11 @@ fun PilotScreen(onBack: () -> Unit) {
                 height = 52.dp,
                 onClick = { scope.launch { exportPilotFiles(context, settings.participant) } },
             )
-            TextButton(onClick = { confirmDelete = true }, modifier = Modifier.fillMaxWidth().height(48.dp)) {
-                Text(stringResource(R.string.pilot_delete), color = DesignTokens.Alert, fontWeight = FontWeight.SemiBold)
+            // Phone files only, and only while study mode is off (round 008): the watch keeps unsent
+            // presses and sends them later, as before round 007.
+            val canDelete = PilotPhoneRules.canDeletePilotFiles(settings)
+            TextButton(onClick = { confirmDelete = true }, enabled = canDelete, modifier = Modifier.fillMaxWidth().height(48.dp)) {
+                Text(stringResource(R.string.pilot_delete), color = if (canDelete) DesignTokens.Alert else DesignTokens.Muted, fontWeight = FontWeight.SemiBold)
             }
         }
     }
@@ -261,8 +241,6 @@ fun PilotScreen(onBack: () -> Unit) {
                     confirmDelete = false
                     scope.launch {
                         withContext(Dispatchers.IO) { PilotFiles.deleteAll(context) }
-                        // The watch's copies too (round 007, #4).
-                        runCatching { app.watchClient.sendPilotDelete() }
                         pressCount = 0
                     }
                 }) { Text(stringResource(R.string.delete), color = DesignTokens.Alert, fontWeight = FontWeight.SemiBold) }

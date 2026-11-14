@@ -13,8 +13,8 @@ import java.util.zip.ZipOutputStream
  * The phone's own rules for the home pilot.
  *
  * What is guarded against mixed builds:
- * - The phone never plays earbud audio unless this participant's earbuds check is recorded here,
- *   for the current code and seed (rounds 005 and 006).
+ * - The phone never plays earbud audio for a pilot press: Android earbuds are cut from the pilot
+ *   (owner, round 008), so it refuses PHONE_AUDIO at once and the watch's wrist takes over.
  * - Any watch build from before round 006 ends up with study mode off. With study on the phone
  *   sends an "off" first and then "2|…", which those builds reject (round 007, #1). Such a watch
  *   never runs pilot presses, whatever it had stored.
@@ -27,8 +27,7 @@ import java.util.zip.ZipOutputStream
 object PilotPhoneRules {
     /**
      * Round 006 (A): the code and seed as typed, saved only when both are valid. Null means "don't
-     * save" (half-typed code, empty or out-of-range seed). The earbuds check stays tied to the code
-     * and seed it was done for, so a new identity simply isn't checked.
+     * save" (half-typed code, empty or out-of-range seed).
      */
     fun confirmIdentity(saved: com.medicina.shared.pilot.PilotSettings, code: String, seedText: String): com.medicina.shared.pilot.PilotSettings? {
         val seed = seedText.toLongOrNull() ?: return null
@@ -40,9 +39,8 @@ object PilotPhoneRules {
     fun isUnsaved(saved: com.medicina.shared.pilot.PilotSettings, code: String, seedText: String): Boolean =
         code != saved.participant || seedText.toLongOrNull() != saved.seed
 
-    /** The plain status line on the pilot screen: "Earbuds checked for P05" or "Earbuds not checked". */
-    inline fun earbudsStatusLine(settings: com.medicina.shared.pilot.PilotSettings, checked: (String) -> String, notChecked: () -> String) =
-        if (settings.earbudsChecked) checked(settings.participant) else notChecked()
+    /** "Delete pilot files" deletes this phone's files only, and only while study mode is off (round 008). */
+    fun canDeletePilotFiles(settings: com.medicina.shared.pilot.PilotSettings) = !settings.enabled
 
     /**
      * Round 006, #6: why the phone won't start [player] for a pilot press, or null to play.
@@ -50,15 +48,16 @@ object PilotPhoneRules {
      */
     fun refusal(player: com.medicina.shared.pilot.Player, settings: com.medicina.shared.pilot.PilotSettings): String? = when (player) {
         com.medicina.shared.pilot.Player.PHONE_VIBRATION -> null
-        com.medicina.shared.pilot.Player.PHONE_AUDIO -> if (settings.earbudsChecked) null else "earbuds_not_checked"
+        com.medicina.shared.pilot.Player.PHONE_AUDIO -> "earbuds_off_in_pilot" // round 008: never on Android
         else -> "not_a_phone_player"
     }
 
-    /** Earbuds as reported to the watch: only once this participant's earbuds check passed. */
+    /** Earbuds as reported to the watch: never, Android earbuds are cut from the pilot (round 008). */
+    @Suppress("UNUSED_PARAMETER")
     fun earbudsForStatus(settings: com.medicina.shared.pilot.PilotSettings, headphonesConnected: Boolean) =
-        settings.earbudsChecked && headphonesConnected
+        com.medicina.shared.pilot.PressPlanner.ANDROID_EARBUDS_IN_PILOT && headphonesConnected
 
-    /** Whether the phone may start [player] for a pilot press. PHONE_AUDIO needs the earbuds check. */
+    /** Whether the phone may start [player] for a pilot press: only the pocket vibration. */
     fun mayPlay(player: com.medicina.shared.pilot.Player, settings: com.medicina.shared.pilot.PilotSettings) = refusal(player, settings) == null
 }
 

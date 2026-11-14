@@ -21,18 +21,6 @@ class RoundSevenFixesTest {
         assertFalse(PilotSettings.isPrecursor(on.encode()))
     }
 
-    @Test
-    fun n4_theWatchDeletesItsPilotFilesOnRequest() {
-        val files = Files.createTempDirectory("files").toFile()
-        val pilot = File(files, "pilot").apply { mkdirs() }
-        listOf("pilot_CHECK_00000_1.json", "pending_pilot_CHECK_00001_2.txt", "battery_CHECK_20261113.csv").forEach { File(pilot, it).writeText("x") }
-        File(files, "other.txt").writeText("keep")
-        assertEquals(3, deletePilotFiles(files))
-        assertTrue(pilot.listFiles()!!.isEmpty())
-        assertTrue("nothing outside the pilot folder", File(files, "other.txt").exists())
-        assertEquals(0, deletePilotFiles(Files.createTempDirectory("empty").toFile()))
-        files.deleteRecursively()
-        val src = File("src/main/java/com/medicina/daedaluswatch/sync/WatchMessageListener.kt").readText()
-        assertTrue(src.contains("PilotLink.DELETE_PATH ->"))
-    }
+    // n4_theWatchDeletesItsPilotFilesOnRequest: removed in round 008 (the watch-side delete was removed).
+
 }

@@ -9,7 +9,7 @@ import java.io.File
 
 /** Review round 007 (Android phone). */
 class RoundSevenFixesTest {
-    private val on = PilotSettings(true, "P07", 42, 20_000).withEarbudsChecked(true)
+    private val on = PilotSettings(true, "P07", 42, 20_000)
 
     /** How watch builds before round 006 handled a settings message: (accepted, enabled). */
     private fun oldWatch(message: String): Pair<Boolean, Boolean> {
@@ -45,18 +45,14 @@ class RoundSevenFixesTest {
     @Test
     fun n1_thePhoneSendsEveryMessageInOrder() {
         val src = File("src/main/java/com/medicina/daedaluscompanion/wear/WatchDataListener.kt").readText()
-        val send = src.substring(src.indexOf("suspend fun sendPilotSettings"), src.indexOf("suspend fun sendPilotDelete"))
+        val send = src.substring(src.indexOf("suspend fun sendPilotSettings"), src.indexOf("/** Turn automatic stand-up detection"))
         assertTrue(send.contains("settings.wireMessages()"))
         assertTrue("awaited, so the off arrives first", send.contains(".await()"))
     }
 
     // ---- #4: "Delete pilot files" also deletes the watch's copies
 
-    @Test
-    fun n4_deleteReachesTheWatch() {
-        val screen = File("src/main/java/com/medicina/daedaluscompanion/ui/screens/PilotScreen.kt").readText()
-        assertTrue(screen.contains("sendPilotDelete()"))
-    }
+    // n4_deleteReachesTheWatch: removed in round 008 (the watch-side delete was removed; RoundEightEarbudsCutTest checks the opposite).
 
     // ---- #5: the seed compares as a number
 

@@ -390,11 +390,7 @@
     <string name="pilot_seed_error">Un nombre entier de 0 à 2147483647</string>
     <string name="pilot_enrolment">Date d’inscription</string>
     <string name="pilot_locked">Désactivez le mode étude pour modifier ces réglages.</string>
-    <string name="pilot_earbuds_checked">Écouteurs vérifiés pour ce participant</string>
-    <string name="pilot_earbuds_checked_sub">À activer seulement après la vérification réussie avec ses propres écouteurs, sur la montre et sur le téléphone. Valable pour le code et la graine enregistrés seulement.</string>
     <string name="pilot_save_identity">Enregistrer le code et la graine</string>
-    <string name="pilot_earbuds_status_checked">Écouteurs vérifiés pour %1$s</string>
-    <string name="pilot_earbuds_status_not">Écouteurs non vérifiés</string>
     <string name="pilot_pocket">Rappel de poche</string>
     <string name="pilot_pocket_sub">Quand vous vous levez, la montre vous demande si le téléphone est dans votre poche avant</string>
     <string name="pilot_sent">Envoyé à la montre</string>

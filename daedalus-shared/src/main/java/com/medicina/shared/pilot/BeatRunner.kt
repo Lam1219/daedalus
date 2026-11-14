@@ -25,16 +25,20 @@ data class PressPlan(
 
 object PressPlanner {
     /**
-     * B2/B3: earbuds count as connected when the watch has them (the watch plays the clicks) or,
-     * failing that, when the phone has them (the phone plays). Pocket needs the phone carried.
+     * Owner, round 008: Android earbuds are cut from the pilot. Earbuds always count as not
+     * connected here, whatever is paired, so the earbuds place is never drawn on Android and no
+     * Android audio player starts for a pilot press. Earbuds are an iPhone-only place in the pilot.
+     * The audio code (ClickBeatPlayer, the WATCH_AUDIO / PHONE_AUDIO players) stays, unreachable.
      */
+    const val ANDROID_EARBUDS_IN_PILOT = false
+
+    /** B3: wrist always, pocket when the phone is carried; earbuds never on Android (see above). */
     fun plan(
         settings: PilotSettings, pressIndex: Long, dayIndex: Long,
         watchEarbuds: Boolean, phoneEarbuds: Boolean, phoneCarried: Boolean,
     ): PressPlan {
-        // Round 004: until the earbuds device check passed for this participant, earbuds don't count.
-        val watchEar = settings.earbudsChecked && watchEarbuds
-        val earbuds = settings.earbudsChecked && (watchEarbuds || phoneEarbuds)
+        val watchEar = ANDROID_EARBUDS_IN_PILOT && watchEarbuds
+        val earbuds = ANDROID_EARBUDS_IN_PILOT && (watchEarbuds || phoneEarbuds)
         val drawn = Pilot.choosePlace(settings.seed, pressIndex, dayIndex, earbuds, phoneCarried)
         val player = when (drawn) {
             Place.WRIST -> Player.WATCH_HAPTIC
