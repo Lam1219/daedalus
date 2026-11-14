@@ -239,3 +239,18 @@ They were written first and run against the code before the change: they failed,
 - The simulators weren't re-run this round.
 
 **Written, not run.** Take the iPhone out of range and press on a day the earbuds are drawn. The file then has `place: "wrist"`, `place_drawn: "earbuds"` and `fallback_reason: "phone_unreachable"`.
+
+Round 006 commit: 554c38d (`e0ec09b..554c38d`).
+
+## Round 007 fixes
+
+Round 007 had one iOS item, 8. The branch was fast-forwarded to `feature/home-pilot` (cb05ba2) first. No Python or Android files changed.
+
+| # | What changed | Test |
+|---|---|---|
+| 8 | **Unknown means null.** The press file writes `place_drawn: null` when the drawn place is unknown, and never copies `place` into it. Round 006 wrote `placeDrawn ?? place`. That made a pending file from before round 006, recovered after an update, look like a press drawn for wherever it played. **Set at the press.** The watch now records `placeDrawn` on the press record as soon as it draws, so every press from this build has it, even before the beat's outcome is applied. | `PilotRound7Test.test8UnknownDrawnPlaceIsWrittenAsNull` failed before the fix (it wrote "wrist") and passes now. `test8KnownDrawnPlaceIsWritten` checks a known draw is still written. |
+
+**Validation run for round 007:**
+- `xcodebuild test -project Daedalus.xcodeproj -scheme SharedTests -destination 'platform=macOS'`: **TEST SUCCEEDED**, 84 tests, 0 failures, 1 skipped (the sample-file writer, which runs only when its output folder is set).
+- `xcodebuild build -scheme Daedalus -destination 'generic/platform=iOS Simulator'`: **BUILD SUCCEEDED**.
+- The simulators weren't re-run this round.

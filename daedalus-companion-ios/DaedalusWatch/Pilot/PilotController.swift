@@ -130,6 +130,7 @@ final class PilotController {
                                       earbudsConnected: ear, phoneCarried: carried)
         press = PressRecord(participant: settings.participant, pressIndex: index, dayIndex: day, place: drawn,
                             earbudsConnected: ear, phoneCarried: carried, paceSpm: pace, pressMs: nowMs)
+        press?.placeDrawn = drawn   // known from the press on (round 007, 8: unknown is written as null)
         beat = PressBeat(drawn: drawn, pressIndex: index)
         currentPlace = drawn
         armRecorder()
