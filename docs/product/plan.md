@@ -48,7 +48,7 @@ This plan covers only what the test needs. New features stay paused until it rep
 - **Every day:** people carry the phone in a front trouser pocket. The physio shows them at the visit. When the watch sees them stand up and the phone isn't moving with them, the watch reminds them (B10).
 - **Weeks 2–3:** each press randomly plays the beat in one of the places available at that moment:
   - **wrist:** always available;
-  - **earbuds:** only when earbuds are connected;
+  - **earbuds:** only on iPhone, and only when earbuds are connected;
   - **pocket:** only when the phone counted steps in the last minute, a sign it's being carried and not left on a table.
 - **After each beat stops, one tap on the watch:** "It helped", "It didn't help", "I was already moving" or "I didn't feel it". At most 6 questions a day; after that, presses are logged without asking.
 - **A weekly 5-minute call with the physio:** problems, anything annoying or embarrassing, and the "very disappointed" question in week 3.
@@ -72,7 +72,7 @@ Also reported, without thresholds: presses per day, freezes the person didn't pr
 | # | Change | Where | Done when |
 |---|---|---|---|
 | B1 | **Sound beat on iPhone.** A watch press makes the iPhone play a click at the person's pace through the current route (earbuds), stopping with the watch cue. | `DaedalusWatch/Cue/PhoneLink.swift`, `CueController.swift`; a beat player in `Daedalus/` | Clicks start within 1 s of the press, timing drift stays under 20 ms over 2 min (unit test on the scheduler), checked on a real iPhone with AirPods |
-| B2 | **Sound beat on Wear OS.** The watch plays to its connected earbuds; without them, the phone plays it. | `daedalus-watch/.../haptics/HapticService.kt`; `sync/` | Same, on a Galaxy Watch with Galaxy Buds |
+| B2 | **Sound beat on Wear OS** (built; not used in the pilot, where Android earbuds are off). The watch plays to its connected earbuds; without them, the phone plays it. | `daedalus-watch/.../haptics/HapticService.kt`; `sync/` | Same, on a Galaxy Watch with Galaxy Buds |
 | B3 | **Place per press.** Week 1 rotates; weeks 2–3 draw at random among the places available at that moment (wrist always; earbuds if connected; pocket if the phone counted steps in the last minute), seeded per person and logged. No press ever goes without a beat. | `CueController` / `HapticService`, with the schedule shared from Python golden vectors | Over 1,000 simulated presses each available place is drawn in equal shares within 3%; an unavailable place is never drawn; no draw yields silence |
 | B10 | **"Phone in your pocket?" reminder (owner, 2026-11-13).** When the watch detects a stand-up, it asks the phone whether it counted steps or moved in the last minute. If not, the watch shows "Phone in your front pocket?" with a gentle tap, or adds it as a line on the existing "Pause before walking" prompt. At most once an hour, never while a beat is playing, and off with one setting. | `StandDetector` / `StandPromptActivity` (Wear OS); Apple Watch has no stand-up detector yet, so it's ported from the Kotlin one with shared test vectors; phone step count via the existing watch–phone link | Shown after a stand-up with the phone left still; not shown when the phone walked along; never twice within an hour (unit test on the rule). Checked on both watches. **Apple Watch risk:** an app can't watch for stand-ups in the background without a running session. If the battery test (B4) rules out a light all-day session, Apple Watch falls back to the reminder at set times the person chooses, and the plan says so |
 | B9 | **Pocket beat.** A watch press makes the phone vibrate the beat at the person's pace, strong pulses, stopping with the watch cue. | iPhone: Core Haptics in `Daedalus/`, beside B1. Android: `Vibrator` from the phone app's foreground service | Felt through trouser fabric at the pace set (checked on a real phone in a pocket). On iPhone, vibration while the phone is locked in a pocket is the main risk: if iOS doesn't allow it, the pocket place runs on Android phones only, and the plan says so |
@@ -88,7 +88,7 @@ Not built for the test: a one-press start from the watch face, auto-stop when wa
 
 B1–B7, B9 and B10 are built behind the study switch on branch `feature/home-pilot`. B8 (upload) waits for your go; press files leave the phone through "Export pilot files". Each platform's handoff, with its device checks, choices and open questions: `docs/work/HANDOFF-android.md`, `docs/work/HANDOFF-ios.md`. Two platform limits:
 - **iPhone can't vibrate in a locked pocket,** so the pocket place runs on Android phones only, and H12 comes from Android users.
-- **Earbuds on Android are paused** (owner, 2026-11-13). The earbuds place is drawn on Android only after the earbuds device check passes for that participant. H3 comes from iPhone users, and from Android users whose earbuds pass.
+- **Earbuds are an iPhone-only place in the pilot** (owner, 2026-11-13). On Android the beat plays on the wrist or from the phone in the pocket; the Android earbuds code is present but never drawn. H3 comes from iPhone users.
 - **Apple Watch can't detect a stand-up in the background,** so on Apple Watch the pocket reminder comes at times the person sets.
 
 ## Review findings accepted, not fixed
@@ -98,10 +98,10 @@ These are recorded so they aren't lost. Each says what would reopen it.
 | Round, # | Finding | Why it's accepted | Reopen if |
 |---|---|---|---|
 | 002 #7 (Android) | A press recovered after the app died has little or no motion | The analysis gives `recovered` presses no timings and keeps their check-in | Recovered presses exceed 5% of a participant's presses |
-| 003 #6 (Android) | Earbuds dropping within about 2 s of a press leave that press's beat start null | The start is missing, never wrong | Null earbud starts exceed 10% of earbud presses |
+| 003 #6 (Android) | Earbuds dropping within about 2 s of a press leave that press's beat start null | Android earbuds are not in the pilot, so this can't occur | Android earbuds are brought back after the pilot |
 | 003 #8 (Android) | The copy used when a rename is refused isn't atomic | Renames aren't refused on internal storage | Any "rename refused" line appears in a pilot log |
 | 004 #1 (Python) | A press file whose `samples` isn't an object is skipped, so it loses its check-in | The apps never write such a file | A skipped-file note appears in a real pilot report |
-| 004 #7–#9 (Android earbuds) | The audio may stay silent if the Bluetooth output stalls; the wrist takes over after 2 s or more, not 1 s; earbuds that report no click times are cut to the wrist at 2 s | **Paused, not fixed.** The owner chose on 2026-11-13 to pause the earbuds place on Android: it is off unless the physio turns on "Earbuds checked for this participant" after the device check passes (`docs/work/HANDOFF-android.md`, "Earbuds device check") | By the owner's decision, a participant whose earbuds pass the device check (5 presses with the earbuds paired to the watch and 5 with them paired to the phone) gets the setting turned on. The risk of #7–#9 is accepted for them, and their press files show it (no beat start, or a wrist fallback). Reopen if any checked participant reports a silent or late earbuds beat, or null earbud starts exceed 10% of their earbud presses: then re-review this code or redesign it (1 s timer; the wrist joins and the audio keeps playing) |
+| 004 #7–#9 (Android earbuds) | The audio may stay silent if the Bluetooth output stalls; the wrist takes over after 2 s or more, not 1 s; earbuds that report no click times are cut to the wrist at 2 s | **Cut from the pilot** (owner, 2026-11-13): earbuds are never drawn on Android, so this code never runs for a pilot press | Android earbuds are brought back after the pilot: redesign first (1 s timer; the wrist joins and the audio keeps playing), with a fresh review |
 
 ## Interviews (in parallel, no build needed)
 
