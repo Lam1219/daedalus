@@ -347,8 +347,9 @@ def test_counts_by_place_drawn_carry_the_earbuds_trigger(tmp_path):
     _, v = analyse(tmp_path)
     e = v.data_quality_by_person_drawn["P05"]["earbuds"]
     assert (e["drawn"], e["started_there"], e["fell_back_before_start"], e["null_start"]) == (3, 2, 1, 1)
-    assert e["no_start_or_fallback_share"] == pytest.approx(2 / 3)
-    assert "P05 drew earbuds 3 times" in report(v)
+    text = report(v)
+    assert "P05 drew earbuds 3 times" in text
+    assert "reopen" not in text   # review 008 #7: Android earbuds are cut from the pilot; no trigger line
 
 
 @pytest.mark.parametrize("loss_after_resume_s, excluded", [(35, False), (-2, True)])
@@ -359,3 +360,22 @@ def test_mid_beat_loss_excludes_only_before_steps_resumed(loss_after_resume_s, e
     d["fallback_reason"] = "earbuds_lost"
     d["fallback_ms"] = T0 + (33 + loss_after_resume_s) * 1000
     assert press_timing(d).fell_back is excluded
+
+
+def test_unknown_drawn_place_stays_unknown():
+    # Review 008 #6: a null place_drawn (an iOS file recovered from an older build) isn't guessed
+    # from where the beat played, and doesn't count as a fallback before the start.
+    d = press_file(25, 33, 28, place="wrist")
+    d["place_drawn"] = None
+    t = press_timing(d)
+    assert t.place_drawn == "unknown"
+    assert t.fell_back_before_start is False
+
+
+def test_device_check_files_are_skipped(tmp_path):
+    # Review 008 #4: files under the reserved test code CHECK are never a participant.
+    (tmp_path / "ok.json").write_text(json.dumps(press_file(25, 33, 28)))
+    (tmp_path / "chk.json").write_text(json.dumps(press_file(25, 33, 28, participant="CHECK", index=1)))
+    timings, v = analyse(tmp_path)
+    assert {t.participant for t in timings} == {"P01"} and v.people == 1
+    assert any("chk.json" in n for n in v.notes)

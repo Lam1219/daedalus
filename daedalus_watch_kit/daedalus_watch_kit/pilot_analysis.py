@@ -70,6 +70,9 @@ GAIT_WIN_MS = 4000              # less motion than one gait window can't be time
 # person stood still first, then froze trying to start: that freeze began when they tried to
 # start, which the motion can't date, so the press has no H1 timing (review 001 #1).
 MAX_STOP_BEFORE_PRESS_MS = 10_000
+# Test codes that are never a participant: a device check ran under CHECK on an earlier test build
+# (review 008 #4).
+RESERVED_CODES = {"CHECK"}
 MIN_PRESSES_PER_PLACE = 3      # a person counts for a place comparison with at least this many
 
 # Thresholds from docs/product/plan.md § Measures.
@@ -95,7 +98,7 @@ class PressTiming:
     # failed before starting (the wrist played after a wait), or was lost before steps resumed.
     # A loss after the person was walking again leaves the press in (review 006 #1, 007 #3).
     fell_back: bool = False
-    place_drawn: str = ""               # where the rule drew the beat; "" when the file doesn't say
+    place_drawn: str = "unknown"        # where the rule drew the beat; "unknown" when the file doesn't say
     fell_back_before_start: bool = False
     lost_mid_beat: bool = False
 
@@ -128,8 +131,11 @@ def press_timing(d: dict) -> PressTiming:
     t_raw = s.get("t_ms") or []
     beat = d.get("beat_start_ms")
     confirmed = beat is not None
-    drawn = d.get("place_drawn") if isinstance(d.get("place_drawn"), str) else d["place"]
-    before_start = drawn != d["place"]
+    # An unknown drawn place stays unknown: it is never guessed from where the beat played, and
+    # can't count as a fallback before the start (review 008 #6).
+    known = d.get("place_drawn") if isinstance(d.get("place_drawn"), str) else None
+    drawn = known or "unknown"
+    before_start = known is not None and known != d["place"]
     mid_beat = d.get("fallback_reason") is not None and not before_start
     flags = dict(recovered=bool(d.get("recovered")), motion_partial=bool(d.get("motion_partial")),
                  fell_back=before_start or mid_beat, place_drawn=drawn,
@@ -262,11 +268,10 @@ def verdicts(timings: list[PressTiming]) -> Verdicts:
                 "fell_back": sum(t.fell_back for t in ts)}
     def drawn_counts(ts):
         started = [t for t in ts if not t.fell_back_before_start]
-        null_start = sum(not t.beat_confirmed for t in started)
-        before = sum(t.fell_back_before_start for t in ts)
-        return {"drawn": len(ts), "started_there": len(started), "fell_back_before_start": before,
-                "lost_mid_beat": sum(t.lost_mid_beat for t in ts), "null_start": null_start,
-                "no_start_or_fallback_share": (null_start + before) / len(ts) if ts else None}
+        return {"drawn": len(ts), "started_there": len(started),
+                "fell_back_before_start": sum(t.fell_back_before_start for t in ts),
+                "lost_mid_beat": sum(t.lost_mid_beat for t in ts),
+                "null_start": sum(not t.beat_confirmed for t in started)}
     by_place: dict[str, list[PressTiming]] = {}
     for t in timings:
         by_place.setdefault(t.place, []).append(t)
@@ -291,6 +296,8 @@ def analyse(folder: Path) -> tuple[list[PressTiming], Verdicts]:
     for f in sorted(Path(folder).glob("*.json")):
         try:
             d = load_press(f)
+            if d["participant"] in RESERVED_CODES:
+                raise ValueError(f"participant {d['participant']} is a reserved test code")
             key = (d["participant"], d["press_index"], d["press_ms"])
             samples = d.get("samples")
             samples = {} if samples is None else samples
@@ -338,7 +345,7 @@ def report(v: Verdicts) -> str:
         "",
         f"H2  description only: median seconds from press to steady steps {s(v.h2_median_press_to_steps_s, ' s')}",
     ]
-    lines += ["", "Data quality (plan: accepted findings and their reopen triggers)"]
+    lines += ["", "Data quality"]
     for label, table in (("", v.data_quality), ("person ", v.data_quality_by_person)):
         for k, c in table.items():
             lines.append(f"    {label}{k}: {c['presses']} presses, {c['null_start']} with no beat start, "
@@ -348,7 +355,7 @@ def report(v: Verdicts) -> str:
         if e:
             lines.append(f"    {pp} drew earbuds {e['drawn']} times: {e['started_there']} started there, "
                          f"{e['fell_back_before_start']} fell back before starting, {e['null_start']} with no "
-                         f"start time; trigger share {e['no_start_or_fallback_share']:.0%} (reopen above 10%)")
+                         f"start time")
     for pp, places in v.data_quality_by_person_place.items():
         for pl, c in places.items():
             lines.append(f"    person {pp} / {pl}: {c['presses']} presses, {c['null_start']} with no beat start, "
