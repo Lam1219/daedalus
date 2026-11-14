@@ -26,6 +26,16 @@ One press file is JSON, written by the watch app (version pilot-1.0):
                                        # needs rotation, and turning counts as walking here.
     }
 
+Fallback fields (both platforms): `place_drawn` (null when unknown), `fallback_reason` (null when the
+drawn player carried the whole beat) and `fallback_ms`. The analysis only asks whether a reason is
+present; the words themselves are for reading files by hand (review 007 #9):
+- Android watch: no_reply, audio_error, audio_no_timestamp, no_headphones, headphones_removed,
+  no_vibrator, vibration_error, vibration_lost; a refusal or failure from the phone arrives with a
+  phone_ prefix, e.g. phone_earbuds_not_checked, phone_not_a_phone_player.
+- iOS watch: phone_unreachable, phone_no_confirm, phone_error, phone_refused, earbuds_lost.
+- `fallback_ms`: Android writes it for losses mid-beat; iOS writes it for every fallback. The analysis
+  reads it only for a loss mid-beat, to see whether steps had already resumed.
+
 Timings come from the kit's walking classifier (stream_features), one window a second:
 - walking stopped: the end of the last walking (or turning) window that ends at or before the press,
   less 1 s (STOP_LAG_MS: the window still reads as walking for about a second after steps stop),
@@ -81,10 +91,13 @@ class PressTiming:
     beat_confirmed: bool = True
     recovered: bool = False            # Android: rebuilt after the app died mid-press
     motion_partial: bool = False       # iOS: the background recorder never covered the window
-    # The drawn player didn't carry the beat: it failed before starting (the wrist played after a
-    # wait) or was lost mid-beat. Its timing is real for H1 and H2 but belongs to no single place,
-    # so it is left out of the place comparisons (review 006 #1).
+    # Left out of the place comparisons, though its timing is real for H1 and H2: the drawn player
+    # failed before starting (the wrist played after a wait), or was lost before steps resumed.
+    # A loss after the person was walking again leaves the press in (review 006 #1, 007 #3).
     fell_back: bool = False
+    place_drawn: str = ""               # where the rule drew the beat; "" when the file doesn't say
+    fell_back_before_start: bool = False
+    lost_mid_beat: bool = False
 
 
 def load_press(path: Path) -> dict:
@@ -115,9 +128,12 @@ def press_timing(d: dict) -> PressTiming:
     t_raw = s.get("t_ms") or []
     beat = d.get("beat_start_ms")
     confirmed = beat is not None
-    drawn = d.get("place_drawn")
+    drawn = d.get("place_drawn") if isinstance(d.get("place_drawn"), str) else d["place"]
+    before_start = drawn != d["place"]
+    mid_beat = d.get("fallback_reason") is not None and not before_start
     flags = dict(recovered=bool(d.get("recovered")), motion_partial=bool(d.get("motion_partial")),
-                 fell_back=d.get("fallback_reason") is not None or (drawn is not None and drawn != d["place"]))
+                 fell_back=before_start or mid_beat, place_drawn=drawn,
+                 fell_back_before_start=before_start, lost_mid_beat=mid_beat)
     if (d.get("motion_partial") or d.get("recovered")
             or len(t_raw) < 2 or (t_raw[-1] - t_raw[0]) < GAIT_WIN_MS):
         return PressTiming(d["participant"], d["press_index"], d["place"], d.get("checkin"),
@@ -148,6 +164,9 @@ def press_timing(d: dict) -> PressTiming:
             resume_ms = ends[k] - GAIT_HALF_MS
             break
     press_to_steps = None if resume_ms is None else max(0.0, (resume_ms - press) / 1000.0)
+    fb_ms = d.get("fallback_ms")
+    if mid_beat and resume_ms is not None and isinstance(fb_ms, int) and fb_ms > resume_ms:
+        flags["fell_back"] = False   # lost after the person was walking again: the press stands
 
     return PressTiming(d["participant"], d["press_index"], d["place"], d.get("checkin"),
                        stop_to_beat, press_to_steps, confirmed, **flags)
@@ -171,6 +190,9 @@ class Verdicts:
     data_quality: dict = field(default_factory=dict)
     data_quality_by_person: dict = field(default_factory=dict)
     data_quality_by_person_place: dict = field(default_factory=dict)   # review 006 #2
+    # By the place drawn, so an earbuds press that fell back to the wrist still counts against
+    # earbuds; carries the plan's earbuds reopen trigger (review 007 #2).
+    data_quality_by_person_drawn: dict = field(default_factory=dict)
 
 
 def _median(xs: Iterable[float]) -> Optional[float]:
@@ -238,6 +260,13 @@ def verdicts(timings: list[PressTiming]) -> Verdicts:
         return {"presses": len(ts), "null_start": sum(not t.beat_confirmed for t in ts),
                 "recovered": sum(t.recovered for t in ts), "motion_partial": sum(t.motion_partial for t in ts),
                 "fell_back": sum(t.fell_back for t in ts)}
+    def drawn_counts(ts):
+        started = [t for t in ts if not t.fell_back_before_start]
+        null_start = sum(not t.beat_confirmed for t in started)
+        before = sum(t.fell_back_before_start for t in ts)
+        return {"drawn": len(ts), "started_there": len(started), "fell_back_before_start": before,
+                "lost_mid_beat": sum(t.lost_mid_beat for t in ts), "null_start": null_start,
+                "no_start_or_fallback_share": (null_start + before) / len(ts) if ts else None}
     by_place: dict[str, list[PressTiming]] = {}
     for t in timings:
         by_place.setdefault(t.place, []).append(t)
@@ -246,6 +275,9 @@ def verdicts(timings: list[PressTiming]) -> Verdicts:
                     {pl: counts(ts) for pl, ts in sorted(by_place.items())},
                     {pp: counts(ts) for pp, ts in sorted(by_person.items())},
                     {pp: {pl: counts([t for t in ts if t.place == pl]) for pl in sorted({t.place for t in ts})}
+                     for pp, ts in sorted(by_person.items())},
+                    {pp: {pl: drawn_counts([t for t in ts if t.place_drawn == pl])
+                          for pl in sorted({t.place_drawn for t in ts})}
                      for pp, ts in sorted(by_person.items())})
 
 
@@ -311,6 +343,12 @@ def report(v: Verdicts) -> str:
         for k, c in table.items():
             lines.append(f"    {label}{k}: {c['presses']} presses, {c['null_start']} with no beat start, "
                          f"{c['recovered']} recovered, {c['motion_partial']} partial, {c['fell_back']} fell back")
+    for pp, places in v.data_quality_by_person_drawn.items():
+        e = places.get("earbuds")
+        if e:
+            lines.append(f"    {pp} drew earbuds {e['drawn']} times: {e['started_there']} started there, "
+                         f"{e['fell_back_before_start']} fell back before starting, {e['null_start']} with no "
+                         f"start time; trigger share {e['no_start_or_fallback_share']:.0%} (reopen above 10%)")
     for pp, places in v.data_quality_by_person_place.items():
         for pl, c in places.items():
             lines.append(f"    person {pp} / {pl}: {c['presses']} presses, {c['null_start']} with no beat start, "

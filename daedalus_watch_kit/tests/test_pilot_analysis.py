@@ -329,3 +329,33 @@ def test_non_integer_press_index_or_time_is_skipped(tmp_path, field, value):
     (tmp_path / "bad.json").write_text(json.dumps(d))
     timings, v = analyse(tmp_path)
     assert len(timings) == 1 and any("bad.json" in n for n in v.notes)
+
+
+def test_counts_by_place_drawn_carry_the_earbuds_trigger(tmp_path):
+    # Review 007 #2: an earbuds press that fell back before starting is written as place "wrist",
+    # place_drawn "earbuds". The trigger needs it counted against earbuds.
+    ok = press_file(25, 33, 28, place="earbuds", participant="P05", index=0)
+    ok["place_drawn"] = "earbuds"
+    fb = press_file(25, 33, 28, place="wrist", participant="P05", index=1, seed=1)
+    fb["place_drawn"] = "earbuds"
+    fb["fallback_reason"] = "no_reply"
+    nul = press_file(25, 33, 28, place="earbuds", participant="P05", index=2, seed=2)
+    nul["place_drawn"] = "earbuds"
+    nul["beat_start_ms"] = None
+    for i, d in enumerate((ok, fb, nul)):
+        (tmp_path / f"p{i}.json").write_text(json.dumps(d))
+    _, v = analyse(tmp_path)
+    e = v.data_quality_by_person_drawn["P05"]["earbuds"]
+    assert (e["drawn"], e["started_there"], e["fell_back_before_start"], e["null_start"]) == (3, 2, 1, 1)
+    assert e["no_start_or_fallback_share"] == pytest.approx(2 / 3)
+    assert "P05 drew earbuds 3 times" in report(v)
+
+
+@pytest.mark.parametrize("loss_after_resume_s, excluded", [(35, False), (-2, True)])
+def test_mid_beat_loss_excludes_only_before_steps_resumed(loss_after_resume_s, excluded):
+    # Review 007 #3: walking again at 33 s; earbuds drop at 68 s (kept) or 31 s (excluded).
+    d = press_file(25, 33, 28, place="earbuds")
+    d["place_drawn"] = "earbuds"
+    d["fallback_reason"] = "earbuds_lost"
+    d["fallback_ms"] = T0 + (33 + loss_after_resume_s) * 1000
+    assert press_timing(d).fell_back is excluded
