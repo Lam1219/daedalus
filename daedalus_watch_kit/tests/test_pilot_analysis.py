@@ -254,8 +254,8 @@ def test_report_counts_null_starts_recovered_and_partial_per_place(tmp_path):
             d["recovered"] = True
         (tmp_path / f"e{i}.json").write_text(json.dumps(d))
     _, v = analyse(tmp_path)
-    assert v.data_quality["earbuds"] == {"presses": 4, "null_start": 2, "recovered": 1, "motion_partial": 0}
-    assert "earbuds: 4 presses, 2 with no beat start, 1 recovered, 0 partial" in report(v)
+    assert v.data_quality["earbuds"] == {"presses": 4, "null_start": 2, "recovered": 1, "motion_partial": 0, "fell_back": 0}
+    assert "earbuds: 4 presses, 2 with no beat start, 1 recovered, 0 partial, 0 fell back" in report(v)
 
 
 def test_non_string_participant_or_place_is_skipped_not_fatal(tmp_path):
@@ -282,5 +282,50 @@ def test_per_person_counts_and_motion_partial(tmp_path):
             d["recovered"] = True
         (tmp_path / f"p{i}.json").write_text(json.dumps(d))
     _, v = analyse(tmp_path)
-    assert v.data_quality_by_person["P02"] == {"presses": 3, "null_start": 0, "recovered": 1, "motion_partial": 1}
+    assert v.data_quality_by_person["P02"] == {"presses": 3, "null_start": 0, "recovered": 1, "motion_partial": 1, "fell_back": 0}
     assert v.data_quality["wrist"]["motion_partial"] == 1
+
+
+def test_fallback_presses_leave_the_place_comparisons_and_are_counted(tmp_path):
+    # Review 006 #1: an earbuds press that fell back to the wrist before starting must not count
+    # as a wrist press (its time includes the wait for the player).
+    for p in range(3):
+        for i in range(3):
+            (tmp_path / f"w{p}{i}.json").write_text(json.dumps(
+                press_file(25, 33, 28, place="wrist", participant=f"P{p}", index=i, seed=i)))
+            fb = press_file(25, 40, 28, place="wrist", participant=f"P{p}", index=10 + i, seed=i)
+            fb["place_drawn"] = "earbuds"
+            fb["fallback_reason"] = "no_reply"
+            (tmp_path / f"f{p}{i}.json").write_text(json.dumps(fb))
+        for i in range(3):
+            (tmp_path / f"e{p}{i}.json").write_text(json.dumps(
+                press_file(25, 36, 28, place="earbuds", participant=f"P{p}", index=20 + i, seed=i)))
+    timings, v = analyse(tmp_path)
+    assert len([t for t in timings if t.fell_back]) == 9
+    assert v.data_quality["wrist"]["fell_back"] == 9
+    # Wrist is 5 s on real wrist presses; earbuds 8 s. Counting the 12 s fallbacks as wrist would
+    # make earbuds look faster (median wrist 8.5 s). Without them, earbuds are slower for everyone.
+    assert v.h3_earbuds_faster == (0, 3)
+
+
+def test_counts_per_person_per_place(tmp_path):
+    # Review 006 #2: the plan's trigger is "null earbud starts over 10% of THEIR earbud presses".
+    for i in range(4):
+        d = press_file(25, 33, 28, place="earbuds", participant="P07", index=i, seed=i)
+        if i == 0:
+            d["beat_start_ms"] = None
+        (tmp_path / f"e{i}.json").write_text(json.dumps(d))
+    _, v = analyse(tmp_path)
+    assert v.data_quality_by_person_place["P07"]["earbuds"]["null_start"] == 1
+    assert v.data_quality_by_person_place["P07"]["earbuds"]["presses"] == 4
+
+
+@pytest.mark.parametrize("field,value", [("press_index", [1]), ("press_ms", {"a": 1}), ("press_index", 1.5)])
+def test_non_integer_press_index_or_time_is_skipped(tmp_path, field, value):
+    # Review 006 #3
+    (tmp_path / "ok.json").write_text(json.dumps(press_file(25, 33, 28)))
+    d = press_file(25, 33, 28, index=1)
+    d[field] = value
+    (tmp_path / "bad.json").write_text(json.dumps(d))
+    timings, v = analyse(tmp_path)
+    assert len(timings) == 1 and any("bad.json" in n for n in v.notes)

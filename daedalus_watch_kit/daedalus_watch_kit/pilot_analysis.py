@@ -81,6 +81,10 @@ class PressTiming:
     beat_confirmed: bool = True
     recovered: bool = False            # Android: rebuilt after the app died mid-press
     motion_partial: bool = False       # iOS: the background recorder never covered the window
+    # The drawn player didn't carry the beat: it failed before starting (the wrist played after a
+    # wait) or was lost mid-beat. Its timing is real for H1 and H2 but belongs to no single place,
+    # so it is left out of the place comparisons (review 006 #1).
+    fell_back: bool = False
 
 
 def load_press(path: Path) -> dict:
@@ -92,6 +96,9 @@ def load_press(path: Path) -> dict:
     for k in ("participant", "place"):
         if not isinstance(d.get(k), str):
             raise ValueError(f"{path}: {k} is not a string")  # review 005 #1: keeps sorting safe
+    for k in ("press_index", "press_ms"):
+        if not isinstance(d.get(k), int) or isinstance(d.get(k), bool):
+            raise ValueError(f"{path}: {k} is not a whole number")  # review 006 #3: keys must hash
     return d
 
 
@@ -108,7 +115,9 @@ def press_timing(d: dict) -> PressTiming:
     t_raw = s.get("t_ms") or []
     beat = d.get("beat_start_ms")
     confirmed = beat is not None
-    flags = dict(recovered=bool(d.get("recovered")), motion_partial=bool(d.get("motion_partial")))
+    drawn = d.get("place_drawn")
+    flags = dict(recovered=bool(d.get("recovered")), motion_partial=bool(d.get("motion_partial")),
+                 fell_back=d.get("fallback_reason") is not None or (drawn is not None and drawn != d["place"]))
     if (d.get("motion_partial") or d.get("recovered")
             or len(t_raw) < 2 or (t_raw[-1] - t_raw[0]) < GAIT_WIN_MS):
         return PressTiming(d["participant"], d["press_index"], d["place"], d.get("checkin"),
@@ -161,6 +170,7 @@ class Verdicts:
     # Counts behind the plan's "reopen if" triggers (review 004 #2): per place and per person.
     data_quality: dict = field(default_factory=dict)
     data_quality_by_person: dict = field(default_factory=dict)
+    data_quality_by_person_place: dict = field(default_factory=dict)   # review 006 #2
 
 
 def _median(xs: Iterable[float]) -> Optional[float]:
@@ -171,8 +181,10 @@ def _median(xs: Iterable[float]) -> Optional[float]:
 def _faster_than_wrist(by_person: dict, place: str) -> tuple[int, int]:
     faster = compared = 0
     for times in by_person.values():
-        a = [t.press_to_steps_s for t in times if t.place == place and t.press_to_steps_s is not None]
-        w = [t.press_to_steps_s for t in times if t.place == "wrist" and t.press_to_steps_s is not None]
+        a = [t.press_to_steps_s for t in times
+             if t.place == place and not t.fell_back and t.press_to_steps_s is not None]
+        w = [t.press_to_steps_s for t in times
+             if t.place == "wrist" and not t.fell_back and t.press_to_steps_s is not None]
         if len(a) >= MIN_PRESSES_PER_PLACE and len(w) >= MIN_PRESSES_PER_PLACE:
             compared += 1
             faster += statistics.median(a) < statistics.median(w)
@@ -224,14 +236,17 @@ def verdicts(timings: list[PressTiming]) -> Verdicts:
 
     def counts(ts):
         return {"presses": len(ts), "null_start": sum(not t.beat_confirmed for t in ts),
-                "recovered": sum(t.recovered for t in ts), "motion_partial": sum(t.motion_partial for t in ts)}
+                "recovered": sum(t.recovered for t in ts), "motion_partial": sum(t.motion_partial for t in ts),
+                "fell_back": sum(t.fell_back for t in ts)}
     by_place: dict[str, list[PressTiming]] = {}
     for t in timings:
         by_place.setdefault(t.place, []).append(t)
     return Verdicts(len(by_person), len(timings), h1_med, h1_share, h1_fails, ear, h3,
                     pocket, not_felt, h12, h2, notes,
                     {pl: counts(ts) for pl, ts in sorted(by_place.items())},
-                    {pp: counts(ts) for pp, ts in sorted(by_person.items())})
+                    {pp: counts(ts) for pp, ts in sorted(by_person.items())},
+                    {pp: {pl: counts([t for t in ts if t.place == pl]) for pl in sorted({t.place for t in ts})}
+                     for pp, ts in sorted(by_person.items())})
 
 
 def analyse(folder: Path) -> tuple[list[PressTiming], Verdicts]:
@@ -295,6 +310,10 @@ def report(v: Verdicts) -> str:
     for label, table in (("", v.data_quality), ("person ", v.data_quality_by_person)):
         for k, c in table.items():
             lines.append(f"    {label}{k}: {c['presses']} presses, {c['null_start']} with no beat start, "
-                         f"{c['recovered']} recovered, {c['motion_partial']} partial")
+                         f"{c['recovered']} recovered, {c['motion_partial']} partial, {c['fell_back']} fell back")
+    for pp, places in v.data_quality_by_person_place.items():
+        for pl, c in places.items():
+            lines.append(f"    person {pp} / {pl}: {c['presses']} presses, {c['null_start']} with no beat start, "
+                         f"{c['fell_back']} fell back")
     lines += [f"note: {n}" for n in v.notes]
     return "\n".join(lines)
