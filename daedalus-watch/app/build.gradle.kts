@@ -13,8 +13,8 @@ android {
         targetSdk = 34
         versionCode = 1
         // Home pilot build, shown in Settings > Apps > Daedalus on the phone and the watch. Both apps
-        // of a pilot set must show the same "pilotN"; the earbuds setting as of round 006 needs pilot6 or later.
-        versionName = "0.1.0-pilot6"
+        // of a pilot set must show the same "pilotN"; the settings as of round 007 need pilot7 or later.
+        versionName = "0.1.0-pilot7"
     }
 
     buildTypes {

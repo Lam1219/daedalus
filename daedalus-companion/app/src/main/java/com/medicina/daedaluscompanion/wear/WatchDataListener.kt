@@ -426,14 +426,30 @@ class WatchDataClient(context: Context) {
     /** Home pilot settings (study mode, code, seed, enrolment date, pocket reminder) to the watch. */
     suspend fun sendPilotSettings(settings: PilotSettings): Boolean {
         val nodes = connectedNodes()
-        val bytes = settings.encode().toByteArray(Charsets.UTF_8)
         var sent = false
         for (node in nodes) {
             try {
-                messageClient.sendMessage(node.id, PilotLink.SETTINGS_PATH, bytes).await()
+                // Off before on (round 007, #1), awaited in order: an older watch ends up off.
+                for (message in settings.wireMessages()) {
+                    messageClient.sendMessage(node.id, PilotLink.SETTINGS_PATH, message.toByteArray(Charsets.UTF_8)).await()
+                }
                 sent = true
             } catch (e: Exception) {
                 Log.e(TAG, "Failed sending pilot settings to watch ${node.displayName}: ${e.message}")
+            }
+        }
+        return sent
+    }
+
+    /** Round 007, #4: delete the watch's pilot files too ("Delete pilot files" on the phone). */
+    suspend fun sendPilotDelete(): Boolean {
+        var sent = false
+        for (node in connectedNodes()) {
+            try {
+                messageClient.sendMessage(node.id, PilotLink.DELETE_PATH, ByteArray(0)).await()
+                sent = true
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed sending pilot delete to watch ${node.displayName}: ${e.message}")
             }
         }
         return sent

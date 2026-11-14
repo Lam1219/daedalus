@@ -163,7 +163,7 @@ fun PilotScreen(onBack: () -> Unit) {
             )
             // Typing changes nothing until Save (or turning study mode on): the watch never gets a
             // half-typed code or an invalid seed (round 006, A).
-            val unsaved = !locked && (code != settings.participant || seedText != settings.seed.toString())
+            val unsaved = !locked && PilotPhoneRules.isUnsaved(settings, code, seedText)
             if (unsaved) {
                 PillButton(
                     stringResource(R.string.pilot_save_identity),
@@ -261,6 +261,8 @@ fun PilotScreen(onBack: () -> Unit) {
                     confirmDelete = false
                     scope.launch {
                         withContext(Dispatchers.IO) { PilotFiles.deleteAll(context) }
+                        // The watch's copies too (round 007, #4).
+                        runCatching { app.watchClient.sendPilotDelete() }
                         pressCount = 0
                     }
                 }) { Text(stringResource(R.string.delete), color = DesignTokens.Alert, fontWeight = FontWeight.SemiBold) }

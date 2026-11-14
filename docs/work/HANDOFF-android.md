@@ -168,7 +168,7 @@ All runs used JDK 17 and Gradle 8.5 from `~/.gradle/wrapper/dists/gradle-8.5-bin
 | Battery (14 h) | Study on all day: read `battery_<code>_<day>.csv` from the export. The percent drop per hour, and `ring_samples_total` growing by about 45,000 every 15 min. The header line says whether wake-up sensors were used. Compare one day with study off. |
 | Settings sync | Change the pocket reminder on the phone with the watch connected: "Sent to the watch". Watch disconnected: the message says so, and reopening the app with the watch back resends the settings. |
 | Export | "Export pilot files" opens the share sheet with one zip. Unzip it and run `pilot_analysis.analyse(folder)`. |
-| Install (update both apps together) | Install the phone and watch builds from the same commit, at the same visit. **Both must be `0.1.0-pilot6` or later**, the first build with the per-participant earbuds check and the settings an old watch rejects (round 006). To check: on the phone, Settings → Apps → Daedalus → App info, version at the bottom. On the Galaxy Watch, Settings → Apps → Daedalus (or the Galaxy Wearable app → Watch settings → Apps → Daedalus). Both must show the same `pilotN`. A phone on an older build can report a `play()` call time; the watch ignores it (round 003, #5), but the beat start is then lost for that press. After the phone turns study mode on, **the watch must show "Home pilot on"** (in its ongoing notification). If it doesn't, the watch app is too old: a watch build from before round 004 rejects the phone's settings (study on is sent as `2`, round 006 #5), so it never runs pilot presses. Update the watch app and turn study mode on again. |
+| Install (update both apps together) | Install the phone and watch builds from the same commit, at the same visit; **both must be `0.1.0-pilot7` or later**. To read the version: on the phone, Settings → Apps → Daedalus → App info, version at the bottom; on the Galaxy Watch, Settings → Apps → Daedalus (or the Galaxy Wearable app → Watch settings → Apps → Daedalus). Both must show the same `pilotN`. **Then the off/on test** (round 007, #1): turn study mode off on the phone and check that "Home pilot on" disappears from the watch's ongoing notification; turn it on and check that it comes back. If it doesn't come back, the watch app is too old: older watch builds are turned off by the phone and reject its "on". Update the watch app and repeat. **Participants checked on pilot5 or earlier must be checked again** after the update (round 007, #6): the earbuds check is now stored for a code and seed, and an old "checked" value counts as not checked. |
 | Phone permission refused | Refuse "physical activity": the pilot screen says why, the phone service doesn't start, and earbud-on-phone and pocket presses fall back to the wrist. |
 
 ## Round 001 fixes
@@ -255,19 +255,24 @@ Owner decision (2026-11-13). Round 004 found new problems in the Android earbuds
 - **Off:** "earbuds connected" is false for drawing, on the watch (`PressPlanner`) and in the phone's status. The earbuds place is never drawn, no Android audio player starts for a pilot press, and press files say `earbuds_connected: false`.
 - **On:** draws and players are exactly as before.
 
-**Earbuds device check** (rewritten in round 006). The physio runs it at the clinic visit before the participant's earbuds can be used. The setting is tied to one saved code and seed, and the screen always says which: "Earbuds checked for P05" or "Earbuds not checked".
-1. On the pilot screen, with study mode off, type the **real** participant code and seed and tap **Save code and seed**. Set the enrolment date to today, so presses rotate through the places (learning week).
-2. Turn **Earbuds checked** on. The line reads "Earbuds checked for <code>". Turn study mode on.
+**Earbuds device check** (rewritten in rounds 006 and 007). The physio runs it at the clinic visit before the participant's earbuds can be used.
+- It runs under a **test code**, so the participant's own press numbers and data never contain check presses.
+- The setting is tied to one saved code and seed. The screen always says which: "Earbuds checked for P05" or "Earbuds not checked".
+
+1. On the pilot screen, with study mode off, type the test code **`CHECK`** and any seed (for example `1`), and tap **Save code and seed**. Set the enrolment date to today, so presses rotate through the places (learning week).
+2. Turn **Earbuds checked** on. The line reads "Earbuds checked for CHECK". Turn study mode on.
 3. **Pairing 1, earbuds paired to the watch** (phone's Bluetooth audio off). Make presses until 5 have been drawn to earbuds; the watch's walking screen says "In your earbuds", skip the others. Each of the 5 must:
    - be heard in the earbuds within 1 s of the press;
    - never be cut to the wrist while the clicks are audible;
    - have, in its press file (Export pilot files), a measured `beat_start_ms` with `beat_start_source` starting `audio_timestamp`, not null.
 4. **Pairing 2, earbuds paired to the phone** (unpaired from the watch). Repeat step 3: 5 presses, same three checks, with sources starting `phone_audio_timestamp`.
-5. **Pass = both pairings pass**: all 10 presses meet all three checks (round 006, #8). One setting covers both, so if either pairing fails the setting stays off for this participant.
-6. Turn study mode off.
-   - **On a fail:** turn **Earbuds checked** off. The line reads "Earbuds not checked", and the participant's presses use the wrist and the pocket only.
-   - **On a pass:** leave it on.
-7. Delete the check's press files (Delete pilot files, after exporting them if wanted), and turn study mode on. The check stays tied to this code and seed. Typing another code or seed changes nothing until it is saved, and once saved, earbuds count as not checked for it.
+5. **Pass = both pairings pass**: all 10 presses meet all three checks. One setting covers both, so if either fails the participant isn't checked.
+6. Turn study mode off. Tap **Delete pilot files**. It deletes the check's files on the phone and, over the watch link, on the watch: press, pending and battery files. That message was added in round 007; before it, the watch couldn't delete its pilot files from the phone.
+7. Type the **real** participant code and seed and tap **Save code and seed**. Saving a new code or seed starts the watch's press numbers at 0, and the check under `CHECK` doesn't count for the real code: the line reads "Earbuds not checked".
+8. **Only on a pass:** turn **Earbuds checked** on. The line must read "Earbuds checked for <real code>". The switch is free whenever study mode is off and the shown code and seed are the saved ones, which is how a check run under `CHECK` is carried to the real participant. On a fail, leave it off.
+9. Set the real enrolment date and turn study mode on.
+
+**An interrupted check** (battery, a call, a failed pairing) leaves the real participant "not checked": nothing was ever recorded for the real code and seed. Start again at step 1, or skip the earbuds for this participant.
 
 **Round 004 #3.** The comments in `ClickBeatPlayer.start` and `WatchBootReceiver` now say what the code does (the 2 s wait ends in a loss and the wrist takes over; what a boot does in each case). The unused `TIMESTAMP_WAIT_MS` is gone.
 
@@ -328,6 +333,25 @@ How "fails before" holds:
 - Watch: `gradle assembleDebug test --offline` in `daedalus-watch` exited 0; 133 tests per variant, 0 failures.
 - Phone: `gradle assembleDebug test --offline` in `daedalus-companion` exited 0; 40 tests per variant, 0 failures.
 
+## Round 007 fixes
+
+`feature/home-pilot` (cb05ba2) merged first (fast-forward). No Python or iOS touched. Tests: `RoundSevenFixesTest` in both `daedalus-companion` and `daedalus-watch`.
+
+| # | What changed | Test |
+|---|---|---|
+| 1 (serious) | With study on, the phone sends two settings messages in order, each awaited: an "off" copy marked `precursor` in a seventh field, then `2\|…` (`PilotSettings.wireMessages`). A watch from before round 006 accepts the "off" (it reads five or six fields), turns study mode off and the motion ring with it, then rejects the "on". It can't stay on with its old earbuds behaviour. A current watch ignores the precursor and applies the "on", so its motion ring isn't wiped on every resend. A pilot6 watch applies both (off then on): correct, but it loses the ring once per resend. The `PilotPhoneRules` comment says exactly what is and isn't guarded. The install row now has the off/on test. Both apps now read `0.1.0-pilot7`. | `n1_anOlderWatchThatWasOnEndsUpOff` (simulates the old watch's decode), `n1_aCurrentWatchIgnoresThePrecursorAndEndsUpOn`, `n1_thePhoneSendsEveryMessageInOrder` (phone); `n1_theWatchIgnoresThePrecursorOff` (watch) |
+| 4 | The earbuds device check runs under the test code `CHECK`. "Delete pilot files" on the phone now also sends `/pilot/delete`, and the watch deletes every file in its pilot folder (`deletePilotFiles`); before this, the watch had no way to do it. Saving the real code and seed restarts the press numbers. "Earbuds checked" is then turned on for the real code only on a pass. The switch is free while study is off and the saved code shows, which is how the check carries over. An interrupted check leaves the real participant not checked, because nothing was recorded for its code and seed. | `n4_deleteReachesTheWatch` (phone), `n4_theWatchDeletesItsPilotFilesOnRequest` (watch) |
+| 5 | The pilot screen compares the typed seed as a number (`PilotPhoneRules.isUnsaved`), so "042" counts as the saved 42. | `n5_leadingZerosCountAsSaved` |
+| 6 | The install row says participants checked on pilot5 or earlier must be checked again after the update. | Handoff only. |
+
+How "fails before" holds:
+- **Fail as behaviour on the old code:** #1's simulation (the old code sent only `2|…`, so the old watch stayed on), the delete-reaches-the-watch check and the precursor check on the watch.
+- **Fail to compile** (the API is new): `isUnsaved` and `deletePilotFiles`.
+
+**Validation:**
+- Watch: `gradle assembleDebug test --offline` in `daedalus-watch` exited 0; 135 tests per variant, 0 failures.
+- Phone: `gradle assembleDebug test --offline` in `daedalus-companion` exited 0; 45 tests per variant, 0 failures.
+
 ## Commit range
 
 `0812fae..HEAD` on `android-home-pilot` (the commits after 0812fae: Wear OS, phone, then this handoff with the B6 test).
@@ -337,3 +361,4 @@ Round 003 fixes: `fcbd67f..HEAD`.
 Round 004 (earbuds paused): `06801fb..HEAD`.
 Round 005 fixes: `1959773..HEAD`.
 Round 006 fixes: `e0ec09b..HEAD`.
+Round 007 fixes: `cb05ba2..HEAD`.
