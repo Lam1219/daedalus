@@ -54,7 +54,9 @@ struct PressRecord: Sendable {
         d["beat_stop_ms"] = beatStopMs.map { NSNumber(value: $0) } ?? NSNull()
         d["checkin"] = checkin?.rawValue ?? NSNull()
         d["motion_partial"] = motionPartial
-        d["place_drawn"] = (placeDrawn ?? place).rawValue
+        // Round 007, 8: unknown (e.g. a pre-round-006 pending file recovered after an update) is
+        // null, never a copy of `place`.
+        d["place_drawn"] = placeDrawn?.rawValue ?? NSNull()
         d["fallback_reason"] = fallbackReason ?? NSNull()
         d["fallback_ms"] = fallbackMs.map { NSNumber(value: $0) } ?? NSNull()
         return d
