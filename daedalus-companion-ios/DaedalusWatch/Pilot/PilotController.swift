@@ -148,8 +148,7 @@ final class PilotController {
     private func savePendingNow() {
         guard var press else { return }
         if let beat {
-            press.place = beat.place
-            press.beatStartMs = beat.beatStartMs
+            press.apply(beat)   // place, place_drawn, start, fallback (round 006)
         }
         PressStore.savePending(press, live: live.snapshot())
     }
@@ -161,17 +160,17 @@ final class PilotController {
         fallbackTask = Task { [weak self] in
             try? await Task.sleep(for: Self.phoneConfirmTimeout)
             guard !Task.isCancelled else { return }
-            self?.fallBack()
+            self?.fallBack(reason: "phone_no_confirm")
         }
         // The iPhone is out of reach: the wrist plays now, with no wait.
-        guard session.activationState == .activated, session.isReachable else { fallBack(); return }
+        guard session.activationState == .activated, session.isReachable else { fallBack(reason: "phone_unreachable"); return }
         let message: [String: Any] = [WatchKey.command: WatchKey.beatStart, WatchKey.rate: pace,
                                       WatchKey.press: NSNumber(value: press)]
         session.sendMessage(message, replyHandler: { reply in
             let t1 = Self.nowMs()
             Task { @MainActor in PilotController.shared.phoneReplied(reply, press: press, t0: t0, t1: t1) }
         }, errorHandler: { _ in
-            Task { @MainActor in PilotController.shared.fallBack(forPress: press) }
+            Task { @MainActor in PilotController.shared.fallBack(forPress: press, reason: "phone_error") }
         })
     }
 
@@ -183,7 +182,7 @@ final class PilotController {
               let start = (reply[WatchKey.beatStartMs] as? NSNumber)?.int64Value,
               let r0 = (reply[WatchKey.r0] as? NSNumber)?.int64Value,
               let r1 = (reply[WatchKey.r1] as? NSNumber)?.int64Value
-        else { fallBack(forPress: replyPress); return }
+        else { fallBack(forPress: replyPress, reason: "phone_refused"); return }
         let atMs = Pilot.beatStartOnWatchClock(t0: t0, t1: t1, r0: r0, r1: r1, beatStartPhoneMs: start)
         guard var beat, beat.phoneStarted(atMs: atMs, forPress: replyPress) else {
             // Too late, or another press: the wrist already plays. Silence that press on the iPhone.
@@ -199,8 +198,8 @@ final class PilotController {
     /// never started on the iPhone is recorded as a wrist press; one that lost its earbuds midway
     /// keeps the place where its beat started. `forPress`: the press an iPhone message is about
     /// (nil for the watch's own timeout); a message about another press is ignored (21).
-    func fallBack(forPress press: Int64? = nil) {
-        guard var beat, beat.phoneFailed(forPress: press) else { return }
+    func fallBack(forPress press: Int64? = nil, reason: String) {
+        guard var beat, beat.phoneFailed(forPress: press, reason: reason, atMs: Self.nowMs()) else { return }
         fallbackTask?.cancel(); fallbackTask = nil
         self.beat = beat
         currentPlace = beat.place
@@ -235,8 +234,7 @@ final class PilotController {
         let phoneWasAsked = beat.place != .wrist || beat.phonePlaying
         beat.stop()
         self.beat = nil
-        press.place = beat.place
-        press.beatStartMs = beat.beatStartMs
+        press.apply(beat)   // place where the beat started, place_drawn, start, fallback (round 006)
         press.beatStopMs = Self.nowMs()
         self.press = press
         PressStore.savePending(press, live: live.snapshot())   // 19: the stop is on disk at once

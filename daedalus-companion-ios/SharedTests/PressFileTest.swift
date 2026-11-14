@@ -46,7 +46,7 @@ final class PressFileTest: XCTestCase {
         let d = try XCTUnwrap(JSONSerialization.jsonObject(with: try r.json()) as? [String: Any])
         XCTAssertEqual(Set(d.keys), ["version", "participant", "press_index", "day_index", "place", "earbuds_connected",
                                      "phone_carried", "pace_spm", "press_ms", "beat_start_ms", "beat_stop_ms", "checkin",
-                                     "motion_partial", "samples"])
+                                     "motion_partial", "place_drawn", "fallback_reason", "fallback_ms", "samples"])
         XCTAssertEqual(d["motion_partial"] as? Bool, false)
         XCTAssertEqual(d["version"] as? String, "pilot-1.0")
         XCTAssertTrue(d["beat_stop_ms"] is NSNull)

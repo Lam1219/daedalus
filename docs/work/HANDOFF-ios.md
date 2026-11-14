@@ -194,3 +194,48 @@ The review of `ca786c1..fcbd67f` asked for one iOS fix, 9. The branch was fast-f
 - The simulators weren't re-run this round.
 
 **Written, not run.** The round 002 device check for 12 still applies: force-quit the watch app 1 s after an earbuds press that fell back to the wrist, and the press file still has its `beat_start_ms`.
+
+Round 003 commit: cc0715d (`fcbd67f..cc0715d`). Rounds 004 and 005 had no iOS items.
+
+## Round 006 fixes
+
+The review of `1959773..e0ec09b` had one iOS item, 1 (data). The branch was fast-forwarded to e0ec09b first. No Python or Android files changed.
+
+**What changed.** Press files from Apple Watch now carry the same three fields as Android's:
+- `place_drawn`: the place the rule drew.
+- `fallback_reason`: why the wrist took over, or null.
+- `fallback_ms`: when the wrist took over (epoch ms, watch clock), or null.
+
+`PressBeat` keeps them, and `PressRecord.apply(_:)` copies the beat's outcome into the file. The watch uses it both for the pending save and at the end of the press.
+
+**Fallback reasons:**
+- `phone_unreachable`: the iPhone was out of reach at the press.
+- `phone_no_confirm`: no confirmation within 1 s.
+- `phone_error`: the message failed.
+- `phone_refused`: the iPhone answered that it couldn't play, for example no earbuds, the earbuds check is "no", or nothing rendered.
+- `earbuds_lost`: the iPhone lost the beat mid-beat.
+
+A message about another press records nothing.
+
+**`place` is where the beat actually started.** I checked this, and it was already true before this round:
+- **Phone place that never confirmed.** `PressBeat.phoneFailed` sets `place` to the wrist when no start was confirmed (`Pilot.placeToPlay(drawn:phoneConfirmed: false)`). The wrist's first pulse then sets the start.
+- **Lost mid-beat.** A beat that started on the iPhone and was lost mid-beat keeps `place: "earbuds"` and its iPhone start time. The wrist carries on, and the fallback fields now record that it did.
+- **What was missing.** The rule's draw itself was never written, so a fallback before the start looked like a real wrist press. `place_drawn` together with `fallback_reason` now tells them apart.
+
+**One difference from Android.** Android writes `fallback_ms` only for a mid-beat loss; iOS also writes it for a fallback before the start, as the moment the wrist took over. The analysis's rule (`place_drawn` differs from `place`, or a non-null `fallback_reason`) treats both the same. Tell me if the file should match Android's exactly.
+
+**Tests.** `SharedTests/PilotRound6Test.swift` has 4 tests:
+- a real wrist press has no fallback;
+- a fallback before the start: `place` is the wrist, `place_drawn` is the earbuds, and the reason and time are set;
+- a mid-beat loss keeps `place` as the earbuds, with the fallback recorded (round-tripped through JSON);
+- a stale message records nothing.
+
+They were written first and run against the code before the change: they failed, because the fields and the `reason:` argument didn't exist. `PressFileTest`'s exact-keys check now includes the three fields.
+
+**Validation run for round 006:**
+- `xcodegen`, then `xcodebuild test -project Daedalus.xcodeproj -scheme SharedTests -destination 'platform=macOS'`: **TEST SUCCEEDED**, 82 tests, 0 failures, 1 skipped (the sample-file writer, which runs only when its output folder is set).
+- `xcodebuild build -scheme Daedalus -destination 'generic/platform=iOS Simulator'`: **BUILD SUCCEEDED**.
+- The two sample press files, which now carry the three fields, are read by the `pilot_analysis.py` on e0ec09b, and its report prints.
+- The simulators weren't re-run this round.
+
+**Written, not run.** Take the iPhone out of range and press on a day the earbuds are drawn. The file then has `place: "wrist"`, `place_drawn: "earbuds"` and `fallback_reason: "phone_unreachable"`.
