@@ -17,11 +17,8 @@ data class PilotSettings(
     /** B10 "Phone in your front pocket?" reminder after a stand-up. */
     val pocketReminder: Boolean = true,
     /**
-     * Round 004 (owner, 2026-11-13), redesigned in round 006 (A): the earbuds place is paused on
-     * Android until the physio's earbuds device check passed, and that check belongs to one
-     * participant: this holds "<code>|<seed>" of the participant it was done for, or "".
-     * Earbuds count only while it equals the current code and seed ([earbudsChecked]), so a new
-     * code or seed can never inherit it, with no clearing logic to get wrong.
+     * Kept only so the settings format stays the same (rounds 004 to 007). Android earbuds are cut
+     * from the pilot (owner, round 008): nothing sets this any more and nothing reads it.
      */
     val earbudsCheckedFor: String = "",
 ) {
@@ -32,15 +29,6 @@ data class PilotSettings(
 
     /** Study mode is on and usable. */
     val active: Boolean get() = enabled && isValid
-
-    /** This participant's identity, the value [earbudsCheckedFor] must equal. */
-    val identityKey: String get() = "$participant|$seed"
-
-    /** Earbuds may be drawn: the check was done for exactly this code and seed. */
-    val earbudsChecked: Boolean get() = isValid && earbudsCheckedFor == identityKey
-
-    /** Marks (or clears) the earbuds check for the current code and seed. */
-    fun withEarbudsChecked(checked: Boolean): PilotSettings = copy(earbudsCheckedFor = if (checked) identityKey else "")
 
     /**
      * The message the phone sends to the watch on [PilotLink.SETTINGS_PATH]. Study on is sent as

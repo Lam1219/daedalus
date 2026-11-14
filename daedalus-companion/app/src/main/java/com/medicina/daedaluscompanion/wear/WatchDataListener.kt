@@ -441,20 +441,6 @@ class WatchDataClient(context: Context) {
         return sent
     }
 
-    /** Round 007, #4: delete the watch's pilot files too ("Delete pilot files" on the phone). */
-    suspend fun sendPilotDelete(): Boolean {
-        var sent = false
-        for (node in connectedNodes()) {
-            try {
-                messageClient.sendMessage(node.id, PilotLink.DELETE_PATH, ByteArray(0)).await()
-                sent = true
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed sending pilot delete to watch ${node.displayName}: ${e.message}")
-            }
-        }
-        return sent
-    }
-
     /** Turn automatic stand-up detection on the watch on or off. */
     suspend fun sendStandPrompt(enabled: Boolean) {
         val nodes = connectedNodes()

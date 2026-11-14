@@ -14,17 +14,7 @@ class RoundSixFixesTest {
 
     // ---- A: earbuds are checked for one code and seed; the fields save only on confirm
 
-    @Test
-    fun a_earbudsCountOnlyForTheCodeAndSeedTheyWereCheckedFor() {
-        val checked = saved.withEarbudsChecked(true)
-        assertEquals("P05|42", checked.earbudsCheckedFor)
-        assertTrue(checked.earbudsChecked)
-        assertFalse("another code", checked.copy(participant = "P06").earbudsChecked)
-        assertFalse("another seed", checked.copy(seed = 43).earbudsChecked)
-        assertTrue("back to the same code and seed", checked.copy(participant = "P06").copy(participant = "P05").earbudsChecked)
-        assertFalse("turned off on a fail", checked.withEarbudsChecked(false).earbudsChecked)
-        assertFalse(PilotSettings().earbudsChecked)
-    }
+    // a_earbudsCountOnlyForTheCodeAndSeedTheyWereCheckedFor: removed in round 008 (the earbuds setting was removed).
 
     @Test
     fun a_codeAndSeedSaveOnlyWhenValid() {
@@ -32,28 +22,14 @@ class RoundSixFixesTest {
         assertNull("empty seed", PilotPhoneRules.confirmIdentity(saved, "P06", ""))
         assertNull("seed out of range", PilotPhoneRules.confirmIdentity(saved, "P06", "2147483648"))
         assertNull("no -1", PilotPhoneRules.confirmIdentity(saved, "P06", "-1"))
-        val ok = PilotPhoneRules.confirmIdentity(saved.withEarbudsChecked(true), "P06", "7")!!
+        val ok = PilotPhoneRules.confirmIdentity(saved, "P06", "7")!!
         assertEquals("P06", ok.participant)
         assertEquals(7L, ok.seed)
-        assertFalse("the old check doesn't carry over", ok.earbudsChecked)
     }
 
-    @Test
-    fun a_theStatusLineSaysWhoTheEarbudsWereCheckedFor() {
-        val line = { s: PilotSettings -> PilotPhoneRules.earbudsStatusLine(s, { "Earbuds checked for $it" }, { "Earbuds not checked" }) }
-        assertEquals("Earbuds checked for P05", line(saved.withEarbudsChecked(true)))
-        assertEquals("Earbuds not checked", line(saved))
-        assertEquals("Earbuds not checked", line(saved.withEarbudsChecked(true).copy(seed = 1)))
-    }
+    // a_theStatusLineSaysWhoTheEarbudsWereCheckedFor: removed in round 008 (the status line was removed).
 
-    @Test
-    fun a_theCheckTravelsToTheWatchAndOldValuesDontCount() {
-        val checked = saved.copy(enabled = true).withEarbudsChecked(true)
-        assertEquals(checked, PilotSettings.decode(checked.encode()))
-        assertTrue(PilotSettings.decode(checked.encode())!!.earbudsChecked)
-        // A round 004/005 phone sent "1" for checked: not tied to anyone, so not checked.
-        assertFalse(PilotSettings.decode("1|P05|42|20000|1|1")!!.earbudsChecked)
-    }
+    // a_theCheckTravelsToTheWatchAndOldValuesDontCount: removed in round 008 (the earbuds setting was removed).
 
     // ---- #5: an older watch rejects the settings, so it never turns study mode on
 
@@ -75,10 +51,9 @@ class RoundSixFixesTest {
 
     @Test
     fun n6_refusalsKeepTheirReasons() {
-        assertEquals("not_a_phone_player", PilotPhoneRules.refusal(Player.WATCH_AUDIO, saved.withEarbudsChecked(true)))
+        assertEquals("not_a_phone_player", PilotPhoneRules.refusal(Player.WATCH_AUDIO, saved))
         assertEquals("not_a_phone_player", PilotPhoneRules.refusal(Player.WATCH_HAPTIC, saved))
-        assertEquals("earbuds_not_checked", PilotPhoneRules.refusal(Player.PHONE_AUDIO, saved))
-        assertNull(PilotPhoneRules.refusal(Player.PHONE_AUDIO, saved.withEarbudsChecked(true)))
+        assertEquals("round 008: earbuds are off in the pilot", "earbuds_off_in_pilot", PilotPhoneRules.refusal(Player.PHONE_AUDIO, saved))
         assertNull(PilotPhoneRules.refusal(Player.PHONE_VIBRATION, saved))
     }
 

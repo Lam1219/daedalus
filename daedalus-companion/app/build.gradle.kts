@@ -21,8 +21,8 @@ android {
         targetSdk = 35
         versionCode = 1
         // Home pilot build, shown in Settings > Apps > Daedalus on the phone and the watch. Both apps
-        // of a pilot set must show the same "pilotN"; the settings as of round 007 need pilot7 or later.
-        versionName = "0.1.0-pilot7"
+        // of a pilot set must show the same "pilotN"; the pilot as of round 008 needs pilot8.
+        versionName = "0.1.0-pilot8"
         // Ship only the languages the app is translated into.
         resourceConfigurations += listOf("en", "fr")
 

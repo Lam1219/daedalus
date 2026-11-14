@@ -142,15 +142,7 @@ class BeatRunnerTest {
                 }
     }
 
-    @Test
-    fun earbudsPlayOnTheWatchWhenItHasThemOtherwiseOnThePhone() {
-        val s = PilotSettings(true, "P03", 5, 0).withEarbudsChecked(true) // earbuds checked for P03 (rounds 004, 006)
-        // Day 0, press 1 with earbuds available rotates to earbuds.
-        assertEquals(Player.WATCH_AUDIO, PressPlanner.plan(s, 1, 0, watchEarbuds = true, phoneEarbuds = true, phoneCarried = false).player)
-        assertEquals(Player.PHONE_AUDIO, PressPlanner.plan(s, 1, 0, watchEarbuds = false, phoneEarbuds = true, phoneCarried = false).player)
-        assertEquals(Player.PHONE_VIBRATION, PressPlanner.plan(s, 1, 0, watchEarbuds = false, phoneEarbuds = false, phoneCarried = true).player)
-        assertEquals(Player.WATCH_HAPTIC, PressPlanner.plan(s, 0, 0, watchEarbuds = true, phoneEarbuds = true, phoneCarried = true).player)
-    }
+    // earbudsPlayOnTheWatchWhenItHasThemOtherwiseOnThePhone: removed in round 008 (Android earbuds cut; earbuds never drawn).
 
     @Test
     fun phoneBeatStartIsPutOnTheWatchClockWithoutTrustingThePhoneClock() {

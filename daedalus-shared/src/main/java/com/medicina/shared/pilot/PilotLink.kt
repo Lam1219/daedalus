@@ -10,8 +10,6 @@ object PilotLink {
     const val QUERY_PATH = "/pilot/query"
     /** Both ways: beat start / stop on the phone and its replies ([BeatMessage]). */
     const val BEAT_PATH = "/pilot/beat"
-    /** Phone → watch: delete the watch's pilot files (round 007, #4). */
-    const val DELETE_PATH = "/pilot/delete"
     /** Watch → phone: press and battery files, by ChannelClient at FILE_PATH/<file name>. */
     const val FILE_PATH = "/pilot/file"
 }
