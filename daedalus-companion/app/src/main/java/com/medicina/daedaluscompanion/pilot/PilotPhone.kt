@@ -10,20 +10,47 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 /**
- * Round 005: the phone's own guards for the earbuds pause, so a watch on an older build can't
- * play the paused code.
+ * The phone's own rules for the home pilot.
+ *
+ * What is guarded against mixed builds (round 005 #5, round 006 #5):
+ * - the phone never plays earbud audio unless this participant's earbuds check is recorded here;
+ * - a watch build from before round 004 rejects the settings (study on is sent as "2"), so it
+ *   never runs pilot presses at all.
+ * What isn't: a watch from round 004 or 005 with its own earbuds connected; those builds also
+ * reject "2", so they never enter study mode either. The handoff's install check is the backstop.
  */
 object PilotPhoneRules {
+    /**
+     * Round 006 (A): the code and seed as typed, saved only when both are valid. Null means "don't
+     * save" (half-typed code, empty or out-of-range seed). The earbuds check stays tied to the code
+     * and seed it was done for, so a new identity simply isn't checked.
+     */
+    fun confirmIdentity(saved: com.medicina.shared.pilot.PilotSettings, code: String, seedText: String): com.medicina.shared.pilot.PilotSettings? {
+        val seed = seedText.toLongOrNull() ?: return null
+        if (!com.medicina.shared.pilot.PilotSettings.isValidCode(code) || !com.medicina.shared.pilot.PilotSettings.isValidSeed(seed)) return null
+        return saved.copy(participant = code, seed = seed)
+    }
+
+    /** The plain status line on the pilot screen: "Earbuds checked for P05" or "Earbuds not checked". */
+    inline fun earbudsStatusLine(settings: com.medicina.shared.pilot.PilotSettings, checked: (String) -> String, notChecked: () -> String) =
+        if (settings.earbudsChecked) checked(settings.participant) else notChecked()
+
+    /**
+     * Round 006, #6: why the phone won't start [player] for a pilot press, or null to play.
+     * Players that aren't the phone's keep "not_a_phone_player".
+     */
+    fun refusal(player: com.medicina.shared.pilot.Player, settings: com.medicina.shared.pilot.PilotSettings): String? = when (player) {
+        com.medicina.shared.pilot.Player.PHONE_VIBRATION -> null
+        com.medicina.shared.pilot.Player.PHONE_AUDIO -> if (settings.earbudsChecked) null else "earbuds_not_checked"
+        else -> "not_a_phone_player"
+    }
+
     /** Earbuds as reported to the watch: only once this participant's earbuds check passed. */
     fun earbudsForStatus(settings: com.medicina.shared.pilot.PilotSettings, headphonesConnected: Boolean) =
         settings.earbudsChecked && headphonesConnected
 
     /** Whether the phone may start [player] for a pilot press. PHONE_AUDIO needs the earbuds check. */
-    fun mayPlay(player: com.medicina.shared.pilot.Player, settings: com.medicina.shared.pilot.PilotSettings) = when (player) {
-        com.medicina.shared.pilot.Player.PHONE_AUDIO -> settings.earbudsChecked
-        com.medicina.shared.pilot.Player.PHONE_VIBRATION -> true
-        else -> false
-    }
+    fun mayPlay(player: com.medicina.shared.pilot.Player, settings: com.medicina.shared.pilot.PilotSettings) = refusal(player, settings) == null
 }
 
 /** The phone's copy of the pilot settings (Profile → Home pilot). Sent to the watch on every change. */

@@ -220,13 +220,14 @@ class PilotPhoneService : Service() {
     }
 
     private fun startBeat(m: BeatMessage.Start, receivedMs: Long) {
-        // Round 005, #5: refuse at once (the watch's wrist takes over well within 1 s).
-        if (!PilotPhoneRules.mayPlay(m.player, PilotPrefs.settings(this))) {
-            Log.w(TAG, "Refused ${m.player} for ${m.pressId}: earbuds not checked for this participant")
-            send(PilotLink.BEAT_PATH, BeatMessage.Failed(m.pressId, "earbuds_not_checked").encode())
+        // A new start always ends the previous phone beat first, played or refused (round 006, #6).
+        stopBeat(beatId ?: "")
+        // Round 005 #5: refuse at once, so the watch's wrist takes over well within 1 s.
+        PilotPhoneRules.refusal(m.player, PilotPrefs.settings(this))?.let { reason ->
+            Log.w(TAG, "Refused ${m.player} for ${m.pressId}: $reason")
+            send(PilotLink.BEAT_PATH, BeatMessage.Failed(m.pressId, reason).encode())
             return
         }
-        stopBeat(beatId ?: "")
         beatId = m.pressId
         beatPaused = false
         wakeLock = (getSystemService(POWER_SERVICE) as PowerManager)
@@ -245,7 +246,7 @@ class PilotPhoneService : Service() {
             Player.PHONE_AUDIO -> clicks = ClickBeatPlayer(this).also {
                 it.start(m.bpm, onStarted = { t, src -> started(t, src) }, onFailed = failed, onLost = failed)
             }
-            else -> failed("not_a_phone_player")
+            else -> failed("not_a_phone_player") // unreachable: refused above
         }
         Log.i(TAG, "Beat ${m.pressId}: ${m.player} at ${m.bpm}")
     }

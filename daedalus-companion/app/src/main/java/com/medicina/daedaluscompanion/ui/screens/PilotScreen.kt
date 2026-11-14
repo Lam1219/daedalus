@@ -50,7 +50,9 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import com.medicina.daedaluscompanion.R
 import com.medicina.daedaluscompanion.pilot.PilotFiles
+import com.medicina.daedaluscompanion.pilot.PilotPhoneRules
 import com.medicina.daedaluscompanion.pilot.PilotPhoneService
+import androidx.compose.material3.HorizontalDivider
 import com.medicina.daedaluscompanion.pilot.PilotPrefs
 import com.medicina.daedaluscompanion.utils.DaedalusApplication
 import com.medicina.shared.pilot.PilotSettings
@@ -105,15 +107,12 @@ fun PilotScreen(onBack: () -> Unit) {
     val permissions = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { granted ->
         needActivity = granted[Manifest.permission.ACTIVITY_RECOGNITION] == false
         // The phone's part needs "physical activity" (steps, and the foreground service on Android 14+).
-        apply(settings.withIdentity(code, seed ?: 0).copy(enabled = true))
+        PilotPhoneRules.confirmIdentity(settings, code, seedText)?.let { apply(it.copy(enabled = true)) }
     }
 
-    /** Round 005, #4: editing the code or seed is a new participant: "Earbuds checked" goes off. */
-    fun editIdentity(newCode: String, newSeedText: String) {
-        code = newCode
-        seedText = newSeedText
-        val updated = settings.withIdentity(newCode, newSeedText.toLongOrNull() ?: -1)
-        if (updated != settings) { settings = updated; PilotPrefs.save(context, updated) }
+    /** Round 006 (A): the code and seed are saved only here, or by turning study mode on, and only if valid. */
+    fun saveIdentity() {
+        PilotPhoneRules.confirmIdentity(settings, code, seedText)?.let { settings = it; PilotPrefs.save(context, it) }
     }
 
     fun turnOn() {
@@ -123,7 +122,7 @@ fun PilotScreen(onBack: () -> Unit) {
             // Earbuds are told from speakers by their Bluetooth device class (round 001, #8).
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) add(Manifest.permission.BLUETOOTH_CONNECT)
         }.filter { context.checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED }
-        if (wanted.isEmpty()) apply(settings.withIdentity(code, seed ?: 0).copy(enabled = true))
+        if (wanted.isEmpty()) PilotPhoneRules.confirmIdentity(settings, code, seedText)?.let { apply(it.copy(enabled = true)) }
         else permissions.launch(wanted.toTypedArray())
     }
 
@@ -146,7 +145,7 @@ fun PilotScreen(onBack: () -> Unit) {
             )
             Spacer(Modifier.height(12.dp))
             OutlinedTextField(
-                code, { editIdentity(it.trim().uppercase(), seedText) },
+                code, { code = it.trim().uppercase() },
                 label = { Text(stringResource(R.string.pilot_code)) },
                 singleLine = true, enabled = !locked,
                 isError = code.isNotEmpty() && !codeOk,
@@ -154,7 +153,7 @@ fun PilotScreen(onBack: () -> Unit) {
                 modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp), colors = fieldColors(),
             )
             OutlinedTextField(
-                seedText, { editIdentity(code, it.filter(Char::isDigit).take(10)) },
+                seedText, { seedText = it.filter(Char::isDigit).take(10) },
                 label = { Text(stringResource(R.string.pilot_seed)) },
                 singleLine = true, enabled = !locked,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -162,6 +161,18 @@ fun PilotScreen(onBack: () -> Unit) {
                 supportingText = { if (seedText.isNotEmpty() && !seedOk) Text(stringResource(R.string.pilot_seed_error)) },
                 modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp), colors = fieldColors(),
             )
+            // Typing changes nothing until Save (or turning study mode on): the watch never gets a
+            // half-typed code or an invalid seed (round 006, A).
+            val unsaved = !locked && (code != settings.participant || seedText != settings.seed.toString())
+            if (unsaved) {
+                PillButton(
+                    stringResource(R.string.pilot_save_identity),
+                    enabled = codeOk && seedOk,
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                    height = 48.dp,
+                    onClick = { saveIdentity() },
+                )
+            }
             ListRow(
                 title = stringResource(R.string.pilot_enrolment),
                 subtitle = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).format(LocalDate.ofEpochDay(settings.enrolmentEpochDay)),
@@ -169,20 +180,28 @@ fun PilotScreen(onBack: () -> Unit) {
                 showDivider = true,
                 onClick = if (locked) null else ({ pickDate = true }),
             )
-            // Round 004 (owner): the earbuds place is paused until the earbuds device check passed for
-            // this participant. Off by default; changes only while study mode is off; sent with the rest.
+            // Round 004 (owner), round 006 (A): the earbuds place is paused until the earbuds device check
+            // passed, and the check belongs to the saved code and seed. Changes only while study mode
+            // is off and the code and seed shown are the saved ones; sent with the rest.
             ListRow(
                 title = stringResource(R.string.pilot_earbuds_checked),
                 subtitle = stringResource(R.string.pilot_earbuds_checked_sub),
-                showDivider = true,
                 trailing = {
                     SageSwitch(
                         checked = settings.earbudsChecked,
-                        enabled = !locked,
-                        onCheckedChange = { on -> settings = settings.copy(earbudsChecked = on); PilotPrefs.save(context, settings) },
+                        enabled = !locked && !unsaved && settings.isValid,
+                        onCheckedChange = { on -> settings = settings.withEarbudsChecked(on); PilotPrefs.save(context, settings) },
                     )
                 },
             )
+            Text(
+                PilotPhoneRules.earbudsStatusLine(settings,
+                    checked = { stringResource(R.string.pilot_earbuds_status_checked, it) },
+                    notChecked = { stringResource(R.string.pilot_earbuds_status_not) }),
+                fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = DesignTokens.Ink,
+                modifier = Modifier.padding(start = 0.dp, bottom = 12.dp),
+            )
+            HorizontalDivider(color = DesignTokens.Divider)
             if (locked) Text(stringResource(R.string.pilot_locked), style = CaptionStyle, modifier = Modifier.padding(vertical = 8.dp))
             ListRow(
                 title = stringResource(R.string.pilot_pocket),

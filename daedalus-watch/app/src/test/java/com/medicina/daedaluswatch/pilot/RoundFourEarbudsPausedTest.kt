@@ -17,7 +17,7 @@ import java.nio.file.Files
 class RoundFourEarbudsPausedTest {
 
     private val off = PilotSettings(true, "P04", 123456789, 0)
-    private val on = off.copy(earbudsChecked = true)
+    private val on = off.withEarbudsChecked(true)
 
     @Test
     fun theSettingIsOffByDefaultAndTravelsToTheWatch() {
