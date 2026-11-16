@@ -379,3 +379,22 @@ def test_device_check_files_are_skipped(tmp_path):
     timings, v = analyse(tmp_path)
     assert {t.participant for t in timings} == {"P01"} and v.people == 1
     assert any("chk.json" in n for n in v.notes)
+
+
+def test_empty_string_drawn_place_is_unknown():
+    # Review 009 #2
+    d = press_file(25, 33, 28, place="wrist")
+    d["place_drawn"] = ""
+    t = press_timing(d)
+    assert t.place_drawn == "unknown" and t.fell_back_before_start is False and t.fell_back is False
+
+
+def test_reserved_code_gets_one_loud_note_with_the_file_count(tmp_path):
+    # Review 009 #3: a participant coded CHECK must not vanish quietly.
+    (tmp_path / "ok.json").write_text(json.dumps(press_file(25, 33, 28)))
+    for i in range(3):
+        (tmp_path / f"c{i}.json").write_text(json.dumps(press_file(25, 33, 28, participant="CHECK", index=i)))
+    _, v = analyse(tmp_path)
+    assert v.notes[0] == ("WARNING: 3 files under the reserved test code CHECK were left out. "
+                          "If CHECK was a real participant, their presses are not in this report.")
+    assert report(v).splitlines()[2].startswith("WARNING: 3 files")

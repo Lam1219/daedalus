@@ -31,7 +31,7 @@ drawn player carried the whole beat) and `fallback_ms`. The analysis only asks w
 present; the words themselves are for reading files by hand (review 007 #9):
 - Android watch: no_reply, audio_error, audio_no_timestamp, no_headphones, headphones_removed,
   no_vibrator, vibration_error, vibration_lost; a refusal or failure from the phone arrives with a
-  phone_ prefix, e.g. phone_earbuds_not_checked, phone_not_a_phone_player.
+  phone_ prefix, e.g. phone_earbuds_off_in_pilot, phone_not_a_phone_player.
 - iOS watch: phone_unreachable, phone_no_confirm, phone_error, phone_refused, earbuds_lost.
 - `fallback_ms`: Android writes it for losses mid-beat; iOS writes it for every fallback. The analysis
   reads it only for a loss mid-beat, to see whether steps had already resumed.
@@ -133,7 +133,7 @@ def press_timing(d: dict) -> PressTiming:
     confirmed = beat is not None
     # An unknown drawn place stays unknown: it is never guessed from where the beat played, and
     # can't count as a fallback before the start (review 008 #6).
-    known = d.get("place_drawn") if isinstance(d.get("place_drawn"), str) else None
+    known = d.get("place_drawn") if isinstance(d.get("place_drawn"), str) and d["place_drawn"] else None
     drawn = known or "unknown"
     before_start = known is not None and known != d["place"]
     mid_beat = d.get("fallback_reason") is not None and not before_start
@@ -293,10 +293,12 @@ def analyse(folder: Path) -> tuple[list[PressTiming], Verdicts]:
     counts once: the copy with the most motion samples is kept (review 002 #3)."""
     kept: dict[tuple, tuple[int, str, dict]] = {}
     notes = []
+    reserved: dict[str, int] = {}
     for f in sorted(Path(folder).glob("*.json")):
         try:
             d = load_press(f)
             if d["participant"] in RESERVED_CODES:
+                reserved[d["participant"]] = reserved.get(d["participant"], 0) + 1
                 raise ValueError(f"participant {d['participant']} is a reserved test code")
             key = (d["participant"], d["press_index"], d["press_ms"])
             samples = d.get("samples")
@@ -321,6 +323,12 @@ def analyse(folder: Path) -> tuple[list[PressTiming], Verdicts]:
         except (ValueError, KeyError, TypeError, AttributeError) as e:
             notes.append(f"skipped {name}: {e}")
     v = verdicts(timings)
+    # One loud line per reserved code, first, so a real participant given that code can't vanish
+    # among the per-file notes (review 009 #3).
+    loud = [f"WARNING: {n} files under the reserved test code {code} were left out. "
+            f"If {code} was a real participant, their presses are not in this report."
+            for code, n in sorted(reserved.items())]
+    v.notes[:0] = loud
     v.notes.extend(notes)
     return timings, v
 
@@ -331,6 +339,7 @@ def report(v: Verdicts) -> str:
     lines = [
         f"Home pilot ({pilot.VERSION}): {v.people} people, {v.presses} presses",
         "",
+        *[n for n in v.notes if n.startswith("WARNING: ")],
         f"H1  median seconds from walking stopping to the beat starting: {s(v.h1_median_stop_to_beat_s, ' s')}"
         f" (fails above {H1_MAX_MEDIAN_S:.0f} s)",
         f"    share of check-ins saying 'already moving': {s(v.h1_already_moving_share)}"
@@ -360,5 +369,5 @@ def report(v: Verdicts) -> str:
         for pl, c in places.items():
             lines.append(f"    person {pp} / {pl}: {c['presses']} presses, {c['null_start']} with no beat start, "
                          f"{c['fell_back']} fell back")
-    lines += [f"note: {n}" for n in v.notes]
+    lines += [f"note: {n}" for n in v.notes if not n.startswith("WARNING: ")]
     return "\n".join(lines)
