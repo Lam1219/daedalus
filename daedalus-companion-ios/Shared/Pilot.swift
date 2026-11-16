@@ -418,7 +418,9 @@ struct PilotDraft: Equatable, Sendable {
     /// `base` with this draft's fields, or nil when the code, seed or date isn't valid.
     func applied(to base: PilotSettings) -> PilotSettings? {
         let code = participant.trimmingCharacters(in: .whitespaces)
-        guard !code.isEmpty, let seed = Self.seed(seedText), Pilot.enrolmentComponents(enrolment) != nil else { return nil }
+        // Round 009, 3: "CHECK" (any case) is the reserved device-check code the analysis skips.
+        guard !code.isEmpty, code.uppercased() != "CHECK",
+              let seed = Self.seed(seedText), Pilot.enrolmentComponents(enrolment) != nil else { return nil }
         var s = base
         s.participant = code
         s.seed = seed
