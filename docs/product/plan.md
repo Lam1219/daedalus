@@ -102,6 +102,12 @@ These are recorded so they aren't lost. Each says what would reopen it.
 | 003 #8 (Android) | The copy used when a rename is refused isn't atomic | Renames aren't refused on internal storage | Any "rename refused" line appears in a pilot log |
 | 004 #1 (Python) | A press file whose `samples` isn't an object is skipped, so it loses its check-in | The apps never write such a file | A skipped-file note appears in a real pilot report |
 | 004 #7–#9 (Android earbuds) | The audio may stay silent if the Bluetooth output stalls; the wrist takes over after 2 s or more, not 1 s; earbuds that report no click times are cut to the wrist at 2 s | **Cut from the pilot** (owner, 2026-11-13): earbuds are never drawn on Android, so this code never runs for a pilot press | Android earbuds are brought back after the pilot: redesign first (1 s timer; the wrist joins and the audio keeps playing), with a fresh review |
+| 010 #1, #2 (Python) | The reserved-code warning says "1 files" and has no blank line after it | Cosmetic | The report text is next edited |
+| 010 #3 (Python) | The analysis skips only `CHECK` in capitals; the apps refuse it in any letter case | Current builds can't save `check`; only a file from an older test build could carry it | A person named `check` appears in a report |
+| 010 #4, #5 (Android) | A test pins two imports as absent; typing `CHECK` shows the "letters and numbers only" message | No effect on participants | That test file or message is next edited |
+| 010 #6 (Android) | The round 008 and round 009 builds both show `0.1.0-pilot8` | Mixing them loses no press; the pilot7 watch that matters still shows pilot7 | Before the build handed to the physio: bump both apps to pilot9 |
+| 010 #7, #9 (both) | A `CHECK` code stored by an older test build: Android goes quietly inactive with the switch on, and iOS keeps running under it | Only test devices can hold that code, and the report warns about CHECK files | Before enrolment: on every device, the physio saves the real code and checks the watch shows "Home pilot on" |
+| 010 #8 (iOS) | The iOS string catalog still has the old delete wording | iOS has no delete action and never shows it | The next run of `tools/make_strings.py` |
 
 ## Interviews (in parallel, no build needed)
 
