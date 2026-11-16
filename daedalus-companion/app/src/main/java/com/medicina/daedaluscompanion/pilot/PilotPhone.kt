@@ -67,7 +67,11 @@ object PilotPrefs {
     private const val KEY = "settings"
 
     fun settings(c: Context): PilotSettings =
-        c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY, null)?.let { PilotSettings.decode(it) } ?: PilotSettings()
+        fromStored(c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY, null))
+
+    /** A stored earbuds check (rounds 006-007) is cleared on load (round 009, #6). */
+    fun fromStored(text: String?): PilotSettings =
+        (text?.let { PilotSettings.decode(it) } ?: PilotSettings()).copy(earbudsCheckedFor = "")
 
     fun save(c: Context, s: PilotSettings) {
         c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY, s.encode()).apply()

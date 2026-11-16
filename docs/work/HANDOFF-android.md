@@ -169,6 +169,7 @@ All runs used JDK 17 and Gradle 8.5 from `~/.gradle/wrapper/dists/gradle-8.5-bin
 | Settings sync | Change the pocket reminder on the phone with the watch connected: "Sent to the watch". Watch disconnected: the message says so, and reopening the app with the watch back resends the settings. |
 | Export | "Export pilot files" opens the share sheet with one zip. Unzip it and run `pilot_analysis.analyse(folder)`. |
 | Install (update both apps together) | Install the phone and watch builds from the same commit, at the same visit. **Both must show `0.1.0-pilot8`.** To read the version: on the phone, Settings → Apps → Daedalus → App info, version at the bottom; on the Galaxy Watch, Settings → Apps → Daedalus (or the Galaxy Wearable app → Watch settings → Apps → Daedalus). **The version check is what catches a stale watch.** The off/on test (turn study mode off on the phone, see "Home pilot on" leave the watch's notification, turn it on, see it return) catches watches from before round 006, but a pilot6 watch passes it (round 008, #5), so both apps must show the same pilotN. **Android earbuds are off for the pilot:** on Android the beat plays on the wrist or from the phone in the pocket; there is no earbuds setting and no earbuds check. |
+| Exit (end of a participant's pilot) | Export the pilot files from the phone, then Delete pilot files there (study mode off). That deletes the phone's files only; the watch may still send files it hasn't sent yet. **To wipe the watch's copies, uninstall the watch app** (round 009, #5). |
 | Phone permission refused | Refuse "physical activity": the pilot screen says why, the phone service doesn't start, and earbud-on-phone and pocket presses fall back to the wrist. |
 
 ## Round 001 fixes
@@ -388,6 +389,26 @@ Every other test is unchanged and passes.
 - Watch: `gradle assembleDebug test --offline` in `daedalus-watch` exited 0; 133 tests per variant, 0 failures. Was 135: −4 removed, +2 new.
 - Phone: `gradle assembleDebug test --offline` in `daedalus-companion` exited 0; 44 tests per variant, 0 failures. Was 45: −4 removed, +3 new.
 
+## Round 009 fixes
+
+`feature/home-pilot` (e9cea82) merged first (fast-forward). No Python or iOS touched. Each change is one small edit, under the owner's "no new issues" rule.
+
+| # | What changed | Test |
+|---|---|---|
+| 6 | `PilotSettings.encode()` always sends field 6 empty, so a pilot7 watch that wasn't updated can never read an earbuds check. The field count is unchanged. The phone clears any stored check when it loads its settings (`PilotPrefs.fromStored`). | `RoundNineFixesTest.n6_anOldCheckedValueIsNeverSent` (both messages of the off-then-on send); `RoundNineLoadTest.n6_aStoredCheckLoadsAsNotChecked` |
+| 5 | Wording only. The delete confirmation (English and French) says it deletes the files on this phone only, and that the watch may still send files it hasn't sent yet. A new "Exit" row in the device checks says to uninstall the watch app to wipe the watch's copies. | `RoundNineFixesTest.n5_deleteConfirmationSaysPhoneOnly` |
+| 4 | Removed the unused `assertEquals` and `java.nio.file.Files` imports from the watch's `RoundSevenFixesTest.kt`. | `daedalus-watch/.../RoundNineFixesTest.n4_noUnusedImportsInRoundSevenFixesTest` |
+| 3 | `PilotSettings.isValidCode` refuses `CHECK` in any letter case, so a real participant can't be given the reserved test code. `CHECK1` is still allowed. | `RoundNineFixesTest.n3_checkIsNotAParticipantCode` |
+
+**Fails before.**
+- `RoundNineFixesTest` (phone, three tests) and the watch's import test were run against the code before the fixes: all failed.
+- `RoundNineLoadTest` uses the new `fromStored`, so it doesn't compile against the old code.
+- No tests removed.
+
+**Validation:**
+- Watch: `gradle assembleDebug test --offline` in `daedalus-watch` exited 0; 134 tests per variant, 0 failures.
+- Phone: `gradle assembleDebug test --offline` in `daedalus-companion` exited 0; 48 tests per variant, 0 failures.
+
 ## Commit range
 
 `0812fae..HEAD` on `android-home-pilot` (the commits after 0812fae: Wear OS, phone, then this handoff with the B6 test).
@@ -399,3 +420,4 @@ Round 005 fixes: `1959773..HEAD`.
 Round 006 fixes: `e0ec09b..HEAD`.
 Round 007 fixes: `cb05ba2..HEAD`.
 Round 008 (Android earbuds cut): `9f45816..HEAD`.
+Round 009 fixes: `e9cea82..HEAD`.

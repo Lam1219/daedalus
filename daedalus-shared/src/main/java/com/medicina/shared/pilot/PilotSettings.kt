@@ -37,7 +37,8 @@ data class PilotSettings(
      */
     fun encode(): String = listOf(
         if (enabled) ON else "0", participant, seed.toString(), enrolmentEpochDay.toString(), if (pocketReminder) "1" else "0",
-        earbudsCheckedFor.replace('|', ':'),
+        // Field 6 is always empty (round 009, #6): an older watch must never read an earbuds check.
+        "",
     ).joinToString("|")
 
     /**
@@ -61,7 +62,8 @@ data class PilotSettings(
         /** Study on, on the wire since round 006. */
         const val ON = "2"
 
-        fun isValidCode(code: String) = CODE.matches(code)
+        /** "CHECK" (any case) is the reserved test code the analysis skips (round 009, #3). */
+        fun isValidCode(code: String) = CODE.matches(code) && !code.equals("CHECK", ignoreCase = true)
         fun isValidSeed(seed: Long) = seed in 0 until Pilot.MAX_SEED
 
         /** Parses [encode]'s output; null when malformed. "1" (older phones) and "2" both mean on. */
