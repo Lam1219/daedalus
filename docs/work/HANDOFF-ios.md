@@ -254,3 +254,18 @@ Round 007 had one iOS item, 8. The branch was fast-forwarded to `feature/home-pi
 - `xcodebuild test -project Daedalus.xcodeproj -scheme SharedTests -destination 'platform=macOS'`: **TEST SUCCEEDED**, 84 tests, 0 failures, 1 skipped (the sample-file writer, which runs only when its output folder is set).
 - `xcodebuild build -scheme Daedalus -destination 'generic/platform=iOS Simulator'`: **BUILD SUCCEEDED**.
 - The simulators weren't re-run this round.
+
+Round 007 commit: e28fb3b (`cb05ba2..e28fb3b`). Round 008 had no iOS items.
+
+## Round 009 fixes
+
+Round 009 had one iOS item, 3. The branch was fast-forwarded to `feature/home-pilot` (e9cea82) first. No Python or Android files changed, and nothing else changed on iOS.
+
+| # | What changed | Test |
+|---|---|---|
+| 3 | **CHECK is refused.** The pilot code validation (`PilotDraft.applied`) now refuses `CHECK` in any letter case, after trimming spaces. It is the reserved device-check code that the analysis skips, so a participant can't be saved under it. On the iPhone, Save then shows the existing "Check the pilot code, the seed and the start date" message. | `PilotRound9Test.test3ReservedCheckCodeIsRefusedInAnyCase` (`CHECK`, `check`, `Check`, `cHeCk`, ` CHECK `) failed before the fix and passes now. `test3OtherCodesStillSave` (`P03`, `CHECK1`, `PCHECK`) checks that other codes still save. |
+
+**Validation run for round 009:**
+- `xcodebuild test -project Daedalus.xcodeproj -scheme SharedTests -destination 'platform=macOS'`: **TEST SUCCEEDED**, 86 tests, 0 failures, 1 skipped (the sample-file writer).
+- `xcodebuild build -scheme Daedalus -destination 'generic/platform=iOS Simulator'`: **BUILD SUCCEEDED**.
+- The simulators weren't re-run this round.

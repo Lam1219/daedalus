@@ -17,6 +17,7 @@
 		171FAA083AB5EB73366E3A77 /* CheckInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 314194FF54534658FF7CFD44 /* CheckInView.swift */; };
 		1862AE7F018FD71D3B2EB8C4 /* CloudBackup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0DB3DE9769F7837F7FA71D /* CloudBackup.swift */; };
 		1A4C94387363D8052A5DB52B /* TremorStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57DE24248AD40D1FCF842A08 /* TremorStream.swift */; };
+		1F09628DCA9437F8E3FBD046 /* PilotRound9Test.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80C2A6AC01E555EFF68CB575 /* PilotRound9Test.swift */; };
 		1F6C119D28201826F66E10DE /* LoginFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10A7CD730672C40D09C58F0D /* LoginFlow.swift */; };
 		27254F20BF3486EA21F3CAD7 /* PressFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96D390C29B472EE3C96985EC /* PressFile.swift */; };
 		2CD36334978480D045CBAC1B /* WatchProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6485044222FB7804202F8BD9 /* WatchProtocol.swift */; };
@@ -159,6 +160,7 @@
 		7C23B60DB03E8595B2184402 /* DaedalusApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DaedalusApp.swift; sourceTree = "<group>"; };
 		7C8AA5A878C87B0770574072 /* manrope_bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = manrope_bold.ttf; sourceTree = "<group>"; };
 		7DB004787E58EF63D34225D1 /* FogDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FogDetector.swift; sourceTree = "<group>"; };
+		80C2A6AC01E555EFF68CB575 /* PilotRound9Test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PilotRound9Test.swift; sourceTree = "<group>"; };
 		83C3B53C70907B4943E83703 /* WatchLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchLink.swift; sourceTree = "<group>"; };
 		8A98CA60806FDA7790A94004 /* DaedalusWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DaedalusWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		909E49D914C50518C3340242 /* DaedalusWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DaedalusWatchApp.swift; sourceTree = "<group>"; };
@@ -239,6 +241,7 @@
 				4F4DD6482B42D43800036190 /* PilotRound3Test.swift */,
 				409B0EFE5B6776F492AF7B9C /* PilotRound6Test.swift */,
 				7765BF28CDA8F41B6FEB8A92 /* PilotRound7Test.swift */,
+				80C2A6AC01E555EFF68CB575 /* PilotRound9Test.swift */,
 				E56E092CF5F1E59889B96D21 /* PilotRulesTest.swift */,
 				682F792BA04FECBE5145CE92 /* PressFileTest.swift */,
 			);
@@ -616,6 +619,7 @@
 				61D055F62F50254D9F0C678A /* PilotRound3Test.swift in Sources */,
 				3D2877D3A7529A951E650174 /* PilotRound6Test.swift in Sources */,
 				8D1682354E84D1A6BE857991 /* PilotRound7Test.swift in Sources */,
+				1F09628DCA9437F8E3FBD046 /* PilotRound9Test.swift in Sources */,
 				E4314BA646526766A1B22728 /* PilotRulesTest.swift in Sources */,
 				4F6389175E3F129C8D3BDDAB /* PressFile.swift in Sources */,
 				4D8A746785E0FAEEDF9FB83C /* PressFileTest.swift in Sources */,
