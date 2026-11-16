@@ -405,7 +405,7 @@
     <string name="pilot_export">Exporter les fichiers du pilote</string>
     <string name="pilot_export_chooser">Envoyer les fichiers du pilote</string>
     <string name="pilot_delete">Supprimer les fichiers du pilote</string>
-    <string name="pilot_delete_confirm">Supprimer tous les fichiers du pilote sur ce téléphone ? Exportez-les d’abord. C’est définitif.</string>
+    <string name="pilot_delete_confirm">Supprimer les fichiers du pilote sur ce téléphone seulement ? Exportez-les d’abord. C’est définitif. La montre peut encore envoyer les fichiers qu’elle n’a pas encore envoyés.</string>
     <string name="pilot_notif_channel">Pilote à domicile</string>
     <string name="pilot_notif_title">Pilote à domicile activé</string>
     <string name="pilot_notif_text">Prêt à jouer le rythme dans votre poche ou vos écouteurs</string>

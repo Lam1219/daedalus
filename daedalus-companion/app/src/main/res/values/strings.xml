@@ -401,7 +401,7 @@
     <string name="pilot_export">Export pilot files</string>
     <string name="pilot_export_chooser">Send pilot files</string>
     <string name="pilot_delete">Delete pilot files</string>
-    <string name="pilot_delete_confirm">Delete every pilot file on this phone? Export them first. This can’t be undone.</string>
+    <string name="pilot_delete_confirm">Delete the pilot files on this phone only? Export them first. This can’t be undone. The watch may still send files it hasn’t sent yet.</string>
     <string name="pilot_notif_channel">Home pilot</string>
     <string name="pilot_notif_title">Home pilot on</string>
     <string name="pilot_notif_text">Ready to play the pace in your pocket or earbuds</string>
