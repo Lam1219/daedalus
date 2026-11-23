@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="12 12 76 76" role="img" aria-label="Medicina">
+  <circle cx="50" cy="27" r="15" fill="#34452F"/>
+  <circle cx="73" cy="50" r="15" fill="#4E6447"/>
+  <circle cx="50" cy="73" r="15" fill="#34452F"/>
+  <circle cx="27" cy="50" r="15" fill="#4E6447"/>
+  <circle cx="50" cy="50" r="7" fill="#E39A62"/>
+</svg>
