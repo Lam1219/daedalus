@@ -82,6 +82,7 @@ section:not(.alt) .card { background: var(--surface); }
 
 .founder { display: grid; gap: 8px; }
 .note { color: var(--muted); font-size: 1rem; margin-top: 12px; }
+.star { color: var(--sage); margin-left: 2px; }   /* marks features still in development; see the .note under them */
 
 /* Footer */
 footer.site { padding: 32px 0 48px; color: var(--muted); font-size: 1rem; }
@@ -90,7 +91,7 @@ footer.site p { max-width: none; margin: 0 0 8px; }
 @media (max-width: 560px) {
   body { font-size: 1.125rem; }
   header.site { padding: 16px 0; }
-  header.site .wrap { gap: 8px; }
+  header.site .wrap { gap: 8px; flex-wrap: wrap; }   /* below ~330 px the nav drops under the wordmark instead of scrolling sideways */
   .wordmark { gap: 8px; font-size: 1.35rem; }
   .wordmark .mark { width: 28px; height: 28px; }
   nav.site { gap: 4px; flex-wrap: nowrap; }
