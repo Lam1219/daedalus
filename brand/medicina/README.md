@@ -18,7 +18,7 @@ Four round petals form a soft health cross, with a warm dot at the centre for th
 | `png/app-icon-512.png` | Play Store icon (Play Console takes 512 × 512 only) |
 | `png/app-icon-180.png` | Apple touch icon for websites |
 | `png/watch-icon-512.png` | Round icon for Wear OS only (it has transparent corners) |
-| `png/android-adaptive-foreground-432.png` | Android adaptive icon foreground; set the background to `#34452F` |
+| `png/android-adaptive-foreground-432.png` | Android adaptive icon foreground; set the background to `#34452F`. The mark is sized to the visible 72 of 108 dp, so it matches the App Store icon |
 | `png/mark-512.png`, `png/mark-reversed-512.png` | Transparent PNGs for slides and documents |
 
 The name is drawn as outlines, so the SVGs look the same without the font installed.

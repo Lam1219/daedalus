@@ -94,7 +94,9 @@ for px in (1024, 512, 180):
     render(icon, px, SAGE_DEEP).convert("RGB").save(png / f"app-icon-{px}.png")
 render(icon, 512, SAGE_DEEP, shape="circle").save(png / "watch-icon-512.png")
 # Android adaptive icon: foreground on transparent 432 px canvas, background is SAGE_DEEP.
-render(icon, 432).save(png / "android-adaptive-foreground-432.png")
+# Only the middle 72 of its 108 dp shows, so the 100-unit icon maps onto that middle
+# part (a 150-unit view) and the mark is the same share of the visible icon as on iOS.
+render(icon, 432, view=(-25, -25, 150)).save(png / "android-adaptive-foreground-432.png")
 tight = (12, 12, 76)
 render(bloom(SAGE_DEEP, SAGE, ACCENT), 512, view=tight).save(png / "mark-512.png")
 render(bloom(WHITE, SAGE_LIGHT, ACCENT), 512, view=tight).save(png / "mark-reversed-512.png")
