@@ -6,7 +6,7 @@ from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.transformPen import TransformPen
 from PIL import Image, ImageDraw
 
-repo = Path(sys.argv[1])
+repo = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parents[1]
 out = repo / "brand" / "medicina"
 png = out / "png"
 png.mkdir(parents=True, exist_ok=True)
@@ -31,7 +31,7 @@ def write(name, body):
     (out / name).write_text(body)
 
 # --- Wordmark as outlines (no font needed to display it) ---
-font = TTFont(repo / "website" / "fonts" / "manrope_bold.ttf")
+font = TTFont(repo / "daedalus-companion" / "app" / "src" / "main" / "res" / "font" / "manrope_bold.ttf")
 upm = font["head"].unitsPerEm
 cap = font["OS/2"].sCapHeight
 gs, cmap, hmtx = font.getGlyphSet(), font.getBestCmap(), font["hmtx"]

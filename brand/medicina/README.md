@@ -14,9 +14,10 @@ Four round petals form a soft health cross, with a warm dot at the centre for th
 | `medicina-mark-small.svg` | For 24 px and below: the centre dot is larger so it doesn't disappear |
 | `medicina-app-icon.svg` | Square, full-bleed icon (the platforms round the corners) |
 | `favicon.ico`, `png/favicon-32.png` | Website tab icon (16, 32, 48 px) |
-| `png/app-icon-1024.png` | App Store and Play Store icon |
-| `png/app-icon-512.png`, `png/app-icon-180.png` | Smaller icon sizes (180 = Apple touch icon) |
-| `png/watch-icon-512.png` | Round icon for watch faces |
+| `png/app-icon-1024.png` | App Store icon (also the Apple Watch icon: Apple wants it square and opaque, and rounds it itself) |
+| `png/app-icon-512.png` | Play Store icon (Play Console takes 512 × 512 only) |
+| `png/app-icon-180.png` | Apple touch icon for websites |
+| `png/watch-icon-512.png` | Round icon for Wear OS only (it has transparent corners) |
 | `png/android-adaptive-foreground-432.png` | Android adaptive icon foreground; set the background to `#34452F` |
 | `png/mark-512.png`, `png/mark-reversed-512.png` | Transparent PNGs for slides and documents |
 
@@ -33,11 +34,11 @@ The name is drawn as outlines, so the SVGs look the same without the font instal
 | Ink | `#1E2620` | The name |
 | Ground | `#F5F6F1` | Page background |
 
-These are the website's own colours (`website/style.css`), plus apricot.
+These are the colours of the Medicina website, plus apricot.
 
 ## Type
 
-The name is Manrope Bold in lowercase, tracked −3%. Manrope is in `website/fonts/`.
+The name is Manrope Bold in lowercase, tracked −3%. The script reads Manrope from `daedalus-companion/app/src/main/res/font/`.
 
 ## Rules
 
